@@ -1,0 +1,443 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#F4F2EC}canvas{display:block}</style></head>
+<body><canvas id="c" width="1080" height="1920"></canvas>
+<script>
+const TL = window.TIMELINE;
+const C = document.getElementById('c'), X = C.getContext('2d');
+const W = 1080, H = 1920;
+const BG = '#F4F2EC', INK = '#1F1E1D', MUTED = '#7A766D', FAINT = '#C9C4B8', LINE = '#E3DED2',
+      CARD = '#FFFFFF', ORANGE = '#D97757', ORANGE_SOFT = '#F3D9CC', RED = '#C2554B',
+      BLUE = '#6A9BCC', GREEN = '#7E9461', GOLD = '#C9A24A';
+const SERIF = 'Georgia, "Times New Roman", serif';
+const SANS = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif';
+const MONO = '"JetBrainsMono Nerd Font", Menlo, monospace';
+const S = TL.segs;
+
+// ---------- helpers ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const ease = k => { k = clamp(k); return k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; };
+const eout = k => { k = clamp(k); return 1 - Math.pow(1 - k, 3); };
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+function rr(x, y, w, h, r) { X.beginPath(); X.roundRect(x, y, w, h, r); }
+function txt(s, x, y, size, color, opts = {}) {
+  X.font = `${opts.weight || 400} ${size}px ${opts.font || SANS}`;
+  X.fillStyle = color; X.textAlign = opts.align || 'left'; X.textBaseline = opts.base || 'alphabetic';
+  X.fillText(s, x, y);
+}
+function wrap(s, maxW, size, font, weight = 400) {
+  X.font = `${weight} ${size}px ${font}`;
+  const words = s.split(' '); const lines = []; let cur = '';
+  for (const w of words) { const tr = cur ? cur + ' ' + w : w; if (X.measureText(tr).width > maxW && cur) { lines.push(cur); cur = w; } else cur = tr; }
+  if (cur) lines.push(cur); return lines;
+}
+// time at which narration reaches keyword in segment i
+function kw(i, word) { const s = S[i]; const idx = s.text.indexOf(word); return s.start + s.dur * (idx < 0 ? 0 : idx / s.text.length); }
+const segEnd = i => S[i].start + S[i].dur;
+
+// ---------- data ----------
+const R = rng(7);
+// skewed loads, max 9%, sum 100
+function skewed() { let lo = 0.1, hi = 3; let arr;
+  for (let it = 0; it < 60; it++) { const s = (lo + hi) / 2; const raw = []; for (let i = 0; i < 64; i++) raw.push(1 / Math.pow(i + 1, s) + 0.02);
+    const sum = raw.reduce((a, b) => a + b); arr = raw.map(v => v / sum * 100); if (arr[0] > 9) hi = s; else lo = s; } return arr; }
+const sk = skewed();
+const perm = [...Array(64).keys()]; { const r = rng(3); for (let i = 63; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [perm[i], perm[j]] = [perm[j], perm[i]]; } }
+const loadLow = new Array(64), loadHigh = new Array(64);
+for (let i = 0; i < 64; i++) loadLow[perm[i]] = sk[i];
+{ const r = rng(11); const raw = []; for (let i = 0; i < 64; i++) raw.push(1 + (r() - .5) * 0.36);
+  raw[perm[0]] = 1.22; const sum = raw.reduce((a, b) => a + b); for (let i = 0; i < 64; i++) loadHigh[i] = raw[i] / sum * 100; }
+const busiest = perm[0];
+const UNI = 100 / 64, CAP = 1.25 * UNI;
+// domain specialization map
+const dom = []; { const r = rng(21); for (let i = 0; i < 64; i++) { const row = Math.floor(i / 8), col = i % 8;
+  let d = col < 3 ? 0 : col < 5 ? 1 : 2; if (r() < 0.22) d = Math.floor(r() * 3); dom.push(d); } }
+const DCOL = [BLUE, GREEN, GOLD], DNAME = ['code', 'math', 'web'];
+const mix = []; { const r = rng(33); for (let i = 0; i < 64; i++) { const a = [1 + r() * .5, 1 + r() * .5, 1 + r() * .5];
+  a[dom[i]] += 0.35; const s = a[0] + a[1] + a[2]; mix.push(a.map(v => v / s)); } }
+
+// ---------- chrome ----------
+function header(label, title, t) {
+  // progress
+  const p = clamp(t / TL.total);
+  rr(90, 74, 900, 6, 3); X.fillStyle = LINE; X.fill();
+  rr(90, 74, 900 * p, 6, 3); X.fillStyle = ORANGE; X.fill();
+  // spark mark
+  X.save(); X.translate(104, 140); X.strokeStyle = ORANGE; X.lineWidth = 4; X.lineCap = 'round';
+  for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; X.beginPath(); X.moveTo(Math.cos(a) * 4, Math.sin(a) * 4); X.lineTo(Math.cos(a) * 13, Math.sin(a) * 13); X.stroke(); }
+  X.restore();
+  txt('MoE ROUTING · QUIZ', 132, 150, 26, ORANGE, { weight: 600 });
+  X.save(); X.letterSpacing = '0px'; txt(label, 990, 150, 26, MUTED, { align: 'right', weight: 500 }); X.restore();
+  txt(title, 90, 225, 56, INK, { font: SERIF });
+}
+
+function caption(t) {
+  let text, p;
+  if (t >= TL.thinkStart) { text = 'Pause here and think it through: which change keeps routing balanced and wins back the lost quality?'; p = 1; }
+  else {
+    let i = 0; for (let k = 0; k < S.length; k++) if (t >= S[k].start - 0.3) i = k;
+    text = S[i].text; p = clamp((t - S[i].start) / (S[i].dur * 0.97));
+  }
+  const size = 37, lh = 54, maxW = 880;
+  const lines = wrap(text, maxW, size, SANS, 450);
+  const bx = 70, by = 1150, bw = 940, bh = lines.length * lh + 64;
+  X.save(); X.shadowColor = 'rgba(60,50,30,0.06)'; X.shadowBlur = 30; X.shadowOffsetY = 8;
+  rr(bx, by, bw, bh, 28); X.fillStyle = CARD; X.fill(); X.restore();
+  rr(bx, by, bw, bh, 28); X.strokeStyle = LINE; X.lineWidth = 2; X.stroke();
+  const total = text.length; let seen = 0;
+  X.font = `450 ${size}px ${SANS}`; X.textBaseline = 'alphabetic'; X.textAlign = 'left';
+  lines.forEach((ln, li) => {
+    let x = bx + 30; const y = by + 32 + size + li * lh;
+    for (const w of ln.split(' ')) {
+      const done = (seen + w.length * 0.5) / total <= p;
+      X.fillStyle = done ? INK : '#BDB8AC'; X.fillText(w, x, y);
+      x += X.measureText(w + ' ').width; seen += w.length + 1;
+    }
+  });
+}
+
+function chip(x, y, s, a, col = INK, bg = CARD, size = 28) {
+  X.save(); X.globalAlpha *= a; X.font = `500 ${size}px ${SANS}`;
+  const w = X.measureText(s).width + 40; const dy = (1 - eout(a)) * 14;
+  rr(x, y + dy, w, 54, 27); X.fillStyle = bg; X.fill(); X.strokeStyle = LINE; X.lineWidth = 2; X.stroke();
+  txt(s, x + 20, y + dy + 37, size, col, { weight: 500 });
+  X.restore(); return w;
+}
+
+// ---------- scene 0: setup ----------
+const GX = 268, GY = 560, CELL = 58, GAP = 10;
+const cellXY = i => [GX + (i % 8) * (CELL + GAP), GY + Math.floor(i / 8) * (CELL + GAP)];
+function topk(seed, k) { const r = rng(seed * 97 + 5); const s = [...Array(64).keys()].map(i => [i, r()]); s.sort((a, b) => b[1] - a[1]); return s.slice(0, k).map(v => v[0]); }
+
+function sceneSetup(t) {
+  header('The setup', 'A fine-grained MoE', t);
+  const items = [['16B total', '16B'], ['2.5B active', '2.5B'], ['64 experts', '64 routed'], ['top-6', 'top-6'], ['softmax gate', 'softmax'], ['capacity 1.25', 'capacity'], ['aux loss · α', 'auxiliary']];
+  let x = 90, y = 280;
+  X.font = `500 28px ${SANS}`;
+  for (const [lab, key] of items) {
+    const w = X.measureText(lab).width + 40;
+    if (x + w > 990) { x = 90; y += 70; }
+    const a = prog(t, kw(0, key) - 0.2, kw(0, key) + 0.4);
+    const hl = lab.includes('α') ? ORANGE : INK;
+    chip(x, y, lab, a, hl); x += w + 14;
+  }
+  // grid
+  const tg = kw(0, '64 routed');
+  const tr = kw(0, 'top-6');
+  const tsoft = kw(0, 'softmax');
+  const period = 2.4; const cyc = Math.max(0, t - tr); const n = Math.floor(cyc / period); const ph = (cyc % period) / period;
+  const sel = t >= tr ? topk(n, 6) : [];
+  const weights = (() => { const r = rng(n * 13 + 1); const a = sel.map(() => Math.exp(r() * 2)); const s = a.reduce((p, q) => p + q, 0); return a.map(v => v / s); })();
+  // router & token
+  const rx = 540, ry = 480;
+  const ar = prog(t, tr - 0.5, tr + 0.2);
+  if (ar > 0) {
+    X.save(); X.globalAlpha = ar;
+    rr(rx - 90, ry - 30, 180, 60, 16); X.fillStyle = INK; X.fill();
+    txt('router', rx, ry + 10, 28, '#FFFFFF', { align: 'center', weight: 600 });
+    // token
+    const tp = eout(prog(ph, 0, 0.3));
+    const tx = lerp(140, rx - 100, tp), ty = ry;
+    X.globalAlpha = ar * (1 - prog(ph, 0.85, 1));
+    X.beginPath(); X.arc(tx, ty, 14, 0, 7); X.fillStyle = ORANGE; X.fill();
+    txt('token', 140, ry - 28, 22, MUTED, { align: 'center' });
+    X.restore();
+  }
+  for (let i = 0; i < 64; i++) {
+    const [cx, cy] = cellXY(i);
+    const a = prog(t, tg - 0.3 + (i % 8 + Math.floor(i / 8)) * 0.03, tg + 0.5 + (i % 8 + Math.floor(i / 8)) * 0.03);
+    if (a <= 0) continue;
+    X.save(); X.globalAlpha = a;
+    const k = sel.indexOf(i);
+    const lit = k >= 0 ? eout(prog(ph, 0.35 + k * 0.04, 0.5 + k * 0.04)) * (1 - prog(ph, 0.85, 1)) : 0;
+    rr(cx, cy, CELL, CELL, 12); X.fillStyle = lit > 0 ? `rgba(217,119,87,${0.15 + 0.85 * lit})` : CARD; X.fill();
+    X.strokeStyle = lit > 0 ? ORANGE : LINE; X.lineWidth = 2; X.stroke();
+    X.restore();
+  }
+  // routing lines + gate weights
+  if (sel.length) {
+    sel.forEach((e, k) => {
+      const [cx, cy] = cellXY(e); const lp = eout(prog(ph, 0.3 + k * 0.04, 0.5 + k * 0.04)) * (1 - prog(ph, 0.85, 1));
+      if (lp <= 0) return;
+      const ex = cx + CELL / 2, ey = cy + CELL / 2;
+      X.save(); X.globalAlpha = 0.9 * lp; X.strokeStyle = ORANGE; X.lineCap = 'round';
+      X.lineWidth = t >= tsoft ? 2 + weights[k] * 22 : 3;
+      X.beginPath(); X.moveTo(rx, ry + 30); X.lineTo(lerp(rx, ex, lp), lerp(ry + 30, ey, lp)); X.stroke();
+      if (t >= tsoft && lp > 0.9) { txt(weights[k].toFixed(2), ex, ey + 9, 22, '#FFFFFF', { align: 'center', weight: 700, font: MONO }); }
+      X.restore();
+    });
+  }
+  // legend
+  const al = prog(t, tsoft, tsoft + 0.6);
+  if (al > 0) { X.save(); X.globalAlpha = al; txt('6 of 64 experts per token · line width = softmax gate weight', 540, 1112, 24, MUTED, { align: 'center' }); X.restore(); }
+}
+
+// ---------- scene 1+2: loads ----------
+function sceneLoads(t) {
+  const t2 = S[2].start;
+  const second = t >= t2 - 0.4;
+  header(second ? 'α = 0.03' : 'α = 0.001', second ? 'Balanced… but worse' : 'Load piles up', t);
+  const m = ease(prog(t, t2 + 0.3, t2 + 2.6));           // morph to balanced
+  const tl = kw(2, 'validation');
+  const sh = ease(prog(t, tl - 1.2, tl));                  // shift bars up
+  const scale = lerp(64, 64, sh), base = lerp(960, 610, sh);
+  const appear = prog(t, S[1].start - 0.3, S[1].start + 1.2);
+  const x0 = 110, bw = 860 / 64;
+  // axis
+  X.save(); X.globalAlpha = appear;
+  X.strokeStyle = FAINT; X.lineWidth = 2; X.beginPath(); X.moveTo(x0 - 10, base); X.lineTo(x0 + 870, base); X.stroke();
+  txt('share of token assignments per expert', x0 - 10, base + 40, 24, MUTED);
+  // bars
+  for (let i = 0; i < 64; i++) {
+    const g = eout(prog(t, S[1].start + i * 0.012, S[1].start + 0.8 + i * 0.012));
+    const v = lerp(loadLow[i], loadHigh[i], m) * g; const h = v * scale; const x = x0 + i * bw;
+    const capH = CAP * scale;
+    X.fillStyle = i === busiest ? INK : '#9E998D';
+    if (h > capH) {
+      rr(x + 2, base - capH, bw - 4, capH, 2); X.fill();
+      X.fillStyle = RED; rr(x + 2, base - h, bw - 4, h - capH, 2); X.fill();
+    } else { rr(x + 2, base - h, bw - 4, Math.max(h, 1), 2); X.fill(); }
+  }
+  // dropped particles
+  const dropK = 1 - m;
+  if (dropK > 0.01 && !second || (second && dropK > 0.01)) {
+    for (let i = 0; i < 64; i++) {
+      const v = lerp(loadLow[i], loadHigh[i], m); if (v <= CAP) continue;
+      const x = x0 + i * bw + bw / 2; const top = base - v * scale;
+      for (let k = 0; k < 3; k++) {
+        const f = ((t * 0.55 + k * 0.33 + i * 0.17) % 1);
+        X.globalAlpha = appear * dropK * (1 - f) * 0.9;
+        X.beginPath(); X.arc(x + Math.sin(i + k * 2 + f * 3) * 10 * f, top - 6 + f * 70 - 40 * f * (1 - f), 4, 0, 7); X.fillStyle = RED; X.fill();
+      }
+    }
+    X.globalAlpha = appear;
+  }
+  // reference lines
+  const ly = (v, col, lab, dy) => {
+    const y = base - v * scale; X.setLineDash([10, 8]); X.strokeStyle = col; X.lineWidth = 2;
+    X.beginPath(); X.moveTo(x0 - 10, y); X.lineTo(x0 + 870, y); X.stroke(); X.setLineDash([]);
+  };
+  const ar = prog(t, kw(1, 'uniform') - 0.2, kw(1, 'uniform') + 0.5);
+  X.globalAlpha = appear * ar; ly(UNI, BLUE);
+  X.globalAlpha = appear * prog(t, kw(1, 'dropped') - 0.5, kw(1, 'dropped'));
+  ly(CAP, ORANGE);
+  X.globalAlpha = appear;
+  // labels on right side
+  const lblY = base - (sh > 0.5 ? 210 : 470);
+  X.globalAlpha = appear * ar; txt('— uniform 1.56%', 990, lblY, 24, BLUE, { align: 'right', weight: 600 });
+  X.globalAlpha = appear * prog(t, kw(1, 'dropped') - 0.5, kw(1, 'dropped'));
+  txt('- - capacity 1.25× ≈ 1.95%', 990, lblY + 36, 24, ORANGE, { align: 'right', weight: 600 });
+  // busiest label
+  X.globalAlpha = appear * prog(t, kw(1, 'busiest') - 0.1, kw(1, 'busiest') + 0.6);
+  const bv = lerp(loadLow[busiest], loadHigh[busiest], m);
+  const bx = x0 + busiest * bw + bw / 2, byy = base - bv * scale - 18;
+  txt(`busiest ${bv.toFixed(1)}%`, Math.min(Math.max(bx, 200), 880), byy, 28, INK, { align: 'center', weight: 700 });
+  // drop counter
+  X.globalAlpha = appear * prog(t, kw(1, 'dropped') - 0.6, kw(1, 'dropped') + 0.2);
+  const dropTxt = m < 0.5 ? `${lerp(7, 0.4, m * 2).toFixed(1)}%` : '< 0.5%';
+  const cy = base + 100;
+  txt('tokens dropped', 110, cy, 30, MUTED);
+  txt(dropTxt, 110 + 230, cy, 44, m > 0.9 ? GREEN : RED, { weight: 700, font: MONO });
+  X.restore();
+  // validation loss panel
+  const lp = prog(t, tl - 0.3, tl + 0.4);
+  if (lp > 0) {
+    X.save(); X.globalAlpha = lp;
+    const px = 90, py = 760, pw = 900, ph = 330;
+    rr(px, py, pw, ph, 24); X.fillStyle = CARD; X.fill(); X.strokeStyle = LINE; X.lineWidth = 2; X.stroke();
+    txt('validation loss  vs  tokens', px + 30, py + 50, 26, MUTED, { weight: 600 });
+    const draw = ease(prog(t, tl, tl + 2.2));
+    const f = (x, off) => py + 100 + (1 - Math.exp(-3.2 * x)) * 170 - off;
+    const curve = (off, col, w) => { X.strokeStyle = col; X.lineWidth = w; X.beginPath();
+      for (let k = 0; k <= 100 * draw; k++) { const x = k / 100; const xx = px + 40 + x * (pw - 200); const yy = f(x, off); k ? X.lineTo(xx, yy) : X.moveTo(xx, yy); } X.stroke(); };
+    curve(0, '#9E998D', 4); curve(26, ORANGE, 5);
+    if (draw > 0.95) {
+      const ex = px + 40 + (pw - 200), y1 = f(1, 0), y2 = f(1, 26);
+      txt('α = 0.001', ex + 14, y1 + 22, 22, MUTED, { weight: 600 });
+      txt('α = 0.03', ex + 14, y2 - 10, 22, ORANGE, { weight: 600 });
+      const a2 = prog(t, kw(2, '0.04') - 0.3, kw(2, '0.04') + 0.3);
+      X.globalAlpha = lp * a2;
+      X.strokeStyle = RED; X.lineWidth = 3; const bxx = px + pw - 300;
+      X.beginPath(); X.moveTo(bxx, f(0.8, 0)); X.lineTo(bxx, f(0.8, 26)); X.stroke();
+      txt('+0.04 nats', bxx - 16, f(0.8, 26) - 40, 34, RED, { align: 'right', weight: 700 });
+      txt('at equal tokens', bxx - 16, f(0.8, 26) - 8, 22, MUTED, { align: 'right' });
+    }
+    X.restore();
+  }
+}
+
+// ---------- scene 3: specialization ----------
+function sceneMI(t) {
+  header('Specialization', 'Experts stop specializing', t);
+  const s = S[3].start;
+  const tf = kw(3, 'falls');
+  const cs = 40, g = 6;
+  const grid = (ox, oy, mode, a, title, col) => {
+    X.save(); X.globalAlpha = a;
+    txt(title, ox + 4 * (cs + g) - g / 2, oy - 22, 28, col, { align: 'center', weight: 700 });
+    for (let i = 0; i < 64; i++) {
+      const x = ox + (i % 8) * (cs + g), y = oy + Math.floor(i / 8) * (cs + g);
+      const ap = eout(prog(a * 10, (i % 8) * 0.3, (i % 8) * 0.3 + 3));
+      X.save(); rr(x, y, cs, cs, 8); X.clip();
+      if (mode === 0) { X.fillStyle = DCOL[dom[i]]; X.fillRect(x, y, cs, cs); }
+      else { let yy = y; for (let d = 0; d < 3; d++) { X.fillStyle = DCOL[d]; X.fillRect(x, yy, cs, mix[i][d] * cs + 1); yy += mix[i][d] * cs; } }
+      X.restore();
+    }
+    X.restore();
+  };
+  grid(110, 340, 0, prog(t, s - 0.2, s + 1), 'α = 0.001', INK);
+  grid(602, 340, 1, prog(t, kw(3, 'domain') - 0.4, kw(3, 'domain') + 0.8), 'α = 0.03', ORANGE);
+  // legend
+  const al = prog(t, kw(3, 'code') - 0.3, kw(3, 'code') + 0.3);
+  let lx = 300;
+  for (let d = 0; d < 3; d++) {
+    const ad = prog(t, kw(3, DNAME[d]) - 0.3, kw(3, DNAME[d]) + 0.3);
+    X.save(); X.globalAlpha = ad; rr(lx, 740, 28, 28, 7); X.fillStyle = DCOL[d]; X.fill();
+    txt(DNAME[d], lx + 40, 764, 28, INK, { weight: 500 }); X.restore(); lx += 170;
+  }
+  txt('each cell = one expert, colored by which domain it serves', 540, 820, 24, MUTED, { align: 'center' });
+  // MI bars
+  const am = prog(t, kw(3, 'mutual') - 0.3, kw(3, 'mutual') + 0.5);
+  X.save(); X.globalAlpha = am;
+  txt('I(expert ; domain)', 110, 900, 30, INK, { weight: 600, font: MONO });
+  const full = 680;
+  rr(110, 930, full, 40, 10); X.fillStyle = INK; X.fill();
+  txt('α = 0.001', 110 + full + 20, 960, 24, MUTED, { weight: 600 });
+  const fp = ease(prog(t, tf, tf + 1.6));
+  const w2 = lerp(full, full * 0.3, fp);
+  rr(110, 990, w2, 40, 10); X.fillStyle = ORANGE; X.fill();
+  if (fp > 0) { X.setLineDash([8, 6]); X.strokeStyle = FAINT; X.lineWidth = 2; rr(110, 990, full, 40, 10); X.stroke(); X.setLineDash([]); }
+  txt('α = 0.03', 110 + full + 20, 1020, 24, ORANGE, { weight: 600 });
+  X.globalAlpha = am * prog(t, tf + 1, tf + 1.6);
+  txt('−70%', 110 + w2 + 24, 1022, 34, RED, { weight: 700 });
+  X.restore();
+}
+
+// ---------- scene 4: question ----------
+function sceneQuestion(t) {
+  header('The question', 'Your call', t);
+  const s = S[4].start;
+  X.save(); X.globalAlpha = prog(t, s - 0.3, s + 0.6);
+  txt('QUESTION', 540, 400, 28, ORANGE, { align: 'center', weight: 700 });
+  const lines = wrap('Which change is most likely to keep routing balanced while recovering the lost quality?', 860, 66, SERIF);
+  lines.forEach((l, i) => txt(l, 540, 500 + i * 86, 66, INK, { align: 'center', font: SERIF }));
+  X.restore();
+  const a1 = prog(t, kw(4, 'balanced') - 0.2, kw(4, 'balanced') + 0.4);
+  const a2 = prog(t, kw(4, 'recovering') - 0.2, kw(4, 'recovering') + 0.4);
+  X.font = `500 28px ${SANS}`;
+  const w1 = X.measureText('keep: balanced routing').width + 40, w2 = X.measureText('recover: −0.04 nats & specialization').width + 40;
+  chip(540 - w1 / 2, 900, 'keep: balanced routing', a1, GREEN);
+  chip(540 - w2 / 2, 976, 'recover: −0.04 nats & specialization', a2, ORANGE);
+}
+
+// ---------- scene 5-8: options ----------
+const OPTS = [
+  ['A', 'α 0.03 + capacity factor 2.0'],
+  ['B', 'α 0.001 + router z-loss'],
+  ['C', 'top-8 routing, α 0.01'],
+  ['D', 'aux loss → per-expert selection bias'],
+];
+function miniA(x, y, w, h, t, lt) {
+  const capF = lerp(1.25, 2.0, ease(prog(lt, 1.5, 4)));
+  const r = rng(5); const n = 12; const bw = (w - 40) / n; const unit = 26;
+  for (let i = 0; i < n; i++) { const v = 0.6 + r() * 1.3; const bx = x + 20 + i * bw;
+    rr(bx + 6, y + h - 30 - Math.min(v, capF) * unit * 2, bw - 12, Math.min(v, capF) * unit * 2, 4); X.fillStyle = '#9E998D'; X.fill();
+    if (v > capF) { rr(bx + 6, y + h - 30 - v * unit * 2, bw - 12, (v - capF) * unit * 2, 4); X.fillStyle = RED; X.fill(); } }
+  const cy = y + h - 30 - capF * unit * 2; X.setLineDash([10, 8]); X.strokeStyle = ORANGE; X.lineWidth = 3;
+  X.beginPath(); X.moveTo(x + 20, cy); X.lineTo(x + w - 20, cy); X.stroke(); X.setLineDash([]);
+  txt(`capacity ${capF.toFixed(2)}×`, x + w - 20, cy - 10, 24, ORANGE, { align: 'right', weight: 700 });
+  txt('α stays 0.03', x + 20, y + 30, 22, MUTED, { weight: 600 });
+}
+function miniB(x, y, w, h, t, lt) {
+  const k = ease(prog(lt, 1.5, 4.5)); const r = rng(9); const n = 14; const bw = (w - 40) / n; const mid = y + h / 2 + 20;
+  X.strokeStyle = FAINT; X.lineWidth = 2; X.beginPath(); X.moveTo(x + 20, mid); X.lineTo(x + w - 20, mid); X.stroke();
+  for (let i = 0; i < n; i++) { const v = (r() - .5) * 2 * lerp(1, 0.3, k); const bx = x + 20 + i * bw; const hh = v * 70;
+    rr(bx + 6, hh > 0 ? mid - hh : mid, bw - 12, Math.abs(hh), 4); X.fillStyle = hh > 0 ? INK : '#9E998D'; X.fill(); }
+  txt('router logits', x + 20, y + 30, 22, MUTED, { weight: 600 });
+  txt(`z-loss shrinks |logits|  ·  α ${lerp(0.03, 0.001, k).toFixed(3)}`, x + w - 20, y + 30, 22, ORANGE, { align: 'right', weight: 700 });
+}
+function miniC(x, y, w, h, t, lt) {
+  const k = prog(lt, 1.5, 3.5); const kk = k < 1 ? 6 : 8; const rx = x + 90, ry = y + h / 2 + 10;
+  rr(rx - 60, ry - 24, 120, 48, 12); X.fillStyle = INK; X.fill(); txt('router', rx, ry + 9, 22, '#FFFFFF', { align: 'center', weight: 600 });
+  for (let i = 0; i < 12; i++) { const ex = x + 260 + (i % 6) * 95, ey = y + 50 + Math.floor(i / 6) * 90;
+    const on = i < kk; const sw = i >= 6 && i < 8 ? ease(prog(lt, 3.3, 4)) : 1;
+    if (on) { X.globalAlpha *= 1; X.strokeStyle = ORANGE; X.lineWidth = 3; X.beginPath(); X.moveTo(rx + 60, ry); X.lineTo(lerp(rx + 60, ex, sw), lerp(ry, ey + 22, sw)); X.stroke(); }
+    rr(ex, ey, 44, 44, 10); X.fillStyle = on ? ORANGE_SOFT : CARD; X.fill(); X.strokeStyle = on ? ORANGE : LINE; X.lineWidth = 2; X.stroke(); }
+  txt(`top-${kk}  ·  α ${k < 1 ? '0.03' : '0.01'}`, x + w - 20, y + h - 14, 24, ORANGE, { align: 'right', weight: 700 });
+}
+function miniD(x, y, w, h, t, lt) {
+  const r = rng(13); const n = 12; const bw = (w - 40) / n; const base = y + h - 40; const k = ease(prog(lt, 2.5, 9));
+  const lineY = base - 60;
+  for (let i = 0; i < n; i++) { const v0 = 0.3 + r() * 1.5; const v = lerp(v0, 1, k * 0.85); const bx = x + 20 + i * bw;
+    rr(bx + 8, base - v * 60, bw - 16, v * 60, 4); X.fillStyle = '#9E998D'; X.fill();
+    const dir = v0 > 1 ? -1 : 1; const ap = prog(lt, 2, 3) * (1 - k * 0.6);
+    if (ap > 0 && Math.abs(v0 - 1) > 0.15) { X.save(); X.globalAlpha *= ap; const ax = bx + bw / 2, ay = base - v * 60 - 30;
+      X.strokeStyle = dir > 0 ? GREEN : RED; X.fillStyle = X.strokeStyle; X.lineWidth = 3; X.beginPath(); X.moveTo(ax, ay + 10 * dir); X.lineTo(ax, ay - 10 * dir); X.stroke();
+      X.beginPath(); X.moveTo(ax - 7, ay - 4 * dir); X.lineTo(ax + 7, ay - 4 * dir); X.lineTo(ax, ay - 14 * dir); X.fill(); X.restore(); } }
+  X.setLineDash([8, 6]); X.strokeStyle = BLUE; X.lineWidth = 2; X.beginPath(); X.moveTo(x + 20, lineY); X.lineTo(x + w - 20, lineY); X.stroke(); X.setLineDash([]);
+  txt('select: top-k(score + bᵢ)    gate: softmax(score)', x + 20, y + 30, 22, INK, { weight: 600, font: MONO });
+  txt('bᵢ nudged ± by recent load', x + w - 20, y + 64, 22, ORANGE, { align: 'right', weight: 700 });
+}
+const MINI = [miniA, miniB, miniC, miniD];
+
+function optionCards(t, active, appearT, top, collapsedH, expH, gapY) {
+  let y = top;
+  for (let i = 0; i < 4; i++) {
+    const a = prog(t, appearT[i] - 0.3, appearT[i] + 0.4);
+    const isA = i === active; const eh = isA ? expH : collapsedH;
+    X.save(); X.globalAlpha = a * (active >= 0 && !isA ? 0.55 : 1);
+    rr(90, y, 900, eh, 24); X.fillStyle = CARD; X.fill(); X.strokeStyle = isA ? ORANGE : LINE; X.lineWidth = isA ? 4 : 2; X.stroke();
+    X.beginPath(); X.arc(150, y + collapsedH / 2, 30, 0, 7); X.fillStyle = isA ? ORANGE : BG; X.fill();
+    txt(OPTS[i][0], 150, y + collapsedH / 2 + 12, 34, isA ? '#FFFFFF' : INK, { align: 'center', weight: 700, font: SERIF });
+    txt(OPTS[i][1], 205, y + collapsedH / 2 + 11, 32, INK, { weight: 500 });
+    if (isA && expH > collapsedH + 40) { X.save(); rr(90, y, 900, eh, 24); X.clip(); MINI[i](110, y + collapsedH - 6, 860, expH - collapsedH - 10, t, t - S[5 + i].start); X.restore(); }
+    X.restore();
+    y += eh + gapY;
+  }
+}
+function sceneOptions(t) {
+  let active = 0; for (let k = 5; k <= 8; k++) if (t >= S[k].start - 0.5) active = k - 5;
+  header(`Option ${OPTS[active][0]}`, 'Four candidate fixes', t);
+  optionCards(t, active, [S[5].start, S[6].start, S[7].start, S[8].start], 290, 100, 400, 22);
+}
+
+// ---------- think ----------
+function sceneThink(t) {
+  header('Your turn', 'Pause & think', t);
+  const lt = t - TL.thinkStart, T = TL.total - TL.thinkStart - 1;
+  const left = Math.max(0, Math.ceil(T - lt));
+  const cx = 540, cy = 425, r = 110;
+  X.lineWidth = 14; X.strokeStyle = LINE; X.beginPath(); X.arc(cx, cy, r, 0, Math.PI * 2); X.stroke();
+  X.strokeStyle = ORANGE; X.lineCap = 'round'; X.beginPath(); X.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * clamp(1 - lt / T)); X.stroke(); X.lineCap = 'butt';
+  txt(String(left), cx, cy + 30, 88, INK, { align: 'center', font: SERIF });
+  optionCards(t, -1, [0, 0, 0, 0], 660, 96, 96, 18);
+  const ae = prog(lt, T - 3, T - 2);
+  X.save(); X.globalAlpha = ae; txt('Comment your answer: A, B, C or D', 540, 620, 32, ORANGE, { align: 'center', weight: 700 }); X.restore();
+}
+
+// ---------- scene orchestration ----------
+const mid = (a, b) => (segEnd(a) + S[b].start) / 2;
+const SCENES = [
+  [0, mid(0, 1), sceneSetup],
+  [mid(0, 1), mid(2, 3), sceneLoads],
+  [mid(2, 3), mid(3, 4), sceneMI],
+  [mid(3, 4), mid(4, 5), sceneQuestion],
+  [mid(4, 5), TL.thinkStart - 0.2, sceneOptions],
+  [TL.thinkStart - 0.2, TL.total + 1, sceneThink],
+];
+window.render = function (t) {
+  X.setTransform(1, 0, 0, 1, 0, 0); X.globalAlpha = 1; X.fillStyle = BG; X.fillRect(0, 0, W, H);
+  // subtle dot texture
+  X.fillStyle = '#ECE9E1'; for (let y = 40; y < H; y += 60) for (let x = 30; x < W; x += 60) { X.beginPath(); X.arc(x, y, 1.6, 0, 7); X.fill(); }
+  for (const [a, b, fn] of SCENES) {
+    const fade = 0.45;
+    if (t < a - fade || t > b + fade) continue;
+    const al = Math.min(prog(t, a - fade, a + fade), 1 - prog(t, b - fade, b + fade));
+    if (al <= 0) continue;
+    X.save(); X.globalAlpha = al; fn(t); X.restore();
+  }
+  caption(t);
+};
+</script></body></html>

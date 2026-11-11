@@ -1,0 +1,60 @@
+{
+ "segs": [
+  {
+   "start": 0.8,
+   "dur": 19.901,
+   "text": "Scenario: You're training a fine-grained MoE with 16B total and 2.5B active parameters: 64 routed experts, top-6 routing, softmax gating, capacity factor 1.25, and a standard auxiliary load-balancing loss with coefficient \u03b1.",
+   "file": "audio/t_k0.wav"
+  },
+  {
+   "start": 21.451,
+   "dur": 13.461,
+   "text": "At \u03b1 = 0.001, the busiest expert receives 9% of token assignments (uniform would be 1.56%) and 7% of tokens are dropped.",
+   "file": "audio/t_k1.wav"
+  },
+  {
+   "start": 35.662,
+   "dur": 15.882,
+   "text": "At \u03b1 = 0.03, the busiest expert receives 1.9% and fewer than 0.5% of tokens are dropped, but validation loss is 0.04 nats worse at equal tokens.",
+   "file": "audio/t_k2.wav"
+  },
+  {
+   "start": 52.294,
+   "dur": 11.698,
+   "text": "At \u03b1 = 0.03, the mutual information between expert selection and data domain (code, math, web) also falls by about 70%.",
+   "file": "audio/t_k3.wav"
+  },
+  {
+   "start": 65.091,
+   "dur": 5.85,
+   "text": "Question: Which change is most likely to keep routing balanced while recovering the lost quality?",
+   "file": "audio/t_k4.wav"
+  },
+  {
+   "start": 72.041,
+   "dur": 11.784,
+   "text": "A. Keep \u03b1 = 0.03 but raise the capacity factor to 2.0, so no tokens are dropped and every token gets its full top-6 computation.",
+   "file": "audio/t_k5.wav"
+  },
+  {
+   "start": 84.576,
+   "dur": 10.457,
+   "text": "B. Go back to \u03b1 = 0.001 and add a router z-loss, keeping router logits small so routing stays soft and well-spread.",
+   "file": "audio/t_k6.wav"
+  },
+  {
+   "start": 95.782,
+   "dur": 10.718,
+   "text": "C. Switch to top-8 routing with \u03b1 = 0.01, spreading each token's load over more experts so a lower \u03b1 suffices for balance.",
+   "file": "audio/t_k7.wav"
+  },
+  {
+   "start": 107.25,
+   "dur": 16.527,
+   "text": "D. Remove most or all of the auxiliary loss. Instead, add a per-expert bias to the router scores that is used only for top-k selection (not in the gate weights) and nudged up or down each step based on that expert's recent load.",
+   "file": "audio/t_k8.wav"
+  }
+ ],
+ "thinkStart": 124.527,
+ "total": 140.53
+}
