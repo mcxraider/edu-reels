@@ -1,0 +1,21 @@
+You are training a convolutional neural network to recognize handwritten digits.
+
+Your input image passes through a convolutional layer, producing a feature map that detects patterns such as edges and curves.
+
+You then apply a two-by-two max pooling operation with a stride of two.
+
+The feature map becomes half its original height and width, but the strongest activations are preserved.
+
+Interestingly, when a feature shifts slightly within the same pooling region, the pooled output can remain unchanged.
+
+Why does max pooling behave this way, and what is its main purpose in a convolutional neural network?
+
+A. Max pooling selects the largest value in each local region, reducing spatial dimensions while providing some tolerance to small shifts.
+
+B. Max pooling averages all values in each region, making the network completely invariant to translation.
+
+C. Max pooling increases the number of learnable parameters so that the model can detect more complex features.
+
+D. Max pooling removes all spatial information, allowing the network to ignore where features appear.
+
+Which is it, and how would you verify your answer using a simple feature map?

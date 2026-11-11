@@ -1,0 +1,1442 @@
+{
+ "audio_duration": 70.682,
+ "warp": {
+  "lead_in": 1.0,
+  "inserts": [
+   {
+    "at": 11.97,
+    "dur": 0.5,
+    "after": "Your input image"
+   },
+   {
+    "at": 16.236,
+    "dur": 1.3,
+    "after": "You then apply"
+   },
+   {
+    "at": 22.053,
+    "dur": 0.7,
+    "after": "The feature map"
+   },
+   {
+    "at": 29.17,
+    "dur": 0.8,
+    "after": "Interestingly"
+   },
+   {
+    "at": 35.079,
+    "dur": 0.3,
+    "after": "Why does"
+   },
+   {
+    "at": 65.648,
+    "dur": 0.3,
+    "after": "D. "
+   }
+  ],
+  "narration_end_video": 75.582,
+  "total": 85,
+  "frames": 2550,
+  "think_seconds": 9.418
+ },
+ "voice": "Adam",
+ "voice_id": "pNInz6obpgDQGcFmaJgB",
+ "model_id": "eleven_multilingual_v2",
+ "speed": 1.1,
+ "script": "You are training a convolutional neural network to recognize handwritten digits.\n\nYour input image passes through a convolutional layer, producing a feature map that detects patterns such as edges and curves.\n\nYou then apply a two-by-two max pooling operation with a stride of two.\n\nThe feature map becomes half its original height and width, but the strongest activations are preserved.\n\nInterestingly, when a feature shifts slightly within the same pooling region, the pooled output can remain unchanged.\n\nWhy does max pooling behave this way, and what is its main purpose in a convolutional neural network?\n\nA. Max pooling selects the largest value in each local region, reducing spatial dimensions while providing some tolerance to small shifts.\n\nB. Max pooling averages all values in each region, making the network completely invariant to translation.\n\nC. Max pooling increases the number of learnable parameters so that the model can detect more complex features.\n\nD. Max pooling removes all spatial information, allowing the network to ignore where features appear.\n\nWhich is it, and how would you verify your answer using a simple feature map?",
+ "blocks": [
+  {
+   "text": "You are training a convolutional neural network to recognize handwritten digits.",
+   "char_start": 0,
+   "char_end": 80,
+   "start": 0.0,
+   "end": 4.435
+  },
+  {
+   "text": "Your input image passes through a convolutional layer, producing a feature map that detects patterns such as edges and curves.",
+   "char_start": 82,
+   "char_end": 208,
+   "start": 4.841,
+   "end": 11.738
+  },
+  {
+   "text": "You then apply a two-by-two max pooling operation with a stride of two.",
+   "char_start": 210,
+   "char_end": 281,
+   "start": 12.202,
+   "end": 16.091
+  },
+  {
+   "text": "The feature map becomes half its original height and width, but the strongest activations are preserved.",
+   "char_start": 283,
+   "char_end": 387,
+   "start": 16.381,
+   "end": 21.85
+  },
+  {
+   "text": "Interestingly, when a feature shifts slightly within the same pooling region, the pooled output can remain unchanged.",
+   "char_start": 389,
+   "char_end": 506,
+   "start": 22.256,
+   "end": 29.025
+  },
+  {
+   "text": "Why does max pooling behave this way, and what is its main purpose in a convolutional neural network?",
+   "char_start": 508,
+   "char_end": 609,
+   "start": 29.315,
+   "end": 34.76
+  },
+  {
+   "text": "A. Max pooling selects the largest value in each local region, reducing spatial dimensions while providing some tolerance to small shifts.",
+   "char_start": 611,
+   "char_end": 749,
+   "start": 35.398,
+   "end": 44.059,
+   "option": "A"
+  },
+  {
+   "text": "B. Max pooling averages all values in each region, making the network completely invariant to translation.",
+   "char_start": 751,
+   "char_end": 857,
+   "start": 44.524,
+   "end": 50.967,
+   "option": "B"
+  },
+  {
+   "text": "C. Max pooling increases the number of learnable parameters so that the model can detect more complex features.",
+   "char_start": 859,
+   "char_end": 970,
+   "start": 51.315,
+   "end": 58.096,
+   "option": "C"
+  },
+  {
+   "text": "D. Max pooling removes all spatial information, allowing the network to ignore where features appear.",
+   "char_start": 972,
+   "char_end": 1073,
+   "start": 58.839,
+   "end": 65.445,
+   "option": "D"
+  },
+  {
+   "text": "Which is it, and how would you verify your answer using a simple feature map?",
+   "char_start": 1075,
+   "char_end": 1152,
+   "start": 65.851,
+   "end": 70.681
+  }
+ ],
+ "sentences": [
+  {
+   "index": 0,
+   "text": "You are training a convolutional neural network to recognize handwritten digits.",
+   "char_start": 0,
+   "char_end": 80,
+   "start": 0.0,
+   "end": 4.435,
+   "scene": "s1_input",
+   "video_start": 1.0,
+   "video_end": 5.435
+  },
+  {
+   "index": 1,
+   "text": "Your input image passes through a convolutional layer, producing a feature map that detects patterns such as edges and curves.",
+   "char_start": 82,
+   "char_end": 208,
+   "start": 4.841,
+   "end": 11.738,
+   "scene": "s1_input",
+   "video_start": 5.841,
+   "video_end": 12.738
+  },
+  {
+   "index": 2,
+   "text": "You then apply a two-by-two max pooling operation with a stride of two.",
+   "char_start": 210,
+   "char_end": 281,
+   "start": 12.202,
+   "end": 16.091,
+   "scene": "s2_pool",
+   "video_start": 13.702,
+   "video_end": 17.591
+  },
+  {
+   "index": 3,
+   "text": "The feature map becomes half its original height and width, but the strongest activations are preserved.",
+   "char_start": 283,
+   "char_end": 387,
+   "start": 16.381,
+   "end": 21.85,
+   "scene": "s2_pool",
+   "video_start": 19.181,
+   "video_end": 24.65
+  },
+  {
+   "index": 4,
+   "text": "Interestingly, when a feature shifts slightly within the same pooling region, the pooled output can remain unchanged.",
+   "char_start": 389,
+   "char_end": 506,
+   "start": 22.256,
+   "end": 29.025,
+   "scene": "s3_shift",
+   "video_start": 25.756,
+   "video_end": 32.525
+  },
+  {
+   "index": 5,
+   "text": "Why does max pooling behave this way, and what is its main purpose in a convolutional neural network?",
+   "char_start": 508,
+   "char_end": 609,
+   "start": 29.315,
+   "end": 34.76,
+   "scene": "s4_question",
+   "video_start": 33.615,
+   "video_end": 39.06
+  },
+  {
+   "index": 6,
+   "text": "A. Max pooling selects the largest value in each local region, reducing spatial dimensions while providing some tolerance to small shifts.",
+   "char_start": 611,
+   "char_end": 749,
+   "start": 35.398,
+   "end": 44.059,
+   "scene": "s4_question",
+   "video_start": 39.998,
+   "video_end": 48.659
+  },
+  {
+   "index": 7,
+   "text": "B. Max pooling averages all values in each region, making the network completely invariant to translation.",
+   "char_start": 751,
+   "char_end": 857,
+   "start": 44.524,
+   "end": 50.967,
+   "scene": "s4_question",
+   "video_start": 49.124,
+   "video_end": 55.567
+  },
+  {
+   "index": 8,
+   "text": "C. Max pooling increases the number of learnable parameters so that the model can detect more complex features.",
+   "char_start": 859,
+   "char_end": 970,
+   "start": 51.315,
+   "end": 58.096,
+   "scene": "s4_question",
+   "video_start": 55.915,
+   "video_end": 62.696
+  },
+  {
+   "index": 9,
+   "text": "D. Max pooling removes all spatial information, allowing the network to ignore where features appear.",
+   "char_start": 972,
+   "char_end": 1073,
+   "start": 58.839,
+   "end": 65.445,
+   "scene": "s4_question",
+   "video_start": 63.439,
+   "video_end": 70.045
+  },
+  {
+   "index": 10,
+   "text": "Which is it, and how would you verify your answer using a simple feature map?",
+   "char_start": 1075,
+   "char_end": 1152,
+   "start": 65.851,
+   "end": 70.681,
+   "scene": "s5_think",
+   "video_start": 70.751,
+   "video_end": 75.581
+  }
+ ],
+ "cues": {
+  "cnn": {
+   "phrase": "convolutional neural network to recognize",
+   "start": 0.859,
+   "end": 3.158
+  },
+  "digits": {
+   "phrase": "handwritten digits",
+   "start": 3.216,
+   "end": 4.296
+  },
+  "input": {
+   "phrase": "Your input image",
+   "start": 4.841,
+   "end": 5.735
+  },
+  "conv_layer": {
+   "phrase": "a convolutional layer",
+   "start": 6.478,
+   "end": 7.686
+  },
+  "feature_map": {
+   "phrase": "producing a feature map",
+   "start": 7.953,
+   "end": 9.091
+  },
+  "edges": {
+   "phrase": "edges and curves",
+   "start": 10.577,
+   "end": 11.633
+  },
+  "pool": {
+   "phrase": "two-by-two max pooling",
+   "start": 13.142,
+   "end": 14.477
+  },
+  "stride": {
+   "phrase": "stride of two",
+   "start": 15.29,
+   "end": 15.928
+  },
+  "half": {
+   "phrase": "half its original height and width",
+   "start": 17.507,
+   "end": 19.098
+  },
+  "strongest": {
+   "phrase": "strongest activations are preserved",
+   "start": 19.737,
+   "end": 21.71
+  },
+  "shift": {
+   "phrase": "a feature shifts slightly",
+   "start": 23.487,
+   "end": 24.671
+  },
+  "same_region": {
+   "phrase": "within the same pooling region",
+   "start": 24.729,
+   "end": 26.285
+  },
+  "unchanged": {
+   "phrase": "remain unchanged",
+   "start": 27.759,
+   "end": 28.943
+  },
+  "question": {
+   "phrase": "Why does max pooling behave",
+   "start": 29.315,
+   "end": 30.766
+  },
+  "purpose": {
+   "phrase": "what is its main purpose",
+   "start": 31.602,
+   "end": 32.763
+  },
+  "opt_A": {
+   "phrase": "A. Max pooling",
+   "start": 35.398,
+   "end": 36.943
+  },
+  "opt_B": {
+   "phrase": "B. Max pooling",
+   "start": 44.524,
+   "end": 45.917
+  },
+  "opt_C": {
+   "phrase": "C. Max pooling",
+   "start": 51.315,
+   "end": 52.778
+  },
+  "opt_D": {
+   "phrase": "D. Max pooling",
+   "start": 58.839,
+   "end": 60.487
+  },
+  "final_q": {
+   "phrase": "Which is it",
+   "start": 65.851,
+   "end": 66.455
+  },
+  "verify": {
+   "phrase": "simple feature map",
+   "start": 68.765,
+   "end": 69.741
+  }
+ },
+ "words": [
+  {
+   "w": "You",
+   "char_start": 0,
+   "start": 0.0,
+   "end": 0.151
+  },
+  {
+   "w": "are",
+   "char_start": 4,
+   "start": 0.209,
+   "end": 0.325
+  },
+  {
+   "w": "training",
+   "char_start": 8,
+   "start": 0.36,
+   "end": 0.697
+  },
+  {
+   "w": "a",
+   "char_start": 17,
+   "start": 0.755,
+   "end": 0.778
+  },
+  {
+   "w": "convolutional",
+   "char_start": 19,
+   "start": 0.859,
+   "end": 1.591
+  },
+  {
+   "w": "neural",
+   "char_start": 33,
+   "start": 1.649,
+   "end": 1.916
+  },
+  {
+   "w": "network",
+   "char_start": 40,
+   "start": 1.974,
+   "end": 2.357
+  },
+  {
+   "w": "to",
+   "char_start": 48,
+   "start": 2.415,
+   "end": 2.473
+  },
+  {
+   "w": "recognize",
+   "char_start": 51,
+   "start": 2.577,
+   "end": 3.158
+  },
+  {
+   "w": "handwritten",
+   "char_start": 61,
+   "start": 3.216,
+   "end": 3.762
+  },
+  {
+   "w": "digits.",
+   "char_start": 73,
+   "start": 3.82,
+   "end": 4.435
+  },
+  {
+   "w": "Your",
+   "char_start": 82,
+   "start": 4.841,
+   "end": 5.016
+  },
+  {
+   "w": "input",
+   "char_start": 87,
+   "start": 5.074,
+   "end": 5.387
+  },
+  {
+   "w": "image",
+   "char_start": 93,
+   "start": 5.445,
+   "end": 5.735
+  },
+  {
+   "w": "passes",
+   "char_start": 99,
+   "start": 5.782,
+   "end": 6.142
+  },
+  {
+   "w": "through",
+   "char_start": 106,
+   "start": 6.188,
+   "end": 6.444
+  },
+  {
+   "w": "a",
+   "char_start": 114,
+   "start": 6.478,
+   "end": 6.513
+  },
+  {
+   "w": "convolutional",
+   "char_start": 116,
+   "start": 6.571,
+   "end": 7.314
+  },
+  {
+   "w": "layer,",
+   "char_start": 130,
+   "start": 7.372,
+   "end": 7.848
+  },
+  {
+   "w": "producing",
+   "char_start": 137,
+   "start": 7.953,
+   "end": 8.371
+  },
+  {
+   "w": "a",
+   "char_start": 147,
+   "start": 8.417,
+   "end": 8.44
+  },
+  {
+   "w": "feature",
+   "char_start": 149,
+   "start": 8.499,
+   "end": 8.835
+  },
+  {
+   "w": "map",
+   "char_start": 157,
+   "start": 8.87,
+   "end": 9.091
+  },
+  {
+   "w": "that",
+   "char_start": 161,
+   "start": 9.149,
+   "end": 9.276
+  },
+  {
+   "w": "detects",
+   "char_start": 166,
+   "start": 9.323,
+   "end": 9.671
+  },
+  {
+   "w": "patterns",
+   "char_start": 174,
+   "start": 9.729,
+   "end": 10.159
+  },
+  {
+   "w": "such",
+   "char_start": 183,
+   "start": 10.205,
+   "end": 10.379
+  },
+  {
+   "w": "as",
+   "char_start": 188,
+   "start": 10.414,
+   "end": 10.495
+  },
+  {
+   "w": "edges",
+   "char_start": 191,
+   "start": 10.577,
+   "end": 10.902
+  },
+  {
+   "w": "and",
+   "char_start": 197,
+   "start": 10.948,
+   "end": 11.041
+  },
+  {
+   "w": "curves.",
+   "char_start": 201,
+   "start": 11.122,
+   "end": 11.738
+  },
+  {
+   "w": "You",
+   "char_start": 210,
+   "start": 12.202,
+   "end": 12.33
+  },
+  {
+   "w": "then",
+   "char_start": 214,
+   "start": 12.388,
+   "end": 12.527
+  },
+  {
+   "w": "apply",
+   "char_start": 219,
+   "start": 12.574,
+   "end": 12.945
+  },
+  {
+   "w": "a",
+   "char_start": 225,
+   "start": 13.026,
+   "end": 13.072
+  },
+  {
+   "w": "two-by-two",
+   "char_start": 227,
+   "start": 13.142,
+   "end": 13.746
+  },
+  {
+   "w": "max",
+   "char_start": 238,
+   "start": 13.85,
+   "end": 14.094
+  },
+  {
+   "w": "pooling",
+   "char_start": 242,
+   "start": 14.152,
+   "end": 14.477
+  },
+  {
+   "w": "operation",
+   "char_start": 250,
+   "start": 14.535,
+   "end": 15.023
+  },
+  {
+   "w": "with",
+   "char_start": 260,
+   "start": 15.069,
+   "end": 15.197
+  },
+  {
+   "w": "a",
+   "char_start": 265,
+   "start": 15.232,
+   "end": 15.255
+  },
+  {
+   "w": "stride",
+   "char_start": 267,
+   "start": 15.29,
+   "end": 15.58
+  },
+  {
+   "w": "of",
+   "char_start": 274,
+   "start": 15.603,
+   "end": 15.661
+  },
+  {
+   "w": "two.",
+   "char_start": 277,
+   "start": 15.708,
+   "end": 16.091
+  },
+  {
+   "w": "The",
+   "char_start": 283,
+   "start": 16.381,
+   "end": 16.497
+  },
+  {
+   "w": "feature",
+   "char_start": 287,
+   "start": 16.555,
+   "end": 16.869
+  },
+  {
+   "w": "map",
+   "char_start": 295,
+   "start": 16.904,
+   "end": 17.089
+  },
+  {
+   "w": "becomes",
+   "char_start": 299,
+   "start": 17.148,
+   "end": 17.461
+  },
+  {
+   "w": "half",
+   "char_start": 307,
+   "start": 17.507,
+   "end": 17.693
+  },
+  {
+   "w": "its",
+   "char_start": 312,
+   "start": 17.751,
+   "end": 17.867
+  },
+  {
+   "w": "original",
+   "char_start": 316,
+   "start": 17.902,
+   "end": 18.297
+  },
+  {
+   "w": "height",
+   "char_start": 325,
+   "start": 18.355,
+   "end": 18.587
+  },
+  {
+   "w": "and",
+   "char_start": 332,
+   "start": 18.634,
+   "end": 18.715
+  },
+  {
+   "w": "width,",
+   "char_start": 336,
+   "start": 18.773,
+   "end": 19.261
+  },
+  {
+   "w": "but",
+   "char_start": 343,
+   "start": 19.446,
+   "end": 19.597
+  },
+  {
+   "w": "the",
+   "char_start": 347,
+   "start": 19.62,
+   "end": 19.69
+  },
+  {
+   "w": "strongest",
+   "char_start": 351,
+   "start": 19.737,
+   "end": 20.213
+  },
+  {
+   "w": "activations",
+   "char_start": 361,
+   "start": 20.271,
+   "end": 20.909
+  },
+  {
+   "w": "are",
+   "char_start": 373,
+   "start": 20.956,
+   "end": 21.06
+  },
+  {
+   "w": "preserved.",
+   "char_start": 377,
+   "start": 21.095,
+   "end": 21.85
+  },
+  {
+   "w": "Interestingly,",
+   "char_start": 389,
+   "start": 22.256,
+   "end": 23.115
+  },
+  {
+   "w": "when",
+   "char_start": 404,
+   "start": 23.278,
+   "end": 23.452
+  },
+  {
+   "w": "a",
+   "char_start": 409,
+   "start": 23.487,
+   "end": 23.51
+  },
+  {
+   "w": "feature",
+   "char_start": 411,
+   "start": 23.568,
+   "end": 23.905
+  },
+  {
+   "w": "shifts",
+   "char_start": 419,
+   "start": 23.939,
+   "end": 24.23
+  },
+  {
+   "w": "slightly",
+   "char_start": 426,
+   "start": 24.264,
+   "end": 24.671
+  },
+  {
+   "w": "within",
+   "char_start": 435,
+   "start": 24.729,
+   "end": 24.984
+  },
+  {
+   "w": "the",
+   "char_start": 442,
+   "start": 25.042,
+   "end": 25.112
+  },
+  {
+   "w": "same",
+   "char_start": 446,
+   "start": 25.158,
+   "end": 25.437
+  },
+  {
+   "w": "pooling",
+   "char_start": 451,
+   "start": 25.495,
+   "end": 25.855
+  },
+  {
+   "w": "region,",
+   "char_start": 459,
+   "start": 25.913,
+   "end": 26.424
+  },
+  {
+   "w": "the",
+   "char_start": 467,
+   "start": 26.644,
+   "end": 26.737
+  },
+  {
+   "w": "pooled",
+   "char_start": 471,
+   "start": 26.784,
+   "end": 27.074
+  },
+  {
+   "w": "output",
+   "char_start": 478,
+   "start": 27.12,
+   "end": 27.492
+  },
+  {
+   "w": "can",
+   "char_start": 485,
+   "start": 27.55,
+   "end": 27.701
+  },
+  {
+   "w": "remain",
+   "char_start": 489,
+   "start": 27.759,
+   "end": 28.119
+  },
+  {
+   "w": "unchanged.",
+   "char_start": 496,
+   "start": 28.223,
+   "end": 29.025
+  },
+  {
+   "w": "Why",
+   "char_start": 508,
+   "start": 29.315,
+   "end": 29.466
+  },
+  {
+   "w": "does",
+   "char_start": 512,
+   "start": 29.524,
+   "end": 29.663
+  },
+  {
+   "w": "max",
+   "char_start": 517,
+   "start": 29.721,
+   "end": 29.965
+  },
+  {
+   "w": "pooling",
+   "char_start": 521,
+   "start": 30.023,
+   "end": 30.36
+  },
+  {
+   "w": "behave",
+   "char_start": 529,
+   "start": 30.418,
+   "end": 30.766
+  },
+  {
+   "w": "this",
+   "char_start": 536,
+   "start": 30.812,
+   "end": 30.963
+  },
+  {
+   "w": "way,",
+   "char_start": 541,
+   "start": 31.033,
+   "end": 31.347
+  },
+  {
+   "w": "and",
+   "char_start": 546,
+   "start": 31.416,
+   "end": 31.556
+  },
+  {
+   "w": "what",
+   "char_start": 550,
+   "start": 31.602,
+   "end": 31.741
+  },
+  {
+   "w": "is",
+   "char_start": 555,
+   "start": 31.788,
+   "end": 31.869
+  },
+  {
+   "w": "its",
+   "char_start": 558,
+   "start": 31.927,
+   "end": 32.055
+  },
+  {
+   "w": "main",
+   "char_start": 562,
+   "start": 32.113,
+   "end": 32.31
+  },
+  {
+   "w": "purpose",
+   "char_start": 567,
+   "start": 32.38,
+   "end": 32.763
+  },
+  {
+   "w": "in",
+   "char_start": 575,
+   "start": 32.809,
+   "end": 32.891
+  },
+  {
+   "w": "a",
+   "char_start": 578,
+   "start": 32.925,
+   "end": 32.96
+  },
+  {
+   "w": "convolutional",
+   "char_start": 580,
+   "start": 33.018,
+   "end": 33.727
+  },
+  {
+   "w": "neural",
+   "char_start": 594,
+   "start": 33.808,
+   "end": 34.11
+  },
+  {
+   "w": "network?",
+   "char_start": 601,
+   "start": 34.168,
+   "end": 34.76
+  },
+  {
+   "w": "A.",
+   "char_start": 611,
+   "start": 35.398,
+   "end": 35.909
+  },
+  {
+   "w": "Max",
+   "char_start": 614,
+   "start": 36.258,
+   "end": 36.525
+  },
+  {
+   "w": "pooling",
+   "char_start": 618,
+   "start": 36.583,
+   "end": 36.943
+  },
+  {
+   "w": "selects",
+   "char_start": 626,
+   "start": 37.001,
+   "end": 37.372
+  },
+  {
+   "w": "the",
+   "char_start": 634,
+   "start": 37.43,
+   "end": 37.511
+  },
+  {
+   "w": "largest",
+   "char_start": 638,
+   "start": 37.569,
+   "end": 37.964
+  },
+  {
+   "w": "value",
+   "char_start": 646,
+   "start": 38.022,
+   "end": 38.452
+  },
+  {
+   "w": "in",
+   "char_start": 652,
+   "start": 38.487,
+   "end": 38.568
+  },
+  {
+   "w": "each",
+   "char_start": 655,
+   "start": 38.638,
+   "end": 38.847
+  },
+  {
+   "w": "local",
+   "char_start": 660,
+   "start": 38.916,
+   "end": 39.206
+  },
+  {
+   "w": "region,",
+   "char_start": 666,
+   "start": 39.265,
+   "end": 39.775
+  },
+  {
+   "w": "reducing",
+   "char_start": 674,
+   "start": 39.996,
+   "end": 40.414
+  },
+  {
+   "w": "spatial",
+   "char_start": 683,
+   "start": 40.483,
+   "end": 40.855
+  },
+  {
+   "w": "dimensions",
+   "char_start": 691,
+   "start": 40.913,
+   "end": 41.459
+  },
+  {
+   "w": "while",
+   "char_start": 702,
+   "start": 41.505,
+   "end": 41.726
+  },
+  {
+   "w": "providing",
+   "char_start": 708,
+   "start": 41.772,
+   "end": 42.213
+  },
+  {
+   "w": "some",
+   "char_start": 718,
+   "start": 42.271,
+   "end": 42.469
+  },
+  {
+   "w": "tolerance",
+   "char_start": 723,
+   "start": 42.515,
+   "end": 43.026
+  },
+  {
+   "w": "to",
+   "char_start": 733,
+   "start": 43.061,
+   "end": 43.13
+  },
+  {
+   "w": "small",
+   "char_start": 736,
+   "start": 43.188,
+   "end": 43.444
+  },
+  {
+   "w": "shifts.",
+   "char_start": 742,
+   "start": 43.502,
+   "end": 44.059
+  },
+  {
+   "w": "B.",
+   "char_start": 751,
+   "start": 44.524,
+   "end": 44.942
+  },
+  {
+   "w": "Max",
+   "char_start": 754,
+   "start": 45.29,
+   "end": 45.557
+  },
+  {
+   "w": "pooling",
+   "char_start": 758,
+   "start": 45.615,
+   "end": 45.917
+  },
+  {
+   "w": "averages",
+   "char_start": 766,
+   "start": 45.975,
+   "end": 46.346
+  },
+  {
+   "w": "all",
+   "char_start": 775,
+   "start": 46.393,
+   "end": 46.532
+  },
+  {
+   "w": "values",
+   "char_start": 779,
+   "start": 46.59,
+   "end": 46.962
+  },
+  {
+   "w": "in",
+   "char_start": 786,
+   "start": 47.008,
+   "end": 47.066
+  },
+  {
+   "w": "each",
+   "char_start": 789,
+   "start": 47.113,
+   "end": 47.275
+  },
+  {
+   "w": "region,",
+   "char_start": 794,
+   "start": 47.333,
+   "end": 47.798
+  },
+  {
+   "w": "making",
+   "char_start": 802,
+   "start": 47.96,
+   "end": 48.239
+  },
+  {
+   "w": "the",
+   "char_start": 809,
+   "start": 48.285,
+   "end": 48.355
+  },
+  {
+   "w": "network",
+   "char_start": 813,
+   "start": 48.413,
+   "end": 48.808
+  },
+  {
+   "w": "completely",
+   "char_start": 821,
+   "start": 48.866,
+   "end": 49.423
+  },
+  {
+   "w": "invariant",
+   "char_start": 832,
+   "start": 49.481,
+   "end": 50.015
+  },
+  {
+   "w": "to",
+   "char_start": 842,
+   "start": 50.05,
+   "end": 50.108
+  },
+  {
+   "w": "translation.",
+   "char_start": 845,
+   "start": 50.166,
+   "end": 50.967
+  },
+  {
+   "w": "C.",
+   "char_start": 859,
+   "start": 51.315,
+   "end": 51.768
+  },
+  {
+   "w": "Max",
+   "char_start": 862,
+   "start": 52.116,
+   "end": 52.384
+  },
+  {
+   "w": "pooling",
+   "char_start": 866,
+   "start": 52.442,
+   "end": 52.778
+  },
+  {
+   "w": "increases",
+   "char_start": 874,
+   "start": 52.836,
+   "end": 53.347
+  },
+  {
+   "w": "the",
+   "char_start": 884,
+   "start": 53.405,
+   "end": 53.475
+  },
+  {
+   "w": "number",
+   "char_start": 888,
+   "start": 53.533,
+   "end": 53.812
+  },
+  {
+   "w": "of",
+   "char_start": 895,
+   "start": 53.87,
+   "end": 53.928
+  },
+  {
+   "w": "learnable",
+   "char_start": 898,
+   "start": 54.009,
+   "end": 54.439
+  },
+  {
+   "w": "parameters",
+   "char_start": 908,
+   "start": 54.485,
+   "end": 55.158
+  },
+  {
+   "w": "so",
+   "char_start": 919,
+   "start": 55.321,
+   "end": 55.437
+  },
+  {
+   "w": "that",
+   "char_start": 922,
+   "start": 55.495,
+   "end": 55.623
+  },
+  {
+   "w": "the",
+   "char_start": 927,
+   "start": 55.658,
+   "end": 55.727
+  },
+  {
+   "w": "model",
+   "char_start": 931,
+   "start": 55.785,
+   "end": 56.064
+  },
+  {
+   "w": "can",
+   "char_start": 937,
+   "start": 56.111,
+   "end": 56.227
+  },
+  {
+   "w": "detect",
+   "char_start": 941,
+   "start": 56.273,
+   "end": 56.587
+  },
+  {
+   "w": "more",
+   "char_start": 948,
+   "start": 56.645,
+   "end": 56.819
+  },
+  {
+   "w": "complex",
+   "char_start": 953,
+   "start": 56.865,
+   "end": 57.353
+  },
+  {
+   "w": "features.",
+   "char_start": 961,
+   "start": 57.422,
+   "end": 58.096
+  },
+  {
+   "w": "D.",
+   "char_start": 972,
+   "start": 58.839,
+   "end": 59.408
+  },
+  {
+   "w": "Max",
+   "char_start": 975,
+   "start": 59.814,
+   "end": 60.081
+  },
+  {
+   "w": "pooling",
+   "char_start": 979,
+   "start": 60.139,
+   "end": 60.487
+  },
+  {
+   "w": "removes",
+   "char_start": 987,
+   "start": 60.546,
+   "end": 60.929
+  },
+  {
+   "w": "all",
+   "char_start": 995,
+   "start": 60.987,
+   "end": 61.184
+  },
+  {
+   "w": "spatial",
+   "char_start": 999,
+   "start": 61.242,
+   "end": 61.614
+  },
+  {
+   "w": "information,",
+   "char_start": 1007,
+   "start": 61.672,
+   "end": 62.438
+  },
+  {
+   "w": "allowing",
+   "char_start": 1020,
+   "start": 62.6,
+   "end": 63.03
+  },
+  {
+   "w": "the",
+   "char_start": 1029,
+   "start": 63.076,
+   "end": 63.146
+  },
+  {
+   "w": "network",
+   "char_start": 1033,
+   "start": 63.204,
+   "end": 63.587
+  },
+  {
+   "w": "to",
+   "char_start": 1041,
+   "start": 63.645,
+   "end": 63.727
+  },
+  {
+   "w": "ignore",
+   "char_start": 1044,
+   "start": 63.796,
+   "end": 64.191
+  },
+  {
+   "w": "where",
+   "char_start": 1051,
+   "start": 64.226,
+   "end": 64.423
+  },
+  {
+   "w": "features",
+   "char_start": 1057,
+   "start": 64.47,
+   "end": 64.841
+  },
+  {
+   "w": "appear.",
+   "char_start": 1066,
+   "start": 64.876,
+   "end": 65.445
+  },
+  {
+   "w": "Which",
+   "char_start": 1075,
+   "start": 65.851,
+   "end": 66.083
+  },
+  {
+   "w": "is",
+   "char_start": 1081,
+   "start": 66.142,
+   "end": 66.246
+  },
+  {
+   "w": "it,",
+   "char_start": 1084,
+   "start": 66.304,
+   "end": 66.594
+  },
+  {
+   "w": "and",
+   "char_start": 1088,
+   "start": 66.78,
+   "end": 66.919
+  },
+  {
+   "w": "how",
+   "char_start": 1092,
+   "start": 66.977,
+   "end": 67.082
+  },
+  {
+   "w": "would",
+   "char_start": 1096,
+   "start": 67.117,
+   "end": 67.244
+  },
+  {
+   "w": "you",
+   "char_start": 1102,
+   "start": 67.279,
+   "end": 67.349
+  },
+  {
+   "w": "verify",
+   "char_start": 1106,
+   "start": 67.395,
+   "end": 67.79
+  },
+  {
+   "w": "your",
+   "char_start": 1113,
+   "start": 67.848,
+   "end": 67.964
+  },
+  {
+   "w": "answer",
+   "char_start": 1118,
+   "start": 68.022,
+   "end": 68.324
+  },
+  {
+   "w": "using",
+   "char_start": 1125,
+   "start": 68.394,
+   "end": 68.638
+  },
+  {
+   "w": "a",
+   "char_start": 1131,
+   "start": 68.684,
+   "end": 68.707
+  },
+  {
+   "w": "simple",
+   "char_start": 1133,
+   "start": 68.765,
+   "end": 69.067
+  },
+  {
+   "w": "feature",
+   "char_start": 1140,
+   "start": 69.114,
+   "end": 69.427
+  },
+  {
+   "w": "map?",
+   "char_start": 1148,
+   "start": 69.462,
+   "end": 70.681
+  }
+ ]
+}
