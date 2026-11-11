@@ -1,0 +1,67 @@
+Have you ever wondered why even the most powerful GPUs still generate LLM responses one token at a time?
+
+Here's the problem.
+
+In a standard autoregressive Transformer, predicting the next token requires running the entire model forward.
+
+And you can't generate the following token until the previous one has been determined.
+
+That means producing five tokens typically requires five sequential forward passes.
+
+But what if we could predict several future tokens cheaply, and verify them together?
+
+That's the idea behind speculative decoding.
+
+We introduce two models: a small draft model and a large target model.
+
+The draft model proposes several possible future tokens.
+
+Instead of generating every token individually, the large model processes the proposed sequence in a single verification pass.
+
+Using the appropriate acceptance procedure, correct proposals are retained, while rejected proposals are discarded and generation continues from the corrected prefix.
+
+The important insight is that verifying multiple positions together can be cheaper than generating them sequentially with the large model.
+
+But there's a challenge.
+
+If the draft model frequently predicts tokens that the target model rejects, we lose much of the speed advantage.
+
+This is where EAGLE-3 comes in.
+
+Rather than relying on an entirely independent drafting model, EAGLE-3 uses information from the large model's own internal representations.
+
+Specifically, it combines hidden-state features from multiple Transformer layers to provide a richer signal for the lightweight draft model.
+
+Unlike earlier EAGLE methods that focus on predicting future features, EAGLE-3 trains its draft model to predict tokens directly.
+
+Now imagine the draft model proposing several possible continuations.
+
+Instead of creating just one linear sequence, we can organize candidate continuations into a tree.
+
+Each branch represents a different possible sequence of future tokens.
+
+The large target model then verifies the tree using a specially constructed attention mask.
+
+Each candidate can attend to the shared prompt and its own ancestors, but not to unrelated branches.
+
+This allows multiple candidate paths to be evaluated in one target-model pass.
+
+The verification procedure determines which proposed tokens can be accepted, and generation continues from the accepted prefix.
+
+And here's the clever part.
+
+EAGLE-3's training-time test approach exposes the draft model to its own rollout behavior during training, helping it learn to make better predictions when drafting repeatedly.
+
+More accurate proposals mean longer accepted continuations, fewer expensive target-model calls, and potentially faster generation.
+
+In the original EAGLE-3 paper, the researchers reported speedups of up to six point five times in their evaluated settings.
+
+Actual acceleration depends on the model, hardware, workload, and acceptance rate.
+
+So the big idea is simple.
+
+Don't make the expensive model generate every token from scratch.
+
+Let a lightweight model speculate, then let the large model verify.
+
+That's how EAGLE-3 can accelerate LLM decoding without changing the target model's intended output distribution when the appropriate verification procedure is used.

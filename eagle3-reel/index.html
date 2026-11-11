@@ -1,0 +1,1171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How EAGLE-3 Speculative Decoding Works — animated reel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin: 0; background: #1f1d1a; color: #eee; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  #wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px; }
+  canvas { height: calc(100vh - 96px); aspect-ratio: 9 / 16; background: #FAF9F6; border-radius: 8px; box-shadow: 0 6px 30px rgba(0,0,0,.4); }
+  #ui { display: flex; gap: 10px; align-items: center; width: min(92vw, 760px); font-size: 13px; }
+  #ui button { background: #C15F3C; color: #fff; border: 0; border-radius: 6px; padding: 7px 14px; font-weight: 600; cursor: pointer; }
+  #ui input[type=range] { flex: 1; accent-color: #C15F3C; }
+  #ui span { font-variant-numeric: tabular-nums; min-width: 120px; text-align: right; }
+  #ui select { background: #2b2926; color: #eee; border: 1px solid #555; border-radius: 4px; }
+  body.rendering #ui { display: none; }
+  body.rendering #wrap { padding: 0; }
+  body.rendering canvas { height: auto; width: 1080px; border-radius: 0; box-shadow: none; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c" width="1080" height="1920"></canvas>
+  <div id="ui">
+    <button id="play">Play</button>
+    <button id="back" title="-5 s">−5s</button>
+    <input id="seek" type="range" min="0" max="1" step="0.001" value="0">
+    <select id="jump" title="Jump to scene"></select>
+    <span id="time">0.00 / 0.00</span>
+  </div>
+</div>
+<audio id="audio" src="output/audio_final.m4a" preload="auto"></audio>
+
+<!-- DATA:BEGIN (injected by `node render.mjs --inject` from timings.json) -->
+<script id="data">window.TIMING = {"source":"audio/narration.wav","duration":168.479,"method":"whisper-1 word anchors + Needleman-Wunsch alignment to narration.txt + RMS pause snapping","timeline":{"lead_in":1,"tail_hold":4,"fps":30,"total":173.479},"sentences":[{"i":0,"text":"Have you ever wondered why even the most powerful GPUs still generate LLM responses one token at a time?","start":0,"end":6.27,"words":[{"w":"Have","start":0,"end":0.2,"matched":true},{"w":"you","start":0.2,"end":0.32,"matched":true},{"w":"ever","start":0.32,"end":0.7,"matched":true},{"w":"wondered","start":0.7,"end":0.82,"matched":true},{"w":"why","start":0.82,"end":1.08,"matched":true},{"w":"even","start":1.08,"end":1.38,"matched":true},{"w":"the","start":1.38,"end":1.54,"matched":true},{"w":"most","start":1.54,"end":1.84,"matched":true},{"w":"powerful","start":1.84,"end":2.24,"matched":true},{"w":"GPUs","start":2.24,"end":3.06,"matched":true},{"w":"still","start":3.06,"end":3.5,"matched":true},{"w":"generate","start":3.5,"end":3.84,"matched":true},{"w":"LLM","start":3.84,"end":4.44,"matched":true},{"w":"responses","start":4.44,"end":4.86,"matched":true},{"w":"one","start":4.86,"end":5.32,"matched":true},{"w":"token","start":5.32,"end":5.56,"matched":true},{"w":"at","start":5.56,"end":5.9,"matched":true},{"w":"a","start":5.9,"end":6.22,"matched":true},{"w":"time?","start":6.22,"end":6.28,"matched":true}]},{"i":1,"text":"Here's the problem.","start":7.43,"end":8.1,"words":[{"w":"Here's","start":7.02,"end":7.62,"matched":true},{"w":"the","start":7.62,"end":7.88,"matched":true},{"w":"problem.","start":7.88,"end":8.06,"matched":true}]},{"i":2,"text":"In a standard autoregressive Transformer, predicting the next token requires running the entire model forward.","start":8.84,"end":14.33,"words":[{"w":"In","start":8.9,"end":8.94,"matched":true},{"w":"a","start":8.94,"end":9.18,"matched":true},{"w":"standard","start":9.18,"end":9.46,"matched":true},{"w":"autoregressive","start":9.46,"end":10.38,"matched":true},{"w":"Transformer,","start":10.38,"end":11.12,"matched":true},{"w":"predicting","start":11.52,"end":11.52,"matched":true},{"w":"the","start":11.52,"end":11.76,"matched":true},{"w":"next","start":11.76,"end":12.1,"matched":true},{"w":"token","start":12.1,"end":12.28,"matched":true},{"w":"requires","start":12.28,"end":12.76,"matched":true},{"w":"running","start":12.76,"end":13.04,"matched":true},{"w":"the","start":13.04,"end":13.24,"matched":true},{"w":"entire","start":13.24,"end":13.68,"matched":true},{"w":"model","start":13.68,"end":13.9,"matched":true},{"w":"forward.","start":13.9,"end":14.32,"matched":true}]},{"i":3,"text":"And you can't generate the following token until the previous one has been determined.","start":14.83,"end":18.07,"words":[{"w":"And","start":14.56,"end":14.96,"matched":true},{"w":"you","start":14.96,"end":15.08,"matched":true},{"w":"can't","start":15.08,"end":15.38,"matched":true},{"w":"generate","start":15.38,"end":15.6,"matched":true},{"w":"the","start":15.6,"end":15.84,"matched":true},{"w":"following","start":15.84,"end":16.12,"matched":true},{"w":"token","start":16.12,"end":16.42,"matched":true},{"w":"until","start":16.42,"end":16.66,"matched":true},{"w":"the","start":16.66,"end":16.84,"matched":true},{"w":"previous","start":16.84,"end":17.18,"matched":true},{"w":"one","start":17.18,"end":17.36,"matched":true},{"w":"has","start":17.36,"end":17.54,"matched":true},{"w":"been","start":17.54,"end":17.72,"matched":true},{"w":"determined.","start":17.72,"end":17.98,"matched":true}]},{"i":4,"text":"That means producing five tokens typically requires five sequential forward passes.","start":18.59,"end":22.63,"words":[{"w":"That","start":18.48,"end":18.76,"matched":true},{"w":"means","start":18.76,"end":18.96,"matched":true},{"w":"producing","start":18.96,"end":19.3,"matched":true},{"w":"five","start":19.3,"end":19.76,"matched":true},{"w":"tokens","start":19.76,"end":20.02,"matched":true},{"w":"typically","start":20.02,"end":20.48,"matched":true},{"w":"requires","start":20.48,"end":20.92,"matched":true},{"w":"five","start":20.92,"end":21.4,"matched":true},{"w":"sequential","start":21.4,"end":21.8,"matched":true},{"w":"forward","start":21.8,"end":22.24,"matched":true},{"w":"passes.","start":22.24,"end":22.58,"matched":true}]},{"i":5,"text":"But what if we could predict several future tokens cheaply, and verify them together?","start":23.43,"end":27.32,"words":[{"w":"But","start":22.96,"end":23.56,"matched":true},{"w":"what","start":23.56,"end":23.7,"matched":true},{"w":"if","start":23.7,"end":23.8,"matched":true},{"w":"we","start":23.8,"end":23.9,"matched":true},{"w":"could","start":23.9,"end":24.14,"matched":true},{"w":"predict","start":24.14,"end":24.36,"matched":true},{"w":"several","start":24.36,"end":24.72,"matched":true},{"w":"future","start":24.72,"end":25.14,"matched":true},{"w":"tokens","start":25.14,"end":25.4,"matched":true},{"w":"cheaply,","start":25.4,"end":25.88,"matched":true},{"w":"and","start":26.24,"end":26.54,"matched":true},{"w":"verify","start":26.54,"end":26.7,"matched":true},{"w":"them","start":26.7,"end":26.96,"matched":true},{"w":"together?","start":26.96,"end":27.26,"matched":true}]},{"i":6,"text":"That's the idea behind speculative decoding.","start":27.97,"end":29.995,"words":[{"w":"That's","start":27.88,"end":28.24,"matched":true},{"w":"the","start":28.24,"end":28.66,"matched":true},{"w":"idea","start":28.66,"end":28.66,"matched":true},{"w":"behind","start":28.66,"end":28.98,"matched":true},{"w":"speculative","start":28.98,"end":29.5,"matched":true},{"w":"decoding.","start":29.5,"end":29.98,"matched":true}]},{"i":7,"text":"We introduce two models: a small draft model and a large target model.","start":29.995,"end":34.25,"words":[{"w":"We","start":29.98,"end":30.66,"matched":true},{"w":"introduce","start":30.66,"end":31.04,"matched":true},{"w":"two","start":31.04,"end":31.34,"matched":true},{"w":"models:","start":31.34,"end":31.58,"matched":true},{"w":"a","start":32.1,"end":32.2,"matched":true},{"w":"small","start":32.2,"end":32.38,"matched":true},{"w":"draft","start":32.38,"end":32.64,"matched":true},{"w":"model","start":32.64,"end":32.9,"matched":true},{"w":"and","start":32.9,"end":33.28,"matched":true},{"w":"a","start":33.28,"end":33.56,"matched":true},{"w":"large","start":33.56,"end":33.68,"matched":true},{"w":"target","start":33.68,"end":33.96,"matched":true},{"w":"model.","start":33.96,"end":34.22,"matched":true}]},{"i":8,"text":"The draft model proposes several possible future tokens.","start":34.7,"end":37.37,"words":[{"w":"The","start":34.74,"end":34.84,"matched":true},{"w":"draft","start":34.84,"end":35.08,"matched":true},{"w":"model","start":35.08,"end":35.38,"matched":true},{"w":"proposes","start":35.38,"end":35.78,"matched":true},{"w":"several","start":35.78,"end":36.16,"matched":true},{"w":"possible","start":36.16,"end":36.62,"matched":true},{"w":"future","start":36.62,"end":37,"matched":true},{"w":"tokens.","start":37,"end":37.3,"matched":true}]},{"i":9,"text":"Instead of generating every token individually, the large model processes the proposed sequence in a single verification pass.","start":37.72,"end":43.66,"words":[{"w":"Instead","start":37.96,"end":37.96,"matched":true},{"w":"of","start":37.96,"end":38.32,"matched":true},{"w":"generating","start":38.32,"end":38.52,"matched":true},{"w":"every","start":38.52,"end":38.88,"matched":true},{"w":"token","start":38.88,"end":39.06,"matched":true},{"w":"individually,","start":39.06,"end":39.56,"matched":true},{"w":"the","start":39.98,"end":40.16,"matched":true},{"w":"large","start":40.16,"end":40.44,"matched":true},{"w":"model","start":40.44,"end":40.66,"matched":true},{"w":"processes","start":40.66,"end":41.12,"matched":true},{"w":"the","start":41.12,"end":41.44,"matched":true},{"w":"proposed","start":41.44,"end":41.74,"matched":true},{"w":"sequence","start":41.74,"end":42.1,"matched":true},{"w":"in","start":42.1,"end":42.3,"matched":true},{"w":"a","start":42.3,"end":42.48,"matched":true},{"w":"single","start":42.48,"end":42.66,"matched":true},{"w":"verification","start":42.66,"end":43.2,"matched":true},{"w":"pass.","start":43.2,"end":43.72,"matched":true}]},{"i":10,"text":"Using the appropriate acceptance procedure, correct proposals are retained, while rejected proposals are discarded and generation continues from the corrected prefix.","start":44.33,"end":52.34,"words":[{"w":"Using","start":44.56,"end":44.56,"matched":true},{"w":"the","start":44.56,"end":44.8,"matched":true},{"w":"appropriate","start":44.8,"end":45.14,"matched":true},{"w":"acceptance","start":45.14,"end":45.62,"matched":true},{"w":"procedure,","start":45.62,"end":46.06,"matched":true},{"w":"correct","start":46.62,"end":46.8,"matched":true},{"w":"proposals","start":46.8,"end":47.18,"matched":true},{"w":"are","start":47.18,"end":47.82,"matched":true},{"w":"retained,","start":47.82,"end":47.82,"matched":true},{"w":"while","start":48.08,"end":48.44,"matched":true},{"w":"rejected","start":48.44,"end":48.74,"matched":true},{"w":"proposals","start":48.74,"end":49.16,"matched":true},{"w":"are","start":49.16,"end":49.52,"matched":true},{"w":"discarded","start":49.52,"end":49.78,"matched":true},{"w":"and","start":49.78,"end":50.18,"matched":true},{"w":"generation","start":50.18,"end":50.62,"matched":true},{"w":"continues","start":50.62,"end":51.12,"matched":true},{"w":"from","start":51.12,"end":51.34,"matched":true},{"w":"the","start":51.34,"end":51.54,"matched":true},{"w":"corrected","start":51.54,"end":51.78,"matched":true},{"w":"prefix.","start":51.78,"end":52.28,"matched":true}]},{"i":11,"text":"The important insight is that verifying multiple positions together can be cheaper than generating them sequentially with the large model.","start":53,"end":58.59,"words":[{"w":"The","start":52.52,"end":53.12,"matched":true},{"w":"important","start":53.12,"end":53.44,"matched":true},{"w":"insight","start":53.44,"end":53.72,"matched":true},{"w":"is","start":53.72,"end":53.92,"matched":true},{"w":"that","start":53.92,"end":54.14,"matched":true},{"w":"verifying","start":54.14,"end":54.5,"matched":true},{"w":"multiple","start":54.5,"end":54.96,"matched":true},{"w":"positions","start":54.96,"end":55.36,"matched":true},{"w":"together","start":55.36,"end":55.76,"matched":true},{"w":"can","start":55.76,"end":55.98,"matched":true},{"w":"be","start":55.98,"end":56.22,"matched":true},{"w":"cheaper","start":56.22,"end":56.4,"matched":true},{"w":"than","start":56.4,"end":56.68,"matched":true},{"w":"generating","start":56.68,"end":57,"matched":true},{"w":"them","start":57,"end":57.3,"matched":true},{"w":"sequentially","start":57.3,"end":57.64,"matched":true},{"w":"with","start":57.64,"end":57.9,"matched":true},{"w":"the","start":57.9,"end":58.06,"matched":true},{"w":"large","start":58.06,"end":58.32,"matched":true},{"w":"model.","start":58.32,"end":58.54,"matched":true}]},{"i":12,"text":"But there's a challenge.","start":59.24,"end":60.04,"words":[{"w":"But","start":59.02,"end":59.36,"matched":true},{"w":"there's","start":59.36,"end":59.52,"matched":true},{"w":"a","start":59.52,"end":59.96,"matched":true},{"w":"challenge.","start":59.96,"end":59.96,"matched":true}]},{"i":13,"text":"If the draft model frequently predicts tokens that the target model rejects, we lose much of the speed advantage.","start":60.46,"end":65.65,"words":[{"w":"If","start":59.96,"end":60.52,"matched":true},{"w":"the","start":60.52,"end":60.7,"matched":true},{"w":"draft","start":60.7,"end":60.98,"matched":true},{"w":"model","start":60.98,"end":61.26,"matched":true},{"w":"frequently","start":61.26,"end":61.72,"matched":true},{"w":"predicts","start":61.72,"end":62.42,"matched":true},{"w":"tokens","start":62.42,"end":62.42,"matched":true},{"w":"that","start":62.42,"end":62.62,"matched":true},{"w":"the","start":62.62,"end":62.78,"matched":true},{"w":"target","start":62.78,"end":63.04,"matched":true},{"w":"model","start":63.04,"end":63.32,"matched":true},{"w":"rejects,","start":63.32,"end":64.1,"matched":true},{"w":"we","start":64.16,"end":64.24,"matched":true},{"w":"lose","start":64.24,"end":64.46,"matched":true},{"w":"much","start":64.46,"end":64.74,"matched":true},{"w":"of","start":64.74,"end":64.98,"matched":true},{"w":"the","start":64.98,"end":65.04,"matched":true},{"w":"speed","start":65.04,"end":65.22,"matched":true},{"w":"advantage.","start":65.22,"end":65.64,"matched":true}]},{"i":14,"text":"This is where EAGLE-3 comes in.","start":66.03,"end":67.49,"words":[{"w":"This","start":66.16,"end":66.18,"matched":true},{"w":"is","start":66.18,"end":66.34,"matched":true},{"w":"where","start":66.34,"end":66.54,"matched":true},{"w":"EAGLE-3","start":66.54,"end":66.94,"matched":true},{"w":"comes","start":66.94,"end":67.22,"matched":true},{"w":"in.","start":67.22,"end":67.74,"matched":true}]},{"i":15,"text":"Rather than relying on an entirely independent drafting model, EAGLE-3 uses information from the large model's own internal representations.","start":67.85,"end":74.46,"words":[{"w":"Rather","start":68.08,"end":68.08,"matched":true},{"w":"than","start":68.08,"end":68.34,"matched":true},{"w":"relying","start":68.34,"end":68.56,"matched":true},{"w":"on","start":68.56,"end":68.8,"matched":true},{"w":"an","start":68.8,"end":68.94,"matched":true},{"w":"entirely","start":68.94,"end":69.34,"matched":true},{"w":"independent","start":69.34,"end":69.86,"matched":true},{"w":"drafting","start":69.86,"end":70.24,"matched":true},{"w":"model,","start":70.24,"end":70.64,"matched":true},{"w":"EAGLE-3","start":71.16,"end":71.44,"matched":true},{"w":"uses","start":71.44,"end":71.74,"matched":true},{"w":"information","start":71.74,"end":72.2,"matched":true},{"w":"from","start":72.2,"end":72.4,"matched":true},{"w":"the","start":72.4,"end":72.56,"matched":true},{"w":"large","start":72.56,"end":72.84,"matched":true},{"w":"model's","start":72.84,"end":73.22,"matched":true},{"w":"own","start":73.22,"end":73.44,"matched":true},{"w":"internal","start":73.44,"end":73.74,"matched":true},{"w":"representations.","start":73.74,"end":74.36,"matched":true}]},{"i":16,"text":"Specifically, it combines hidden-state features from multiple Transformer layers to provide a richer signal for the lightweight draft model.","start":75.08,"end":81.61,"words":[{"w":"Specifically,","start":75.34,"end":75.62,"matched":true},{"w":"it","start":76.02,"end":76.2,"matched":true},{"w":"combines","start":76.2,"end":76.5,"matched":true},{"w":"hidden-state","start":76.5,"end":77.12,"matched":false},{"w":"features","start":77.12,"end":77.38,"matched":true},{"w":"from","start":77.38,"end":77.68,"matched":true},{"w":"multiple","start":77.68,"end":78.04,"matched":true},{"w":"Transformer","start":78.04,"end":78.72,"matched":true},{"w":"layers","start":78.72,"end":78.86,"matched":true},{"w":"to","start":78.86,"end":79.14,"matched":true},{"w":"provide","start":79.14,"end":79.36,"matched":true},{"w":"a","start":79.36,"end":79.58,"matched":true},{"w":"richer","start":79.58,"end":79.78,"matched":true},{"w":"signal","start":79.78,"end":80.08,"matched":true},{"w":"for","start":80.08,"end":80.52,"matched":true},{"w":"the","start":80.52,"end":80.7,"matched":true},{"w":"lightweight","start":80.7,"end":81,"matched":true},{"w":"draft","start":81,"end":81.3,"matched":true},{"w":"model.","start":81.3,"end":81.58,"matched":true}]},{"i":17,"text":"Unlike earlier EAGLE methods that focus on predicting future features, EAGLE-3 trains its draft model to predict tokens directly.","start":82.13,"end":88.47,"words":[{"w":"Unlike","start":82.24,"end":82.44,"matched":true},{"w":"earlier","start":82.44,"end":82.82,"matched":true},{"w":"EAGLE","start":82.82,"end":83.08,"matched":true},{"w":"methods","start":83.08,"end":83.38,"matched":true},{"w":"that","start":83.38,"end":83.64,"matched":true},{"w":"focus","start":83.64,"end":83.88,"matched":true},{"w":"on","start":83.88,"end":84.2,"matched":true},{"w":"predicting","start":84.2,"end":84.4,"matched":true},{"w":"future","start":84.4,"end":84.86,"matched":true},{"w":"features,","start":84.86,"end":85.24,"matched":true},{"w":"EAGLE-3","start":85.9,"end":86.22,"matched":true},{"w":"trains","start":86.22,"end":86.48,"matched":true},{"w":"its","start":86.48,"end":86.74,"matched":true},{"w":"draft","start":86.74,"end":86.92,"matched":true},{"w":"model","start":86.92,"end":87.18,"matched":true},{"w":"to","start":87.18,"end":87.62,"matched":true},{"w":"predict","start":87.62,"end":87.66,"matched":true},{"w":"tokens","start":87.66,"end":88,"matched":true},{"w":"directly.","start":88,"end":88.48,"matched":true}]},{"i":18,"text":"Now imagine the draft model proposing several possible continuations.","start":89.1,"end":92.4,"words":[{"w":"Now","start":89.06,"end":89.34,"matched":true},{"w":"imagine","start":89.34,"end":89.64,"matched":true},{"w":"the","start":89.64,"end":89.92,"matched":true},{"w":"draft","start":89.92,"end":89.94,"matched":true},{"w":"model","start":89.94,"end":89.94,"matched":true},{"w":"proposing","start":89.94,"end":90.7,"matched":true},{"w":"several","start":90.7,"end":91.16,"matched":true},{"w":"possible","start":91.16,"end":91.62,"matched":true},{"w":"continuations.","start":91.62,"end":92.32,"matched":true}]},{"i":19,"text":"Instead of creating just one linear sequence, we can organize candidate continuations into a tree.","start":92.92,"end":97.52,"words":[{"w":"Instead","start":93.12,"end":93.12,"matched":true},{"w":"of","start":93.12,"end":93.34,"matched":true},{"w":"creating","start":93.34,"end":93.58,"matched":true},{"w":"just","start":93.58,"end":93.88,"matched":true},{"w":"one","start":93.88,"end":94.12,"matched":true},{"w":"linear","start":94.12,"end":94.42,"matched":true},{"w":"sequence,","start":94.42,"end":94.76,"matched":true},{"w":"we","start":95.16,"end":95.24,"matched":true},{"w":"can","start":95.24,"end":95.5,"matched":true},{"w":"organize","start":95.5,"end":95.82,"matched":true},{"w":"candidate","start":95.82,"end":96.18,"matched":true},{"w":"continuations","start":96.18,"end":96.82,"matched":true},{"w":"into","start":96.82,"end":97.1,"matched":true},{"w":"a","start":97.1,"end":97.48,"matched":true},{"w":"tree.","start":97.48,"end":97.48,"matched":true}]},{"i":20,"text":"Each branch represents a different possible sequence of future tokens.","start":97.99,"end":100.91,"words":[{"w":"Each","start":98.08,"end":98.22,"matched":true},{"w":"branch","start":98.22,"end":98.48,"matched":true},{"w":"represents","start":98.48,"end":98.84,"matched":true},{"w":"a","start":98.84,"end":99.06,"matched":true},{"w":"different","start":99.06,"end":99.32,"matched":true},{"w":"possible","start":99.32,"end":99.78,"matched":true},{"w":"sequence","start":99.78,"end":100.08,"matched":true},{"w":"of","start":100.08,"end":100.26,"matched":true},{"w":"future","start":100.26,"end":100.54,"matched":true},{"w":"tokens.","start":100.54,"end":100.78,"matched":true}]},{"i":21,"text":"The large target model then verifies the tree using a specially constructed attention mask.","start":101.58,"end":105.9,"words":[{"w":"The","start":101.38,"end":101.72,"matched":true},{"w":"large","start":101.72,"end":102.02,"matched":true},{"w":"target","start":102.02,"end":102.26,"matched":true},{"w":"model","start":102.26,"end":102.54,"matched":true},{"w":"then","start":102.54,"end":103.26,"matched":true},{"w":"verifies","start":103.26,"end":103.26,"matched":true},{"w":"the","start":103.26,"end":103.7,"matched":true},{"w":"tree","start":103.7,"end":103.7,"matched":true},{"w":"using","start":103.7,"end":104.18,"matched":true},{"w":"a","start":104.18,"end":104.42,"matched":true},{"w":"specially","start":104.42,"end":104.74,"matched":true},{"w":"constructed","start":104.74,"end":105.14,"matched":true},{"w":"attention","start":105.14,"end":105.58,"matched":true},{"w":"mask.","start":105.58,"end":105.96,"matched":true}]},{"i":22,"text":"Each candidate can attend to the shared prompt and its own ancestors, but not to unrelated branches.","start":106.31,"end":111.07,"words":[{"w":"Each","start":106.38,"end":106.56,"matched":true},{"w":"candidate","start":106.56,"end":106.76,"matched":true},{"w":"can","start":106.76,"end":107.04,"matched":true},{"w":"attend","start":107.04,"end":107.26,"matched":true},{"w":"to","start":107.26,"end":107.42,"matched":true},{"w":"the","start":107.42,"end":107.62,"matched":true},{"w":"shared","start":107.62,"end":107.8,"matched":true},{"w":"prompt","start":107.8,"end":108.1,"matched":true},{"w":"and","start":108.1,"end":108.58,"matched":true},{"w":"its","start":108.58,"end":108.74,"matched":true},{"w":"own","start":108.74,"end":109.06,"matched":true},{"w":"ancestors,","start":109.06,"end":109.38,"matched":true},{"w":"but","start":109.78,"end":109.9,"matched":true},{"w":"not","start":109.9,"end":110.02,"matched":true},{"w":"to","start":110.02,"end":110.62,"matched":true},{"w":"unrelated","start":110.62,"end":110.62,"matched":true},{"w":"branches.","start":110.62,"end":110.98,"matched":true}]},{"i":23,"text":"This allows multiple candidate paths to be evaluated in one target-model pass.","start":111.63,"end":115.35,"words":[{"w":"This","start":111.54,"end":111.86,"matched":true},{"w":"allows","start":111.86,"end":112.1,"matched":true},{"w":"multiple","start":112.1,"end":112.56,"matched":true},{"w":"candidate","start":112.56,"end":112.9,"matched":true},{"w":"paths","start":112.9,"end":113.2,"matched":true},{"w":"to","start":113.2,"end":113.4,"matched":true},{"w":"be","start":113.4,"end":113.96,"matched":true},{"w":"evaluated","start":113.96,"end":113.96,"matched":true},{"w":"in","start":113.96,"end":114.22,"matched":true},{"w":"one","start":114.22,"end":114.48,"matched":true},{"w":"target-model","start":114.48,"end":115,"matched":false},{"w":"pass.","start":115,"end":115.38,"matched":true}]},{"i":24,"text":"The verification procedure determines which proposed tokens can be accepted, and generation continues from the accepted prefix.","start":115.93,"end":122.2,"words":[{"w":"The","start":115.6,"end":116.08,"matched":true},{"w":"verification","start":116.08,"end":116.56,"matched":true},{"w":"procedure","start":116.56,"end":117.04,"matched":true},{"w":"determines","start":117.04,"end":117.48,"matched":true},{"w":"which","start":117.48,"end":118.04,"matched":true},{"w":"proposed","start":118.04,"end":118.46,"matched":true},{"w":"tokens","start":118.46,"end":118.74,"matched":true},{"w":"can","start":118.74,"end":118.98,"matched":true},{"w":"be","start":118.98,"end":119.18,"matched":true},{"w":"accepted,","start":119.18,"end":119.46,"matched":true},{"w":"and","start":119.8,"end":119.92,"matched":true},{"w":"generation","start":119.92,"end":120.46,"matched":true},{"w":"continues","start":120.46,"end":120.92,"matched":true},{"w":"from","start":120.92,"end":121.16,"matched":true},{"w":"the","start":121.16,"end":121.7,"matched":true},{"w":"accepted","start":121.7,"end":121.7,"matched":true},{"w":"prefix.","start":121.7,"end":122.16,"matched":true}]},{"i":25,"text":"And here's the clever part.","start":122.77,"end":123.71,"words":[{"w":"And","start":122.82,"end":122.92,"matched":true},{"w":"here's","start":122.92,"end":123.08,"matched":true},{"w":"the","start":123.08,"end":123.3,"matched":true},{"w":"clever","start":123.3,"end":123.46,"matched":true},{"w":"part.","start":123.46,"end":123.82,"matched":true}]},{"i":26,"text":"EAGLE-3's training-time test approach exposes the draft model to its own rollout behavior during training, helping it learn to make better predictions when drafting repeatedly.","start":124.18,"end":132.6,"words":[{"w":"EAGLE-3's","start":124.44,"end":124.76,"matched":true},{"w":"training-time","start":124.76,"end":125.32,"matched":false},{"w":"test","start":125.32,"end":125.58,"matched":true},{"w":"approach","start":125.58,"end":125.96,"matched":true},{"w":"exposes","start":125.96,"end":126.62,"matched":true},{"w":"the","start":126.62,"end":126.88,"matched":true},{"w":"draft","start":126.88,"end":127.08,"matched":true},{"w":"model","start":127.08,"end":127.3,"matched":true},{"w":"to","start":127.3,"end":127.5,"matched":true},{"w":"its","start":127.5,"end":127.64,"matched":true},{"w":"own","start":127.64,"end":128,"matched":true},{"w":"rollout","start":128,"end":128.2,"matched":true},{"w":"behavior","start":128.2,"end":128.56,"matched":true},{"w":"during","start":128.56,"end":128.88,"matched":true},{"w":"training,","start":128.88,"end":129.22,"matched":true},{"w":"helping","start":129.84,"end":129.84,"matched":true},{"w":"it","start":129.84,"end":130.06,"matched":true},{"w":"learn","start":130.06,"end":130.2,"matched":true},{"w":"to","start":130.2,"end":130.4,"matched":true},{"w":"make","start":130.4,"end":130.5,"matched":true},{"w":"better","start":130.5,"end":130.8,"matched":true},{"w":"predictions","start":130.8,"end":131.12,"matched":true},{"w":"when","start":131.12,"end":131.76,"matched":true},{"w":"drafting","start":131.76,"end":132.04,"matched":true},{"w":"repeatedly.","start":132.04,"end":132.56,"matched":true}]},{"i":27,"text":"More accurate proposals mean longer accepted continuations, fewer expensive target-model calls, and potentially faster generation.","start":133.11,"end":139.69,"words":[{"w":"More","start":133.2,"end":133.36,"matched":true},{"w":"accurate","start":133.36,"end":133.66,"matched":true},{"w":"proposals","start":133.66,"end":134.08,"matched":true},{"w":"mean","start":134.08,"end":134.4,"matched":true},{"w":"longer","start":134.4,"end":134.7,"matched":true},{"w":"accepted","start":134.7,"end":135.08,"matched":true},{"w":"continuations,","start":135.08,"end":135.76,"matched":true},{"w":"fewer","start":136.42,"end":136.48,"matched":true},{"w":"expensive","start":136.48,"end":136.98,"matched":true},{"w":"target-model","start":136.98,"end":137.52,"matched":false},{"w":"calls,","start":137.52,"end":137.82,"matched":true},{"w":"and","start":138.16,"end":138.38,"matched":true},{"w":"potentially","start":138.38,"end":138.7,"matched":true},{"w":"faster","start":138.7,"end":139.12,"matched":true},{"w":"generation.","start":139.12,"end":139.58,"matched":true}]},{"i":28,"text":"In the original EAGLE-3 paper, the researchers reported speedups of up to six point five times in their evaluated settings.","start":140.07,"end":145.61,"words":[{"w":"In","start":139.74,"end":140.16,"matched":true},{"w":"the","start":140.16,"end":140.32,"matched":true},{"w":"original","start":140.32,"end":140.6,"matched":true},{"w":"EAGLE-3","start":140.6,"end":141.08,"matched":true},{"w":"paper,","start":141.08,"end":141.36,"matched":true},{"w":"the","start":141.52,"end":141.96,"matched":true},{"w":"researchers","start":141.96,"end":142.2,"matched":true},{"w":"reported","start":142.2,"end":142.56,"matched":true},{"w":"speedups","start":142.56,"end":143,"matched":true},{"w":"of","start":143,"end":143.2,"matched":true},{"w":"up","start":143.2,"end":143.28,"matched":true},{"w":"to","start":143.28,"end":143.5,"matched":true},{"w":"six","start":143.5,"end":143.707,"matched":false},{"w":"point","start":143.707,"end":143.913,"matched":false},{"w":"five","start":143.913,"end":144.12,"matched":false},{"w":"times","start":144.12,"end":144.42,"matched":true},{"w":"in","start":144.42,"end":144.6,"matched":true},{"w":"their","start":144.6,"end":144.76,"matched":true},{"w":"evaluated","start":144.76,"end":145.16,"matched":true},{"w":"settings.","start":145.16,"end":145.58,"matched":true}]},{"i":29,"text":"Actual acceleration depends on the model, hardware, workload, and acceptance rate.","start":146.16,"end":151.01,"words":[{"w":"Actual","start":146.36,"end":146.5,"matched":true},{"w":"acceleration","start":146.5,"end":147.02,"matched":true},{"w":"depends","start":147.02,"end":147.38,"matched":true},{"w":"on","start":147.38,"end":147.52,"matched":true},{"w":"the","start":147.52,"end":147.88,"matched":true},{"w":"model,","start":147.88,"end":147.88,"matched":true},{"w":"hardware,","start":148.6,"end":148.6,"matched":true},{"w":"workload,","start":148.6,"end":149.38,"matched":true},{"w":"and","start":149.76,"end":150.36,"matched":true},{"w":"acceptance","start":150.36,"end":150.8,"matched":true},{"w":"rate.","start":150.8,"end":151.1,"matched":true}]},{"i":30,"text":"So the big idea is simple.","start":151.43,"end":152.78,"words":[{"w":"So","start":151.44,"end":151.58,"matched":true},{"w":"the","start":151.58,"end":151.72,"matched":true},{"w":"big","start":151.72,"end":152.02,"matched":true},{"w":"idea","start":152.02,"end":152.2,"matched":true},{"w":"is","start":152.2,"end":152.48,"matched":true},{"w":"simple.","start":152.48,"end":152.78,"matched":true}]},{"i":31,"text":"Don't make the expensive model generate every token from scratch.","start":153.16,"end":156.04,"words":[{"w":"Don't","start":153.42,"end":153.42,"matched":true},{"w":"make","start":153.42,"end":153.6,"matched":true},{"w":"the","start":153.6,"end":153.76,"matched":true},{"w":"expensive","start":153.76,"end":154.2,"matched":true},{"w":"model","start":154.2,"end":154.48,"matched":true},{"w":"generate","start":154.48,"end":154.86,"matched":true},{"w":"every","start":154.86,"end":155.18,"matched":true},{"w":"token","start":155.18,"end":155.38,"matched":true},{"w":"from","start":155.38,"end":155.7,"matched":true},{"w":"scratch.","start":155.7,"end":156.06,"matched":true}]},{"i":32,"text":"Let a lightweight model speculate, then let the large model verify.","start":156.52,"end":159.82,"words":[{"w":"Let","start":156.64,"end":156.68,"matched":true},{"w":"a","start":156.68,"end":156.92,"matched":true},{"w":"lightweight","start":156.92,"end":157.1,"matched":true},{"w":"model","start":157.1,"end":157.42,"matched":true},{"w":"speculate,","start":157.42,"end":157.86,"matched":true},{"w":"then","start":158.12,"end":158.48,"matched":true},{"w":"let","start":158.48,"end":158.64,"matched":true},{"w":"the","start":158.64,"end":158.82,"matched":true},{"w":"large","start":158.82,"end":159.08,"matched":true},{"w":"model","start":159.08,"end":159.34,"matched":true},{"w":"verify.","start":159.34,"end":159.78,"matched":true}]},{"i":33,"text":"That's how EAGLE-3 can accelerate LLM decoding without changing the target model's intended output distribution when the appropriate verification procedure is used.","start":160.46,"end":168.21,"words":[{"w":"That's","start":160.08,"end":160.72,"matched":true},{"w":"how","start":160.72,"end":160.86,"matched":true},{"w":"EAGLE-3","start":160.86,"end":161.28,"matched":true},{"w":"can","start":161.28,"end":161.52,"matched":true},{"w":"accelerate","start":161.52,"end":161.94,"matched":true},{"w":"LLM","start":161.94,"end":162.4,"matched":true},{"w":"decoding","start":162.4,"end":162.78,"matched":true},{"w":"without","start":162.78,"end":163.44,"matched":true},{"w":"changing","start":163.44,"end":163.78,"matched":true},{"w":"the","start":163.78,"end":164.04,"matched":true},{"w":"target","start":164.04,"end":164.22,"matched":true},{"w":"model's","start":164.22,"end":164.7,"matched":true},{"w":"intended","start":164.7,"end":164.9,"matched":true},{"w":"output","start":164.9,"end":165.24,"matched":true},{"w":"distribution","start":165.24,"end":165.74,"matched":true},{"w":"when","start":165.74,"end":166.22,"matched":true},{"w":"the","start":166.22,"end":166.4,"matched":true},{"w":"appropriate","start":166.4,"end":166.78,"matched":true},{"w":"verification","start":166.78,"end":167.34,"matched":true},{"w":"procedure","start":167.34,"end":167.74,"matched":true},{"w":"is","start":167.74,"end":167.98,"matched":true},{"w":"used.","start":167.98,"end":168.24,"matched":true}]}]};</script>
+<!-- DATA:END -->
+
+<script>
+'use strict';
+/* =====================================================================================
+   EAGLE-3 speculative decoding — deterministic Canvas 2D reel.
+   draw(t) is a pure function of the timestamp t (seconds on the video clock). There is no
+   accumulated animation state and no wall-clock dependency. Every cue is keyed to the
+   forced-aligned narration (timings.json): S(i)/E(i) = sentence i start/end, cue(i, word)
+   = the moment a word is spoken. The timeline therefore "time-warps" to the real speech.
+   ===================================================================================== */
+const W = 1080, H = 1920;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const SANS = '"Helvetica Neue", Helvetica, Arial, sans-serif';
+const SERIF = 'Georgia, "Times New Roman", serif';
+const MONO = 'Menlo, Monaco, monospace';
+const C = {
+  bg: '#FAF9F6', card: '#FFFFFF', ink: '#292524', ink2: '#5E5751', mute: '#A29A91', line: '#E4DDD3',
+  terra: '#C15F3C', terraD: '#9C4529', terraL: '#F6E4DB',
+  sage: '#8BA888', sageD: '#41613F', sageL: '#E3ECE1',
+  red: '#B5413A', redL: '#F6DDD9',
+  blue: '#5F7FA6', blueD: '#33507A', blueL: '#E2E9F2',
+  beige: '#EEE7DC', beigeD: '#DCD2C3', ochre: '#C49A54', warm: '#8E857B',
+};
+// Reels safe area: content x 110..970, y 380..1420; subtitles centred at 1530 (above the caption UI).
+const X0 = 110, X1 = 970, CX = 540;
+
+/* ---------------- math helpers ---------------- */
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, p) => a + (b - a) * p;
+const ss = (t, a, b) => (b <= a ? (t >= a ? 1 : 0) : clamp((t - a) / (b - a)));
+const eio = x => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const eo = x => 1 - Math.pow(1 - x, 3);
+const back = x => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const ap = (t, a, d = 0.5) => eo(ss(t, a, a + d));           // appear progress
+const pop = (t, a, d = 0.45) => back(ss(t, a, a + d));        // appear with slight overshoot
+function hex(c) {
+  if (c[0] === 'r') return c.match(/\d+/g).slice(0, 3).map(Number);   // rgb(r,g,b) from a previous mix()
+  const v = parseInt(c.slice(1), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255];
+}
+function mix(c1, c2, p) {
+  const a = hex(c1), b = hex(c2);
+  return `rgb(${Math.round(lerp(a[0], b[0], p))},${Math.round(lerp(a[1], b[1], p))},${Math.round(lerp(a[2], b[2], p))})`;
+}
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ---------------- timing (audio-driven time warp) ---------------- */
+let TM, LEAD, TOTAL, SENT;
+function initTiming(tm) { TM = tm; LEAD = tm.timeline.lead_in; TOTAL = tm.timeline.total; SENT = tm.sentences; window.TOTAL = TOTAL; }
+const S = i => LEAD + SENT[i].start;
+const E = i => LEAD + SENT[i].end;
+const norm = w => w.toLowerCase().replace(/[^a-z0-9]/g, '');
+const cueCache = {};
+function cueWord(i, needle, nth) {
+  const ws = SENT[i].words.filter(w => norm(w.w).startsWith(norm(needle)));
+  if (!ws[nth]) console.error('cue not found', i, needle, nth);
+  return ws[nth];
+}
+function cue(i, needle, nth = 0) {
+  const k = `${i}|${needle}|${nth}|s`;
+  if (!(k in cueCache)) { const w = cueWord(i, needle, nth); cueCache[k] = w ? LEAD + w.start : S(i); }
+  return cueCache[k];
+}
+function cueEnd(i, needle, nth = 0) {
+  const k = `${i}|${needle}|${nth}|e`;
+  if (!(k in cueCache)) { const w = cueWord(i, needle, nth); cueCache[k] = w ? LEAD + w.end : E(i); }
+  return cueCache[k];
+}
+
+/* ---------------- drawing primitives ---------------- */
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function box(x, y, w, h, r, fill, stroke, lw = 2, dash) {
+  rr(x, y, w, h, r);
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.setLineDash(dash || []); ctx.stroke(); ctx.setLineDash([]); }
+}
+function card(x, y, w, h, o = {}) {
+  const r = o.r ?? 26;
+  ctx.save();
+  ctx.shadowColor = 'rgba(70,45,20,0.08)'; ctx.shadowBlur = 26; ctx.shadowOffsetY = 8;
+  box(x, y, w, h, r, o.fill || C.card);
+  ctx.restore();
+  box(x, y, w, h, r, null, o.stroke || C.line, o.lw || 2, o.dash);
+}
+function A(a, fn) { if (a <= 0.001) return; ctx.save(); ctx.globalAlpha *= clamp(a); fn(); ctx.restore(); }
+function font(o) { return `${o.italic ? 'italic ' : ''}${o.weight || 500} ${o.size || 32}px ${o.font || SANS}`; }
+function T(s, x, y, o = {}) {
+  ctx.font = font(o);
+  ctx.fillStyle = o.color || C.ink; ctx.textAlign = o.align || 'left'; ctx.textBaseline = o.base || 'alphabetic';
+  ctx.letterSpacing = (o.track || 0) + 'px';
+  ctx.fillText(s, x, y);
+  ctx.letterSpacing = '0px';
+}
+function tw(s, o = {}) { ctx.font = font(o); ctx.letterSpacing = (o.track || 0) + 'px'; const w = ctx.measureText(s).width; ctx.letterSpacing = '0px'; return w; }
+function line(x1, y1, x2, y2, color, lw = 2, dash) {
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+  ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.setLineDash(dash || []); ctx.stroke(); ctx.setLineDash([]);
+}
+function head(x, y, ang, col, hs = 13) {
+  ctx.beginPath(); ctx.moveTo(x, y);
+  ctx.lineTo(x - hs * Math.cos(ang - 0.45), y - hs * Math.sin(ang - 0.45));
+  ctx.lineTo(x - hs * Math.cos(ang + 0.45), y - hs * Math.sin(ang + 0.45));
+  ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+}
+function arrow(x1, y1, x2, y2, o = {}) {
+  const p = o.p ?? 1; if (p <= 0) return;
+  const x = lerp(x1, x2, p), y = lerp(y1, y2, p), hs = o.head ?? 13, col = o.color || C.mute;
+  const ang = Math.atan2(y2 - y1, x2 - x1);
+  line(x1, y1, x - Math.cos(ang) * hs * 0.6, y - Math.sin(ang) * hs * 0.6, col, o.lw || 3, o.dash);
+  head(x, y, ang, col, hs);
+}
+// cubic bezier drawn up to progress p, with optional arrow head
+function bez(p0, p1, p2, p3, o = {}) {
+  const p = o.p ?? 1; if (p <= 0) return;
+  const N = 40, pt = u => {
+    const v = 1 - u;
+    return [v * v * v * p0[0] + 3 * v * v * u * p1[0] + 3 * v * u * u * p2[0] + u * u * u * p3[0],
+            v * v * v * p0[1] + 3 * v * v * u * p1[1] + 3 * v * u * u * p2[1] + u * u * u * p3[1]];
+  };
+  ctx.beginPath(); ctx.moveTo(p0[0], p0[1]);
+  if (p >= 1 && !o.head) ctx.bezierCurveTo(p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]);
+  else for (let k = 1; k <= N; k++) { const q = pt(p * k / N); ctx.lineTo(q[0], q[1]); }
+  ctx.strokeStyle = o.color || C.mute; ctx.lineWidth = o.lw || 3; ctx.lineCap = 'round';
+  ctx.setLineDash(o.dash || []); ctx.stroke(); ctx.setLineDash([]); ctx.lineCap = 'butt';
+  if (o.head) { const a = pt(Math.max(0, p - 0.02)), b = pt(p); head(b[0], b[1], Math.atan2(b[1] - a[1], b[0] - a[0]), o.color || C.mute, o.hs || 13); }
+}
+function pill(s, x, y, o = {}) {           // x,y = left (or centre/right), vertical centre
+  const size = o.size || 26, padX = o.padX ?? 18, h = o.h || size + 20;
+  const w = tw(s, { size, weight: o.weight || 600 }) + padX * 2;
+  const xx = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w : x;
+  box(xx, y - h / 2, w, h, h / 2, o.fill || C.terraL, o.stroke || null, 2);
+  T(s, xx + w / 2, y + 1, { size, weight: o.weight || 600, color: o.color || C.terra, align: 'center', base: 'middle' });
+  return w;
+}
+function check(x, y, s, col) { ctx.beginPath(); ctx.moveTo(x - s * 0.5, y); ctx.lineTo(x - s * 0.12, y + s * 0.38); ctx.lineTo(x + s * 0.55, y - s * 0.42); ctx.strokeStyle = col; ctx.lineWidth = s * 0.2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); ctx.lineCap = 'butt'; ctx.lineJoin = 'miter'; }
+function cross(x, y, s, col, lw) { ctx.beginPath(); ctx.moveTo(x - s / 2, y - s / 2); ctx.lineTo(x + s / 2, y + s / 2); ctx.moveTo(x + s / 2, y - s / 2); ctx.lineTo(x - s / 2, y + s / 2); ctx.strokeStyle = col; ctx.lineWidth = lw || s * 0.2; ctx.lineCap = 'round'; ctx.stroke(); ctx.lineCap = 'butt'; }
+function badge(x, y, ok, p = 1) {          // round ✓ / ✕ badge, pops in with p
+  if (p <= 0) return;
+  ctx.save(); ctx.translate(x, y); ctx.scale(p, p);
+  ctx.beginPath(); ctx.arc(0, 0, 17, 0, Math.PI * 2); ctx.fillStyle = ok ? C.sage : C.red; ctx.fill();
+  if (ok) check(0, 0, 18, '#fff'); else cross(0, 0, 13, '#fff', 3.6);
+  ctx.restore();
+}
+
+// Claude-inspired asterisk motif (decorative only): irregular tapered spokes with rounded tips.
+const MARK = (() => { const r = rng(7); return Array.from({ length: 11 }, (_, i) => ({ a: i / 11 * Math.PI * 2 + (r() - 0.5) * 0.18, l: 0.78 + r() * 0.22 })); })();
+function mark(x, y, R, col = C.terra, rot = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.fillStyle = col;
+  for (const s of MARK) {
+    const L = R * s.l, w0 = R * 0.16, w1 = R * 0.07;
+    const ca = Math.cos(s.a), sa = Math.sin(s.a), nx = -sa, ny = ca;
+    ctx.beginPath();
+    ctx.moveTo(nx * w0 * 0.5, ny * w0 * 0.5);
+    ctx.lineTo(ca * L + nx * w1, sa * L + ny * w1);
+    ctx.arc(ca * L, sa * L, w1, s.a + Math.PI / 2, s.a - Math.PI / 2, true);
+    ctx.lineTo(-nx * w0 * 0.5, -ny * w0 * 0.5);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.beginPath(); ctx.arc(0, 0, R * 0.14, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+/* Math typesetting: `_{..}` subscript, `^{..}` superscript, backticks = upright words. Letters italic. */
+function mathRuns(str) {
+  const runs = []; let i = 0;
+  while (i < str.length) {
+    const m = str.slice(i).match(/^([_^])\{([^}]*)\}/);
+    if (m) { runs.push({ s: m[2], lvl: m[1] === '_' ? 1 : 2 }); i += m[0].length; continue; }
+    let j = i; while (j < str.length && !/[_^]/.test(str[j])) j++;
+    if (j === i) j++;
+    runs.push({ s: str.slice(i, j), lvl: 0 }); i = j;
+  }
+  const out = [];
+  for (const r of runs) for (const p of r.s.split(/(`[^`]*`)/)) {
+    if (!p) continue;
+    if (p[0] === '`') { out.push({ s: p.slice(1, -1), lvl: r.lvl, it: false }); continue; }
+    for (const q of p.split(/([A-Za-z]+)/)) if (q) out.push({ s: q, lvl: r.lvl, it: /^[A-Za-z]+$/.test(q) });
+  }
+  return out;
+}
+function M(str, x, y, size, o = {}) {
+  const runs = mathRuns(str);
+  const f = r => `${r.it ? 'italic ' : ''}${o.weight || 400} ${r.lvl ? size * 0.62 : size}px ${SERIF}`;
+  let w = 0; for (const r of runs) { ctx.font = f(r); w += ctx.measureText(r.s).width + (r.lvl ? 1 : 0); }
+  let xx = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w : x;
+  ctx.textBaseline = o.base || 'alphabetic'; ctx.textAlign = 'left'; ctx.fillStyle = o.color || C.ink;
+  for (const r of runs) {
+    ctx.font = f(r);
+    ctx.fillText(r.s, xx, y + (r.lvl === 1 ? size * 0.22 : r.lvl === 2 ? -size * 0.42 : 0));
+    xx += ctx.measureText(r.s).width + (r.lvl ? 1 : 0);
+  }
+  return w;
+}
+
+/* ---------------- token chips: the colour code used throughout ----------------
+   prompt  – context already fixed            gen   – produced by the target model (autoregressive)
+   draft   – proposed, NOT yet verified       acc   – accepted after verification
+   rej     – rejected by verification         disc  – discarded (depended on a rejected token)
+   tgt     – token supplied by the target model at the first mismatch (correction / bonus)       */
+const CHIP = {
+  prompt: { fill: '#EEE8DE', stroke: '#DCD2C3', text: C.ink },
+  gen:    { fill: '#FFFFFF', stroke: C.ink, text: C.ink, lw: 2.5 },
+  draft:  { fill: C.terraL, stroke: C.terra, text: C.terraD, dash: [7, 5] },
+  acc:    { fill: C.sageL, stroke: C.sage, text: C.sageD, lw: 3 },
+  rej:    { fill: C.redL, stroke: C.red, text: C.red, strike: true },
+  disc:   { fill: '#F2EFEA', stroke: '#D3CCC3', text: C.mute, dash: [5, 5] },
+  tgt:    { fill: C.blueL, stroke: C.blue, text: C.blueD, lw: 3 },
+};
+const chipW = (s, size = 30) => tw(s, { size, weight: 600 }) + 36 * size / 30;
+// draws a chip; x is the left edge unless o.align==='center'. Returns width.
+function chip(s, x, y, st, o = {}) {
+  const size = o.size || 30, h = o.h || Math.round(size * 1.75), w = chipW(s, size);
+  const xx = o.align === 'center' ? x - w / 2 : x;
+  const sc = o.scale ?? 1; if (sc <= 0.01) return w;
+  const sty = typeof st === 'string' ? CHIP[st] : st;
+  ctx.save();
+  ctx.translate(xx + w / 2, y); ctx.scale(sc, sc); ctx.translate(-(xx + w / 2), -y);
+  if (o.glow) { ctx.save(); ctx.shadowColor = o.glowCol || sty.stroke; ctx.shadowBlur = 26 * o.glow; box(xx, y - h / 2, w, h, 12, sty.fill); ctx.restore(); }
+  box(xx, y - h / 2, w, h, 12, sty.fill, sty.stroke, sty.lw || 2, sty.dash);
+  T(s, xx + w / 2, y + 1, { size, weight: 600, color: sty.text, align: 'center', base: 'middle', font: o.font });
+  if (sty.strike) line(xx + 12, y + 1, xx + w - 12, y + 1, sty.text, 3);
+  ctx.restore();
+  return w;
+}
+// lay out a row of chips; returns array of {x (left), w, cx}
+function rowLayout(words, x, size = 30, gap = 12) {
+  const out = []; let xx = x;
+  for (const s of words) { const w = chipW(s, size); out.push({ s, x: xx, w, cx: xx + w / 2 }); xx += w + gap; }
+  return out;
+}
+function rowWidth(words, size = 30, gap = 12) { return words.reduce((a, s) => a + chipW(s, size), 0) + gap * (words.length - 1); }
+
+/* ---------------- model glyphs ---------------- */
+// Target model: large card with N layer stripes. o.sweep∈[0,1] lights layers bottom→top (a forward pass);
+// o.cols lights vertical position columns (parallel verification); o.glow halo.
+function targetModel(x, y, w, h, o = {}) {
+  const n = o.layers || 6, pad = 22, top = y + (o.labelIn === false ? pad : 64);
+  if (o.glow) { ctx.save(); ctx.shadowColor = 'rgba(41,37,36,0.45)'; ctx.shadowBlur = 40 * o.glow; box(x, y, w, h, 24, '#fff'); ctx.restore(); }
+  box(x, y, w, h, 24, '#FFFFFF', C.ink, 3);
+  if (o.labelIn !== false) {
+    T(o.label || 'Target model', x + 24, y + 42, { size: o.lsize || 30, weight: 700, color: C.ink });
+    if (o.sub) T(o.sub, x + w - 24, y + 42, { size: 22, weight: 500, color: C.ink2, align: 'right' });
+  }
+  const sh = (y + h - pad - top - (n - 1) * 8) / n;
+  for (let i = 0; i < n; i++) {
+    const yy = y + h - pad - (i + 1) * sh - i * 8;
+    const lit = o.sweep !== undefined ? clamp(o.sweep * n - i) : 0;
+    box(x + pad, yy, w - pad * 2, sh, 8, mix('#EFEAE3', '#5A534C', lit * (o.sweepFade ?? 1)));
+  }
+  if (o.cols) {                          // parallel position columns
+    const { n: k, p, x0, x1 } = o.cols;
+    for (let j = 0; j < k; j++) {
+      const cx = lerp(x0, x1, k === 1 ? 0.5 : j / (k - 1));
+      A(p, () => { ctx.save(); ctx.shadowColor = o.colCol || C.sage; ctx.shadowBlur = 18; box(cx - 16, top - 4, 32, y + h - pad - top + 8, 10, mix('#FFFFFF', o.colCol || C.sage, 0.55)); ctx.restore(); });
+    }
+  }
+}
+function draftModel(x, y, w, h, o = {}) {
+  if (o.glow) { ctx.save(); ctx.shadowColor = 'rgba(193,95,60,0.7)'; ctx.shadowBlur = 40 * o.glow; box(x, y, w, h, 20, '#FBEFE9'); ctx.restore(); }
+  box(x, y, w, h, 20, '#FBEFE9', C.terra, 3);
+  T(o.label || 'Draft model', x + 20, y + 38, { size: o.lsize || 26, weight: 700, color: C.terraD });
+  const lit = o.pulse || 0;
+  box(x + 18, y + h - 18 - (o.sh || 34), w - 36, o.sh || 34, 8, mix('#F3D6C8', C.terra, lit));
+}
+
+/* ---------------- shared furniture ---------------- */
+function title(s, t, t0, sub, o = {}) {
+  const p = ap(t, t0, 0.7);
+  A(p * (o.a ?? 1), () => {
+    let size = o.size || 60; while (size > 40 && tw(s, { size, weight: 700, font: SERIF }) > X1 - X0) size -= 2;
+    T(s, X0, 430 + (1 - p) * 18, { size, weight: 700, font: SERIF, color: o.color || C.ink });
+    if (sub) T(sub, X0, 476 + (1 - p) * 18, { size: 27, weight: 500, color: C.ink2 });
+  });
+}
+function note(s, x, y, t0, t, o = {}) { const p = ap(t, t0, 0.5); A(p * (o.a ?? 1), () => T(s, x, y + (1 - p) * 10, { size: o.size || 26, weight: o.weight || 500, color: o.color || C.ink2, align: o.align || 'left', italic: o.italic, font: o.font })); }
+function legend(items, x, y, size = 22) {
+  let xx = x;
+  for (const [st, label] of items) {
+    const sty = CHIP[st];
+    box(xx, y - 11, 22, 22, 6, sty.fill, sty.stroke, 2, sty.dash);
+    T(label, xx + 30, y + 1, { size, weight: 500, color: C.ink2, base: 'middle' });
+    xx += 30 + tw(label, { size }) + 26;
+  }
+}
+
+/* =====================================================================================
+   SCENES. Each draws absolute-time state t; cues come from the forced-aligned narration.
+   ===================================================================================== */
+
+// ---------- Scene 0: hook (sentence 0) ----------
+function scene0(t) {
+  const p = ap(t, 0.15, 0.9);
+  A(p, () => mark(CX, 640, 92 * lerp(0.7, 1, p), C.terra, (1 - p) * -0.5));
+  const lines = ['How EAGLE-3 makes', 'LLMs generate', 'tokens faster'];
+  lines.forEach((s, i) => {
+    const q = ap(t, 0.35 + i * 0.18, 0.7);
+    A(q, () => T(s, CX, 860 + i * 92 + (1 - q) * 18, { size: 80, weight: 700, font: SERIF, color: i === 2 ? C.terra : C.ink, align: 'center' }));
+  });
+  // "one token at a time": a stream that grows strictly one chip per beat after "generate"
+  const words = ['Tokens', 'arrive', 'one', 'at', 'a', 'time'];
+  const L = rowLayout(words, CX - rowWidth(words, 30) / 2, 30);
+  const t0 = cue(0, 'generate'), dt = (cueEnd(0, 'time') - t0) / words.length;
+  L.forEach((c, i) => chip(c.s, c.x, 1200, 'gen', { scale: pop(t, t0 + i * dt, 0.35) }));
+  const k = clamp(Math.floor((t - t0) / dt) + 1, 0, words.length);
+  if (t > t0 - 0.3) {                        // caret after the last emitted chip
+    const cx = k === 0 ? L[0].x - 14 : L[k - 1].x + L[k - 1].w + 8;
+    const blink = (Math.floor(t * 2.5) % 2 === 0) ? 1 : 0.25;
+    A(blink * ap(t, t0 - 0.3, 0.3), () => box(cx, 1178, 4, 44, 2, C.terra));
+  }
+  note('…even on the most powerful GPUs', CX, 1300, cue(0, 'powerful'), t, { align: 'center', italic: true, font: SERIF, size: 30 });
+}
+
+// ---------- Scene 1: the autoregressive bottleneck (sentences 1–4) ----------
+const S1_PROMPT = ['The', 'cat', 'sat', 'on'], S1_GEN = ['the', 'mat', 'and', 'purred', '.'];
+function s1Passes() {
+  const P = [cue(2, 'running'), cue(3, 'determined'), cue(4, 'producing'), cue(4, 'tokens'), cue(4, 'requires')];
+  const D = [Math.max(0.8, cueEnd(2, 'forward') - P[0]), 0.7, 0.6, 0.6, 0.6];
+  return P.map((p, i) => ({ s: p, e: p + D[i] }));
+}
+function scene1(t) {
+  title('The autoregressive bottleneck', t, S(1), 'One full forward pass per new token');
+  const PS = s1Passes();
+  const mx = 170, my = 520, mw = 740, mh = 300;
+  // which pass is running now
+  let sweep, glow = 0;
+  for (const p of PS) if (t >= p.s - 0.05 && t < p.e + 0.35) { sweep = ss(t, p.s, p.e); glow = 1 - ss(t, p.e, p.e + 0.35); }
+  A(ap(t, S(1) + 0.2, 0.7), () => targetModel(mx, my, mw, mh, { layers: 6, label: 'Target Transformer', sub: 'all N layers run', sweep, glow, sweepFade: glow }));
+  // token stream
+  const all = [...S1_PROMPT, ...S1_GEN];
+  const size = 30, L = rowLayout(all, CX - rowWidth(all, size, 10) / 2, size, 10), ty = 930;
+  A(ap(t, S(1) + 0.4, 0.6), () => T('PROMPT', L[0].x, ty - 46, { size: 20, weight: 700, color: C.mute, track: 2 }));
+  L.forEach((c, i) => {
+    if (i < 4) { A(ap(t, S(1) + 0.4 + i * 0.08, 0.5), () => chip(c.s, c.x, ty, 'prompt', { size })); return; }
+    const p = PS[i - 4], sc = pop(t, p.e, 0.4);
+    chip(c.s, c.x, ty, 'gen', { size, scale: sc, glow: 1 - ss(t, p.e, p.e + 0.8) });
+  });
+  // output arrow from model to the token being produced
+  for (let k = 0; k < PS.length; k++) {
+    const p = PS[k], c = L[k + 4];
+    const a = ss(t, p.s + (p.e - p.s) * 0.6, p.e) * (1 - ss(t, p.e + 0.3, p.e + 0.6));
+    A(a, () => bez([mx + mw - 60, my + mh], [mx + mw - 60, my + mh + 50], [c.cx, ty - 90], [c.cx, ty - 32], { color: C.ink, lw: 3, head: true, p: ss(t, p.s + (p.e - p.s) * 0.6, p.e) }));
+  }
+  // dependency: the token just produced feeds the next pass (sentence 3)
+  const dep = ap(t, cue(3, 'until'), 0.6) * (1 - ss(t, S(4), S(4) + 0.3));
+  A(dep, () => {
+    const c = L[4];
+    bez([c.cx, ty + 30], [c.cx, ty + 110], [mx + 60, ty + 110], [mx + 60, my + mh + 6], { color: C.terra, lw: 3, head: true, dash: [8, 6], p: ss(t, cue(3, 'until'), cue(3, 'until') + 0.8) });
+    T('next pass must wait for this token', mx + 90, ty + 98, { size: 25, weight: 600, color: C.terra });
+  });
+  // wall-clock timeline of sequential passes
+  const ly = 1130, bw = 152, g = 10, bx = CX - (5 * bw + 4 * g) / 2;
+  A(ap(t, S(2) + 0.3, 0.6), () => {
+    T('WALL-CLOCK TIME', bx, ly - 22, { size: 20, weight: 700, color: C.mute, track: 2 });
+    arrow(bx, ly + 112, bx + 5 * bw + 4 * g + 6, ly + 112, { color: C.mute, lw: 2, head: 11 });
+    for (let k = 0; k < 5; k++) {
+      const x = bx + k * (bw + g), p = PS[k], f = ss(t, p.s, p.e);
+      box(x, ly, bw, 80, 12, null, C.beigeD, 2, [6, 5]);
+      if (f > 0) box(x, ly, bw * f, 80, 12, C.ink);
+      A(f, () => T(`pass ${k + 1}`, x + bw / 2, ly + 41, { size: 26, weight: 700, color: '#fff', align: 'center', base: 'middle' }));
+      A(ss(t, p.e, p.e + 0.3), () => T(`→ “${S1_GEN[k]}”`, x + bw / 2, ly + 150, { size: 24, weight: 600, color: C.ink2, align: 'center' }));
+    }
+  });
+  const sum = ap(t, cue(4, 'sequential'), 0.6);
+  A(sum, () => {
+    const x0 = bx, x1 = bx + 5 * bw + 4 * g;
+    card(x0, 1335, x1 - x0, 76, { r: 18, fill: '#FBF3EE', stroke: '#EBD3C4' });
+    T('5 tokens  =  5 sequential full forward passes', CX, 1374, { size: 30, weight: 700, color: C.terraD, align: 'center', base: 'middle' });
+  });
+}
+
+// ---------- Scene 2: speculative decoding (sentences 5–9) ----------
+const DRAFT4 = ['the', 'mat', 'quietly', 'and'];
+const DM = { x: 120, y: 560, w: 300, h: 170 }, TMd = { x: 470, y: 520, w: 490, h: 250 };
+function scene2(t) {
+  // sentence 5: the two ideas, before the models arrive
+  const ideaOut = 1 - ss(t, S(7) - 0.2, S(7) + 0.3);
+  A(ideaOut, () => {
+    [['1', 'Predict several future tokens', 'cheaply', cue(5, 'predict')], ['2', 'Verify them', 'together', cue(5, 'verify')]].forEach(([n, a, b, t0], i) => {
+      const p = ap(t, t0, 0.6), y = 720 + i * 190;
+      A(p, () => {
+        card(X0, y - 70 + (1 - p) * 16, X1 - X0, 140, { r: 24 });
+        ctx.beginPath(); ctx.arc(X0 + 70, y + (1 - p) * 16, 32, 0, Math.PI * 2); ctx.fillStyle = i ? C.ink : C.terra; ctx.fill();
+        T(n, X0 + 70, y + 2 + (1 - p) * 16, { size: 34, weight: 700, color: '#fff', align: 'center', base: 'middle' });
+        T(a, X0 + 130, y - 8 + (1 - p) * 16, { size: 36, weight: 600, color: C.ink, base: 'middle' });
+        T(b, X0 + 130, y + 36 + (1 - p) * 16, { size: 36, weight: 700, font: SERIF, italic: true, color: i ? C.ink : C.terra, base: 'middle' });
+      });
+    });
+  });
+  title('Speculative decoding', t, cue(6, 'speculative') - 0.2, 'Two models: one cheap guesser, one exact judge');
+  if (t < S(7) - 0.3) return;
+  // models
+  const pa = ap(t, S(7), 0.6);
+  const dg = ss(t, cue(7, 'draft'), cue(7, 'draft') + 0.3) * (1 - ss(t, cue(7, 'large'), cue(7, 'large') + 0.4));
+  const tg = ss(t, cue(7, 'target'), cue(7, 'target') + 0.3) * (1 - ss(t, E(7) + 0.2, E(7) + 0.7));
+  // draft pulses during the four sequential draft steps
+  const d0 = cue(8, 'proposes'), dd = Math.max(0.35, (E(8) + 0.2 - d0) / 4);
+  let pulse = 0;
+  for (let k = 0; k < 4; k++) pulse = Math.max(pulse, 1 - Math.abs((t - (d0 + k * dd + dd * 0.4)) / (dd * 0.45)));
+  const ver0 = cue(9, 'single'), colP = ap(t, ver0, 0.35) * (1 - ss(t, E(9) + 0.4, E(9) + 1.0));
+  A(pa, () => {
+    draftModel(DM.x, DM.y + 40, DM.w, DM.h, { glow: dg, pulse: clamp(pulse) });
+    T('small · cheap per step', DM.x + 20, DM.y + 40 + 74, { size: 22, weight: 500, color: C.terraD });
+    targetModel(TMd.x, TMd.y, TMd.w, TMd.h, { layers: 5, label: 'Target model', sub: 'large · expensive', glow: Math.max(tg, colP * 0.8),
+      cols: { n: 4, p: colP, x0: TMd.x + 90, x1: TMd.x + TMd.w - 90 }, colCol: C.sage });
+  });
+  // drafted tokens appear one at a time (drafting itself is autoregressive)
+  const ty = 900, size = 30;
+  const row = ['The cat sat on', ...DRAFT4], L = rowLayout(row, CX - rowWidth(row, size, 12) / 2, size, 12);
+  A(ap(t, S(8) - 0.2, 0.5), () => chip(L[0].s, L[0].x, ty, 'prompt', { size }));
+  const mv = ss(t, cue(9, 'processes') - 0.2, ver0);               // chips fly up into the target
+  for (let k = 0; k < 4; k++) {
+    const c = L[k + 1], te = d0 + k * dd + dd * 0.6;
+    chip(c.s, c.x, ty, 'draft', { size, scale: pop(t, te, 0.35) });
+    A(ss(t, te, te + 0.2), () => T(`step ${k + 1}`, c.cx, ty + 50, { size: 19, weight: 600, color: C.terra, align: 'center' }));
+    // emission arc from draft model
+    const ea = ss(t, te - dd * 0.5, te) * (1 - ss(t, te + 0.1, te + 0.4));
+    A(ea, () => bez([DM.x + DM.w / 2, DM.y + 40 + DM.h], [DM.x + DM.w / 2, ty - 80], [c.cx, ty - 90], [c.cx, ty - 30], { color: C.terra, lw: 3, head: true, p: ss(t, te - dd * 0.5, te) }));
+    // copy into the target model for verification
+    if (mv > 0) {
+      const tx = lerp(TMd.x + 90, TMd.x + TMd.w - 90, k / 3), q = eio(clamp(mv * 1.2 - k * 0.07));
+      A(1 - ss(t, ver0, ver0 + 0.3), () => chip(c.s, lerp(c.cx, tx, q), lerp(ty, TMd.y + TMd.h - 50, q), 'draft', { size: 24, align: 'center' }));
+    }
+  }
+  A(ap(t, cue(8, 'several'), 0.5) * (1 - ss(t, cue(9, 'instead'), cue(9, 'instead') + 0.4)), () =>
+    T('drafting is still step-by-step — but each step is cheap', CX, ty + 108, { size: 26, weight: 600, color: C.terraD, align: 'center', italic: true }));
+  A(colP, () => T('one pass · all 4 positions checked together', TMd.x + TMd.w / 2, TMd.y + TMd.h + 36, { size: 24, weight: 700, color: C.sageD, align: 'center' }));
+  // cost comparison
+  const cp = ap(t, cue(9, 'instead'), 0.6);
+  A(cp, () => {
+    const y1 = 1110, y2 = 1270, x0 = 330, u = 132;
+    T('Target alone', X0, y1 + 8, { size: 25, weight: 700, color: C.ink, base: 'middle' });
+    T('4 passes', X0, y1 + 40, { size: 21, color: C.ink2, base: 'middle' });
+    for (let k = 0; k < 4; k++) { const f = clamp(cp * 4 - k); box(x0 + k * (u + 8), y1 - 28, u * f, 64, 10, C.ink); }
+    T('Speculative', X0, y2 + 8, { size: 25, weight: 700, color: C.ink, base: 'middle' });
+    T('draft ×4 + verify ×1', X0, y2 + 40, { size: 21, color: C.ink2, base: 'middle' });
+    for (let k = 0; k < 4; k++) box(x0 + k * 30, y2 - 18, 24, 44, 6, C.terra);
+    const vf = ss(t, ver0, ver0 + 0.5);
+    box(x0 + 128, y2 - 28, 168, 64, 10, null, C.beigeD, 2, [6, 5]);
+    if (vf > 0) box(x0 + 128, y2 - 28, 168 * vf, 64, 10, C.ink);
+    A(vf, () => T('verify', x0 + 212, y2 + 5, { size: 24, weight: 700, color: '#fff', align: 'center', base: 'middle' }));
+    T('cost →', X1, y2 + 70, { size: 20, color: C.mute, align: 'right' });
+  });
+}
+
+// ---------- Scene 3: accept or reject (sentences 10–11) ----------
+function scene3(t) {
+  title('Accept or reject', t, S(10) - 0.1, 'Simplified greedy example');
+  const size = 30, row = ['The cat sat on', ...DRAFT4];
+  const L = rowLayout(row, CX - rowWidth(row, size, 14) / 2, size, 14), ty = 700;
+  const tc = cue(10, 'correct'), tr = cue(10, 'rejected'), td = cue(10, 'discarded'), tf = cue(10, 'corrected');
+  // target's own choice at each position (what the target would pick there)
+  const TGT = ['the', 'mat', 'and', '…'];
+  A(ap(t, S(10), 0.6), () => {
+    T("TARGET'S CHOICE", L[0].x, 580, { size: 20, weight: 700, color: C.blue, track: 2 });
+    T('DRAFT', L[0].x, ty - 44, { size: 20, weight: 700, color: C.mute, track: 2 });
+  });
+  for (let k = 0; k < 4; k++) {
+    const c = L[k + 1];
+    A(ap(t, S(10) + 0.3 + k * 0.15, 0.5) * (k === 3 ? 0.45 : 1), () => {
+      T(TGT[k], c.cx, 612, { size: 28, weight: 700, color: C.blueD, align: 'center', base: 'middle' });
+      line(c.cx, 632, c.cx, ty - 34, C.beigeD, 2, [4, 5]);
+    });
+  }
+  chip(L[0].s, L[0].x, ty, 'prompt', { size });
+  const states = [
+    t >= tc ? 'acc' : 'draft',
+    t >= tc + 0.25 ? 'acc' : 'draft',
+    t >= tr ? 'rej' : 'draft',
+    t >= td ? 'disc' : 'draft',
+  ];
+  for (let k = 0; k < 4; k++) {
+    const c = L[k + 1], st = states[k];
+    const fade = k >= 2 ? 1 - 0.55 * ss(t, tf, tf + 0.6) : 1;
+    const shake = k === 2 ? Math.sin((t - tr) * 40) * 6 * (1 - ss(t, tr, tr + 0.4)) * (t > tr ? 1 : 0) : 0;
+    A(fade, () => chip(c.s, c.x + shake, ty, st, { size, glow: st === 'acc' ? 1 - ss(t, tc, tc + 1) : 0 }));
+    if (k < 3) badge(c.cx, ty + 52, k < 2, pop(t, k < 2 ? tc + k * 0.25 : tr, 0.35));
+  }
+  A(ap(t, td, 0.5) * (1 - ss(t, tf, tf + 0.4)), () => T('depends on a rejected token → discarded', L[4].cx, ty + 66, { size: 21, weight: 600, color: C.mute, align: 'right' }));
+  // result row
+  const ry = 900, rp = ap(t, tf, 0.6);
+  A(rp, () => {
+    T('RESULT OF THIS ROUND', X0, ry - 50, { size: 20, weight: 700, color: C.mute, track: 2 });
+    let x = X0;
+    x += chip('The cat sat on', x, ry, 'prompt', { size: 28 }) + 12;
+    x += chip('the', x, ry, 'acc', { size: 28 }) + 12;
+    x += chip('mat', x, ry, 'acc', { size: 28 }) + 12;
+    const w = chip('and', x, ry, 'tgt', { size: 28, scale: pop(t, tf + 0.25, 0.4) });
+    A(ap(t, tf + 0.5, 0.4), () => T('← from the target', x + w + 14, ry + 2, { size: 23, weight: 600, color: C.blueD, base: 'middle' }));
+  });
+  A(ap(t, S(10) + 0.6, 0.5), () => legend([['acc', 'accepted'], ['rej', 'rejected'], ['draft', 'unverified draft'], ['tgt', 'from target']], X0, 990, 21));
+  // caveat: the real procedure is probabilistic and lossless
+  A(ap(t, cueEnd(10, 'prefix') - 0.3, 0.6), () => {
+    card(X0, 1030, X1 - X0, 118, { r: 18, fill: '#F7F4EE' });
+    T('With sampling, draft token x is accepted with probability', X0 + 24, 1072, { size: 23, color: C.ink2 });
+    M('min(1, p(x) / q(x))', X0 + 24, 1118, 30, { color: C.ink });
+    T('→ output follows the target distribution', X0 + 300, 1114, { size: 23, weight: 600, color: C.sageD });
+  });
+  // sentence 11: why verifying together is cheap
+  const ip = ap(t, cue(11, 'verifying'), 0.6);
+  A(ip, () => {
+    const y1 = 1215, y2 = 1310, x0 = 360, u = 120;
+    T('4 sequential passes', X0, y1 + 2, { size: 23, weight: 700, color: C.ink, base: 'middle' });
+    for (let k = 0; k < 4; k++) { const f = clamp(ss(t, cue(11, 'sequentially') - 0.6, cue(11, 'sequentially') + 0.6) * 4 - k); box(x0 + k * (u + 6), y1 - 26, u * f, 52, 9, C.ink); }
+    T('1 pass, 4 positions', X0, y2 + 2, { size: 23, weight: 700, color: C.ink, base: 'middle' });
+    const f = ss(t, cue(11, 'cheaper') - 0.3, cue(11, 'cheaper') + 0.3);
+    box(x0, y2 - 26, 150 * f, 52, 9, C.ink);
+    for (let k = 0; k < 4; k++) A(f, () => box(x0 + 14 + k * 33, y2 - 10, 24, 20, 5, C.sage));
+    A(ap(t, cue(11, 'cheaper'), 0.5), () => T('weights are read once for all positions (decoding is memory-bound)', X0, 1380, { size: 22, color: C.ink2, italic: true }));
+  });
+}
+
+// ---------- Scene 4: the catch — acceptance rate (sentences 12–13) ----------
+function scene4(t) {
+  title('The catch', t, S(12) - 0.1, 'Speedup lives or dies by acceptance');
+  const rounds = [[0], [1, 0], [0], [1, 1, 0]];   // 1 = accepted, 0 = first rejection; rest discarded
+  const r0 = cue(13, 'frequently'), rj = cue(13, 'rejects');
+  rounds.forEach((r, i) => {
+    const y = 600 + i * 120, ap0 = ap(t, S(13) + i * 0.25, 0.5);
+    A(ap0, () => {
+      T(`round ${i + 1}`, X0, y + 2, { size: 23, weight: 600, color: C.mute, base: 'middle' });
+      let x = X0 + 130;
+      for (let k = 0; k < 4; k++) {
+        const vt = rj + i * 0.22 + k * 0.08;
+        const st = t < vt ? 'draft' : k < r.length ? (r[k] ? 'acc' : 'rej') : 'disc';
+        x += chip(['tok', 'tok', 'tok', 'tok'][k], x, y, st, { size: 26 }) + 10;
+      }
+      const acc = r.filter(Boolean).length;
+      A(ap(t, rj + i * 0.22 + 0.4, 0.4), () => T(`+${acc + 1} token${acc ? 's' : ''} per target pass`, X1, y + 2, { size: 23, weight: 700, color: acc ? C.sageD : C.red, align: 'right', base: 'middle' }));
+    });
+  });
+  // speed meter collapses at "lose"
+  const lp = ap(t, cue(13, 'lose'), 1.0);
+  A(ap(t, r0, 0.6), () => {
+    const y = 1160, x0 = X0, w = X1 - X0;
+    T('Effective speedup (illustrative)', x0, y - 30, { size: 24, weight: 700, color: C.ink });
+    box(x0, y, w, 46, 23, C.beige);
+    const f = lerp(0.82, 0.2, lp);
+    box(x0, y, w * f, 46, 23, mix(C.sage, C.red, lp));
+    T(lp < 0.5 ? 'good drafts' : 'frequent rejections', x0 + 24, y + 24, { size: 22, weight: 700, color: '#fff', base: 'middle' });
+    A(lp, () => T('most of the gain is lost', X1, y + 92, { size: 26, weight: 700, color: C.red, align: 'right', italic: true }));
+  });
+}
+
+// ---------- Scene 5: EAGLE-3 architecture (sentences 14–17) ----------
+const LAYER_COL = { low: C.blue, mid: C.sage, high: C.ochre };
+function tensor(x, y, col, s = 1, lab) {       // small 3-D tensor block
+  const w = 64 * s, h = 64 * s, d = 16 * s;
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + d, y - d); ctx.lineTo(x + w + d, y - d); ctx.lineTo(x + w, y); ctx.closePath(); ctx.fillStyle = mix(col, '#FFFFFF', 0.35); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x + w, y); ctx.lineTo(x + w + d, y - d); ctx.lineTo(x + w + d, y + h - d); ctx.lineTo(x + w, y + h); ctx.closePath(); ctx.fillStyle = mix(col, '#000000', 0.15); ctx.fill();
+  box(x, y, w, h, 3, col);
+  for (let k = 1; k < 4; k++) line(x + w * k / 4, y + 4, x + w * k / 4, y + h - 4, 'rgba(255,255,255,0.45)', 1.5);
+  if (lab) M(lab, x + w / 2, y + h / 2 + 10 * s, 26 * s, { align: 'center', color: '#fff', weight: 700 });
+}
+function scene5(t) {
+  // sentence 14: name card
+  const e0 = S(14);
+  const big = ap(t, e0, 0.7), shrink = ss(t, S(15) - 0.2, S(15) + 0.5);
+  A(big * (1 - shrink), () => {
+    mark(CX, 760, 70, C.terra);
+    T('EAGLE-3', CX, 950, { size: 130, weight: 700, font: SERIF, color: C.terra, align: 'center' });
+    T('a better draft model for speculative decoding', CX, 1020, { size: 30, color: C.ink2, align: 'center', italic: true, font: SERIF });
+  });
+  title('EAGLE-3: draft from the target’s own features', t, S(15) - 0.1, 'Hidden states the target has already computed', { size: 46 });
+  if (t < S(15) - 0.3) return;
+  const a0 = ap(t, S(15), 0.7);
+  // target model as a vertical layer stack
+  const tx = 120, tyTop = 560, lw = 270, lh = 44, gap = 10, nL = 8;
+  const ly = i => tyTop + 50 + (nL - 1 - i) * (lh + gap);      // i=0 bottom layer
+  const taps = [{ i: 1, k: 'low', lab: 'g_{l}', name: 'low' }, { i: 4, k: 'mid', lab: 'g_{m}', name: 'mid' }, { i: 7, k: 'high', lab: 'g_{h}', name: 'high' }];
+  const tapT = cue(16, 'hidden'), mergeT = cue(16, 'multiple'), drT = cue(16, 'lightweight');
+  A(a0, () => {
+    box(tx - 14, tyTop - 6, lw + 28, nL * (lh + gap) + 64, 22, '#FFFFFF', C.ink, 3);
+    T('Target model', tx + 4, tyTop + 30, { size: 27, weight: 700, color: C.ink });
+    for (let i = 0; i < nL; i++) {
+      const tap = taps.find(q => q.i === i), hl = tap ? ss(t, tapT + taps.indexOf(tap) * 0.18, tapT + taps.indexOf(tap) * 0.18 + 0.3) : 0;
+      box(tx, ly(i), lw, lh, 8, tap ? mix('#EFEAE3', LAYER_COL[tap.k], hl) : '#EFEAE3');
+      T(`layer ${i + 1}`, tx + 18, ly(i) + lh / 2 + 1, { size: 20, weight: 600, color: tap && hl > 0.5 ? '#fff' : C.ink2, base: 'middle' });
+    }
+    T('already computed in the previous target pass', tx - 10, tyTop + nL * (lh + gap) + 96, { size: 21, weight: 500, color: C.ink2, italic: true });
+  });
+  A(ap(t, cue(15, 'independent'), 0.5) * (1 - ss(t, cue(15, 'uses'), cue(15, 'uses') + 0.4)), () => {
+    T('not a separate, independent LM', 720, 700, { size: 26, weight: 600, color: C.mute, align: 'center' });
+    line(560, 700 - 9, 880, 700 - 9, C.red, 3);
+  });
+  // tap tensors → fusion → draft head
+  const fx = 640, fy = 760, fw = 130, fh = 110;           // fusion box
+  const dx = 820, dy = 740, dw = 150, dh = 150;           // draft head
+  taps.forEach((q, n) => {
+    const t0 = tapT + n * 0.18, p = ap(t, t0, 0.5);
+    const sx = tx + lw + 30, sy = ly(q.i) - 10;
+    const m = eio(ss(t, mergeT - 0.2, mergeT + 0.8 + n * 0.1));
+    const x = lerp(sx, fx + 20 + n * 12, m), y = lerp(sy, fy + 30, m), s = lerp(1, 0.55, m);
+    A(p * (1 - ss(t, mergeT + 0.7 + n * 0.1, mergeT + 1.0 + n * 0.1)), () => {
+      line(tx + lw, ly(q.i) + lh / 2, sx, sy + 32, LAYER_COL[q.k], 3, [5, 4]);
+      tensor(x, y, LAYER_COL[q.k], s, q.lab);
+      A(1 - m, () => T(`${q.name}-level`, sx + 96, sy + 40, { size: 22, weight: 700, color: LAYER_COL[q.k] }));
+    });
+  });
+  const fp = ap(t, mergeT + 0.6, 0.5);
+  A(fp, () => {
+    box(fx, fy, fw, fh, 16, '#FFFFFF', C.ink, 2.5);
+    // fused vector with three colour segments
+    [C.blue, C.sage, C.ochre].forEach((c, k) => box(fx + 18 + k * 32, fy + 22, 30, 30, 4, c));
+    T('fuse', fx + fw / 2, fy + 82, { size: 22, weight: 700, color: C.ink, align: 'center' });
+    T('concat + FC', fx + fw / 2, fy + fh + 28, { size: 19, weight: 500, color: C.ink2, align: 'center' });
+  });
+  const dp = ap(t, Math.max(mergeT + 0.9, cue(16, 'richer')), 0.5);
+  A(dp, () => {
+    arrow(fx + fw, fy + fh / 2, dx - 4, fy + fh / 2, { color: C.ink, lw: 3, p: dp });
+    draftModel(dx, dy, dw, dh, { label: 'Draft', lsize: 25, sh: 22, glow: ss(t, drT, drT + 0.3) * (1 - ss(t, drT + 1, drT + 1.5)), pulse: 0.3 });
+    T('1 decoder', dx + 20, dy + 70, { size: 19, color: C.terraD }); T('layer', dx + 20, dy + 94, { size: 19, color: C.terraD });
+    // token embedding input from below
+    arrow(dx + dw / 2, dy + dh + 70, dx + dw / 2, dy + dh + 4, { color: C.mute, lw: 2.5 });
+    T('+ token embedding', dx + dw / 2, dy + dh + 96, { size: 19, weight: 600, color: C.ink2, align: 'center' });
+  });
+  // output: token prediction (sentence 17 "directly")
+  const op = ap(t, cue(17, 'directly') - 0.3, 0.5);
+  A(Math.max(op, dp * 0.0), () => {
+    arrow(dx + dw / 2, dy - 4, dx + dw / 2, dy - 56, { color: C.terra, lw: 3, p: op });
+    chip('token', dx + dw / 2, dy - 88, 'draft', { size: 26, align: 'center', scale: op });
+  });
+  // sentence 17: earlier EAGLE vs EAGLE-3
+  const cmp = ap(t, cue(17, 'earlier'), 0.6), cmp2 = ap(t, cue(17, 'trains'), 0.6);
+  const cy = 1150, cw = (X1 - X0 - 20) / 2, ch = 250;
+  A(cmp, () => {
+    card(X0, cy, cw, ch, { r: 20, fill: '#F6F3EE' });
+    T('Earlier EAGLE', X0 + 22, cy + 42, { size: 27, weight: 700, color: C.ink2 });
+    T('top-layer feature only', X0 + 22, cy + 88, { size: 22, color: C.ink2 });
+    box(X0 + 22, cy + 112, 60, 40, 6, C.ochre);
+    arrow(X0 + 92, cy + 132, X0 + 150, cy + 132, { color: C.mute, lw: 2.5 });
+    box(X0 + 160, cy + 112, 60, 40, 6, null, C.ochre, 2.5, [5, 4]);
+    T('next', X0 + 230, cy + 128, { size: 20, color: C.ink2 }); T('feature', X0 + 230, cy + 150, { size: 20, color: C.ink2 });
+    T('predicts future features', X0 + 22, cy + 200, { size: 22, weight: 700, color: C.ink });
+    T('(feature-regression target)', X0 + 22, cy + 228, { size: 19, color: C.mute });
+  });
+  A(cmp2, () => {
+    const x = X0 + cw + 20;
+    card(x, cy, cw, ch, { r: 20, fill: '#FBF3EE', stroke: '#EBCDBE', lw: 2.5 });
+    T('EAGLE-3', x + 22, cy + 42, { size: 27, weight: 700, color: C.terra });
+    T('low + mid + high fused', x + 22, cy + 88, { size: 22, color: C.ink2 });
+    [C.blue, C.sage, C.ochre].forEach((c, k) => box(x + 22 + k * 30, cy + 112, 28, 40, 5, c));
+    arrow(x + 118, cy + 132, x + 176, cy + 132, { color: C.terra, lw: 2.5 });
+    chip('token', x + 186, cy + 132, 'draft', { size: 22 });
+    T('predicts tokens directly', x + 22, cy + 200, { size: 22, weight: 700, color: C.terraD });
+    T('(no feature-prediction loss)', x + 22, cy + 228, { size: 19, color: C.mute });
+  });
+}
+
+// ---------- Scene 6: building the draft tree (sentences 18–20) ----------
+const TREE = [
+  { id: 0, s: 'The', p: -1, d: 0, x: 590 },
+  { id: 1, s: 'cat', p: 0, d: 1, x: 340 }, { id: 2, s: 'dog', p: 0, d: 1, x: 590 }, { id: 3, s: 'bird', p: 0, d: 1, x: 840 },
+  { id: 4, s: 'sat', p: 1, d: 2, x: 250 }, { id: 5, s: 'ran', p: 1, d: 2, x: 440 }, { id: 6, s: 'barked', p: 2, d: 2, x: 640 },
+  { id: 7, s: 'down', p: 4, d: 3, x: 250 },
+];
+const TREE_Y = [570, 735, 900, 1065];
+const PATHS = [[0, 1, 4, 7], [0, 1, 5], [0, 2, 6], [0, 3]];
+const ancestors = id => { const a = []; let n = TREE[id]; while (n.p >= 0) { a.push(n.p); n = TREE[n.p]; } return a; };
+// generic tree renderer: st(node) -> {state, a, scale, glow}; edge(n) -> {a, col, lw, p}
+function drawTree(t, st, edge) {
+  for (const n of TREE) if (n.p >= 0) {
+    const e = edge(n); if (!e || e.a <= 0) continue;
+    const pr = TREE[n.p], x0 = pr.x, y0 = TREE_Y[pr.d] + 27, x1 = n.x, y1 = TREE_Y[n.d] - 27;
+    A(e.a, () => bez([x0, y0], [x0, (y0 + y1) / 2], [x1, (y0 + y1) / 2], [x1, y1], { color: e.col || C.beigeD, lw: e.lw || 3, p: e.p ?? 1 }));
+  }
+  for (const n of TREE) {
+    const s = st(n); if (!s || s.a <= 0) continue;
+    A(s.a, () => chip(n.s, n.x, TREE_Y[n.d], s.state, { size: 30, align: 'center', scale: s.scale ?? 1, glow: s.glow || 0 }));
+  }
+}
+function scene6(t) {
+  title('Drafting a tree of candidates', t, S(18) - 0.1, 'Alternatives, not one guess');
+  const dT = [S(18) + 0.3, cue(18, 'proposing'), cue(19, 'organize'), cue(19, 'tree')];
+  const linear = ap(t, cue(19, 'linear'), 0.5) * (1 - ss(t, cue(19, 'organize') - 0.1, cue(19, 'organize') + 0.3));
+  // depth labels = draft steps
+  for (let d = 1; d <= 3; d++) A(ap(t, dT[d], 0.5), () => T(`step ${d}`, X0, TREE_Y[d] + 2, { size: 21, weight: 700, color: C.terra, base: 'middle' }));
+  A(ap(t, dT[0], 0.5), () => T('context', X0, TREE_Y[0] + 2, { size: 21, weight: 700, color: C.mute, base: 'middle' }));
+  // path highlight during sentence 20
+  const b0 = cue(20, 'branch'), bd = Math.max(0.55, (E(20) + 0.3 - b0) / PATHS.length);
+  const pk = t >= b0 && t < b0 + bd * PATHS.length ? Math.floor((t - b0) / bd) : -1;
+  const hp = pk >= 0 ? PATHS[pk] : null;
+  drawTree(t,
+    n => ({ state: n.d === 0 ? 'prompt' : 'draft', a: ap(t, dT[n.d] + (n.d ? (n.id % 3) * 0.12 : 0), 0.4) * (hp && !hp.includes(n.id) ? 0.35 : 1),
+            scale: pop(t, dT[n.d] + (n.d ? (n.id % 3) * 0.12 : 0), 0.45), glow: hp && hp.includes(n.id) ? 0.8 : 0 }),
+    n => ({ a: (hp && !(hp.includes(n.id) && hp.includes(n.p)) ? 0.3 : 1), col: hp && hp.includes(n.id) ? C.terra : C.beigeD,
+            p: ss(t, dT[n.d] - 0.1, dT[n.d] + 0.4 + (n.id % 3) * 0.12) }));
+  A(linear, () => T('(vs. a single linear sequence)', 840, TREE_Y[3] + 2, { size: 22, color: C.mute, align: 'center', italic: true, base: 'middle' }));
+  if (hp) {
+    const s = hp.map(i => TREE[i].s).join('  →  ');
+    A(ss(t, b0 + pk * bd, b0 + pk * bd + 0.15), () => T(s, CX, 1180, { size: 34, weight: 700, color: C.terraD, align: 'center', font: SERIF, italic: true }));
+  }
+  A(ap(t, cue(19, 'tree') + 0.6, 0.6), () => {
+    card(X0, 1245, X1 - X0, 140, { r: 18, fill: '#F7F4EE' });
+    T('Each depth is one draft step — the draft still runs', CX, 1302, { size: 25, weight: 500, color: C.ink2, align: 'center' });
+    T('sequentially. The tree stores alternative futures.', CX, 1342, { size: 25, weight: 500, color: C.ink2, align: 'center' });
+  });
+}
+
+// ---------- Scene 7: tree attention mask (sentences 21–23) ----------
+const CAND = [1, 2, 3, 4, 5, 6, 7];                        // packed order (tree nodes)
+const BRANCH_COL = id => ({ 1: C.terra, 4: C.terra, 5: C.terra, 7: C.terra, 2: C.blue, 6: C.blue, 3: C.ochre })[id];
+function scene7(t) {
+  title('Tree attention mask', t, S(21) - 0.1, 'Verify every branch in one pass, without mixing them');
+  const cs = 66, mx = 300, my = 690, cols = 1 + CAND.length;     // col 0 = shared prompt (incl. root "The")
+  const colX = j => mx + j * cs, rowY = i => my + i * cs;
+  const pk = ap(t, S(21), 0.6);
+  // packed sequence = column headers
+  A(pk, () => {
+    T('PACKED INTO ONE SEQUENCE  (keys →)', mx, 568, { size: 19, weight: 700, color: C.mute, track: 1.5 });
+    box(colX(0) + 4, 600, cs - 8, 54, 10, CHIP.prompt.fill, CHIP.prompt.stroke, 2);
+    T('prompt', colX(0) + cs / 2, 620, { size: 17, weight: 700, color: C.ink, align: 'center', base: 'middle' });
+    T('+ The', colX(0) + cs / 2, 640, { size: 17, weight: 700, color: C.ink, align: 'center', base: 'middle' });
+    CAND.forEach((id, j) => {
+      const x = colX(j + 1) + 4, p = pop(t, S(21) + 0.1 + j * 0.06, 0.4);
+      ctx.save(); ctx.translate(x + (cs - 8) / 2, 627); ctx.scale(p, p); ctx.translate(-(x + (cs - 8) / 2), -627);
+      box(x, 600, cs - 8, 54, 10, CHIP.draft.fill, BRANCH_COL(id), 2.5);
+      T(TREE[id].s, x + (cs - 8) / 2, 628, { size: TREE[id].s.length > 4 ? 17 : 20, weight: 700, color: C.terraD, align: 'center', base: 'middle' });
+      ctx.restore();
+    });
+    T('queries ↓', mx - 18, my - 12, { size: 19, weight: 700, color: C.mute, align: 'right' });
+    CAND.forEach((id, i) => T(TREE[id].s, mx - 18, rowY(i) + cs / 2 + 1, { size: 24, weight: 700, color: BRANCH_COL(id), align: 'right', base: 'middle' }));
+  });
+  // cells
+  const fill0 = cue(21, 'specially'), shT = cue(22, 'shared'), anT = cue(22, 'ancestors'), unT = cue(22, 'unrelated');
+  const focus = 6;                                            // row index of "down"
+  const focusA = ss(t, anT - 0.1, anT + 0.4) * (1 - ss(t, unT - 0.1, unT + 0.3));
+  const unA = ss(t, unT, unT + 0.4) * (1 - ss(t, E(22) + 0.2, E(22) + 0.7));
+  const unRow = 3;                                            // row "sat" for the masked example
+  A(pk, () => {
+    CAND.forEach((qid, i) => {
+      const anc = new Set([...ancestors(qid), qid]);
+      for (let j = 0; j < cols; j++) {
+        const kid = j === 0 ? 0 : CAND[j - 1];
+        const allowed = j === 0 || anc.has(kid);
+        const x = colX(j), y = rowY(i);
+        const rv = ss(t, fill0 + i * 0.09, fill0 + i * 0.09 + 0.35);
+        const dimRow = focusA > 0 && i !== focus ? 1 - 0.6 * focusA : 1;
+        let fill = '#F3EFE9', stroke = C.line;
+        if (allowed && rv > 0) {
+          const base = j === 0 ? mix('#F3EFE9', C.sage, 0.85) : mix('#F3EFE9', BRANCH_COL(qid), 0.8);
+          fill = mix('#F3EFE9', base, rv);
+          if (j === 0) fill = mix(fill, C.sageD, 0.4 * ss(t, shT, shT + 0.3) * (1 - ss(t, anT, anT + 0.3)));
+        }
+        A(dimRow, () => box(x + 3, y + 3, cs - 6, cs - 6, 9, fill, stroke, 1.5));
+        if (!allowed && i === unRow) A(unA, () => cross(x + cs / 2, y + cs / 2, 22, C.red, 4));
+      }
+    });
+    // focus row outline + explanation
+    A(focusA, () => {
+      box(colX(0) - 2, rowY(focus) - 2, cols * cs + 4, cs + 4, 12, null, C.ink, 3.5);
+      T('“down” sees: prompt → cat → sat → itself', CX, rowY(CAND.length) + 44, { size: 25, weight: 700, color: C.terraD, align: 'center' });
+    });
+    A(unA, () => {
+      box(colX(0) - 2, rowY(unRow) - 2, cols * cs + 4, cs + 4, 12, null, C.red, 3.5);
+      T('“sat” cannot see dog · bird · ran · barked · down', CX, rowY(CAND.length) + 44, { size: 25, weight: 700, color: C.red, align: 'center' });
+    });
+    A(ap(t, fill0 + 1, 0.5) * (1 - Math.max(focusA, unA)), () => {
+      legend([['acc', 'shared prompt'], ['draft', 'own ancestors / self'], ['disc', 'masked']], X0 + 20, rowY(CAND.length) + 38, 22);
+    });
+  });
+  // sentence 23: one target forward pass over all packed candidates
+  const vp = ap(t, S(23), 0.6), lit = ap(t, cue(23, 'one'), 0.4);
+  A(vp, () => {
+    const y = 1290, h = 110;
+    targetModel(X0, y, X1 - X0, h, { layers: 2, labelIn: false, glow: lit * 0.8 });
+    T('Target model · ONE forward pass over all packed candidates', X0 + 4, y - 16, { size: 24, weight: 700, color: C.ink });
+    CAND.forEach((id, j) => {
+      const cx = colX(j + 1) + cs / 2;
+      A(lit, () => { ctx.save(); ctx.shadowColor = BRANCH_COL(id); ctx.shadowBlur = 16; box(cx - 15, y + 14, 30, h - 28, 9, mix('#FFFFFF', BRANCH_COL(id), 0.7)); ctx.restore(); });
+    });
+    box(colX(0) + cs / 2 - 15, y + 14, 30, h - 28, 9, mix('#FFFFFF', C.sage, 0.4 + 0.4 * lit));
+  });
+}
+
+// ---------- Scene 8: choosing the accepted continuation (sentence 24) ----------
+function scene8(t) {
+  title('Keep the accepted prefix', t, S(24) - 0.2, 'Greedy example: the target’s choice at each node');
+  const v0 = cue(24, 'determines'), acc = cue(24, 'accepted'), go = cue(24, 'continues');
+  // verdicts per node: cat ✓, sat ✓, down ✗ (target wants "on"); siblings not chosen ✗
+  const VERD = { 1: 1, 2: 0, 3: 0, 4: 1, 5: 0, 6: 0, 7: 0 };
+  const vt = n => v0 + [0, 0, 0.15, 0.3, 0.55, 0.7, 0.85, 1.05][n.id];
+  const fadeOthers = ss(t, acc, acc + 0.6);
+  const fly = eio(ss(t, go, go + 1.0));
+  drawTree(t,
+    n => {
+      if (n.d === 0) return { state: 'prompt', a: 1 };
+      const decided = t >= vt(n), ok = VERD[n.id] === 1;
+      const st = !decided ? 'draft' : ok ? 'acc' : 'rej';
+      const a = ok ? 1 - 0.6 * fly : 1 - 0.75 * fadeOthers;
+      return { state: st, a, glow: ok && decided ? 1 - ss(t, vt(n), vt(n) + 1) : 0 };
+    },
+    n => {
+      const ok = VERD[n.id] === 1 && t >= vt(n);
+      return { a: ok ? 1 : 1 - 0.75 * fadeOthers, col: ok ? C.sage : C.beigeD, lw: ok ? 5 : 3 };
+    });
+  for (const n of TREE) if (n.d > 0) badge(n.x + chipW(n.s, 30) / 2 + 4, TREE_Y[n.d] - 26, VERD[n.id] === 1, pop(t, vt(n), 0.3) * (VERD[n.id] ? 1 - fly : 1 - 0.75 * fadeOthers));
+  // target's correction at the first mismatch below "sat"
+  const onT = vt(TREE[7]) + 0.3, onp = pop(t, onT, 0.4);
+  A(1 - 0.6 * fly, () => {
+    chip('on', 440, TREE_Y[3], 'tgt', { size: 30, align: 'center', scale: onp });
+    A(onp, () => T('target picks “on”', 440, TREE_Y[3] + 52, { size: 21, weight: 600, color: C.blueD, align: 'center' }));
+  });
+  // accepted tokens move into the output stream
+  const oy = 1215;
+  A(ap(t, go - 0.3, 0.5), () => T('OUTPUT STREAM', X0, oy - 52, { size: 20, weight: 700, color: C.mute, track: 2 }));
+  let x = X0;
+  A(ap(t, go - 0.3, 0.5), () => chip('… The', x, oy, 'prompt', { size: 30 }));
+  x += chipW('… The', 30) + 12;
+  [[TREE[1], 'acc'], [TREE[4], 'acc'], [{ s: 'on', x: 440, d: 3 }, 'tgt']].forEach(([n, st], k) => {
+    const q = eio(ss(t, go + k * 0.15, go + 0.9 + k * 0.15)), w = chipW(n.s, 30);
+    const sx = n.x - w / 2, sy = TREE_Y[n.d];
+    if (q > 0) chip(n.s, lerp(sx, x, q), lerp(sy, oy, q), st, { size: 30 });
+    x += w + 12;
+  });
+  A(ap(t, go + 1.1, 0.5), () => {
+    T('1 target pass  →  3 new tokens', x + 10, oy - 6, { size: 25, weight: 700, color: C.ink, base: 'middle' });
+    T('2 accepted + 1 from target', x + 10, oy + 26, { size: 21, weight: 500, color: C.ink2, base: 'middle' });
+  });
+  A(ap(t, cue(24, 'prefix'), 0.6), () => T('With sampling, acceptance is probabilistic — still lossless.', CX, 1340, { size: 23, color: C.ink2, align: 'center', italic: true }));
+}
+
+// ---------- Scene 9: why EAGLE-3 drafts better (sentences 25–27) ----------
+function scene9(t) {
+  title('Why EAGLE-3 drafts better', t, S(25) - 0.1);
+  const items = [['1', 'Multi-layer', 'feature fusion'], ['2', 'Direct token', 'prediction'], ['3', 'Training-time', 'test']];
+  const cw = (X1 - X0 - 2 * 16) / 3, cy = 490, chh = 150;
+  const hl = ss(t, cue(26, 'trainingtime'), cue(26, 'trainingtime') + 0.4);
+  items.forEach(([n, a, b], i) => {
+    const p = ap(t, S(25) + i * 0.2, 0.5), x = X0 + i * (cw + 16), on = i === 2 ? hl : 0;
+    A(p * (i < 2 ? 1 - 0.45 * hl : 1), () => {
+      card(x, cy + (1 - p) * 14, cw, chh, { r: 20, fill: on ? '#FBF0EA' : '#FFFFFF', stroke: on ? C.terra : C.line, lw: on ? 3 : 2 });
+      ctx.beginPath(); ctx.arc(x + 38, cy + 40 + (1 - p) * 14, 20, 0, Math.PI * 2); ctx.fillStyle = C.terra; ctx.fill();
+      T(n, x + 38, cy + 41 + (1 - p) * 14, { size: 24, weight: 700, color: '#fff', align: 'center', base: 'middle' });
+      T(a, x + 20, cy + 95 + (1 - p) * 14, { size: 24, weight: 700, color: C.ink });
+      T(b, x + 20, cy + 126 + (1 - p) * 14, { size: 24, weight: 700, color: C.ink });
+    });
+  });
+  // training-time test diagram
+  const g0 = ap(t, cue(26, 'exposes'), 0.6);
+  const st = [cue(26, 'exposes') + 0.3, cue(26, 'rollout'), cue(26, 'rollout') + 0.8];
+  const gy = 690;
+  A(g0, () => {
+    card(X0, gy, X1 - X0, 410, { r: 22, fill: '#F7F4EE' });
+    T('DURING TRAINING (OFFLINE)', X0 + 24, gy + 40, { size: 20, weight: 700, color: C.ink2, track: 2 });
+    pill('not at inference time', X1 - 24, gy + 34, { size: 19, align: 'right', fill: '#EDE7DD', color: C.ink2 });
+    const xs = [250, 540, 830], by = gy + 210;
+    xs.forEach((x, k) => {
+      const p = ap(t, st[k], 0.5);
+      A(p, () => {
+        draftModel(x - 80, by - 50, 160, 100, { label: 'Draft', lsize: 22, sh: 22, pulse: 1 - ss(t, st[k] + 0.2, st[k] + 0.9) });
+        // input below
+        if (k === 0) { [C.blue, C.sage, C.ochre].forEach((c, q) => box(x - 50 + q * 34, by + 92, 30, 30, 5, c)); T('target features', x, by + 142, { size: 19, weight: 600, color: C.ink2, align: 'center' }); }
+        else { box(x - 30, by + 92, 60, 30, 6, C.terra); T('its own output', x, by + 142, { size: 19, weight: 600, color: C.terraD, align: 'center' }); }
+        arrow(x, by + 88, x, by + 54, { color: C.mute, lw: 2.5 });
+        // output token + loss above
+        arrow(x, by - 54, x, by - 84, { color: C.terra, lw: 2.5 });
+        chip(`t${k + 1}`, x, by - 108, 'draft', { size: 22, align: 'center', font: SERIF });
+        T(`loss ${k + 1}`, x + 38, by - 104, { size: 18, weight: 600, color: C.ink2, base: 'middle' });
+      });
+      if (k < 2) {                                          // rollout feedback: output becomes next input
+        const q = ss(t, st[k + 1] - 0.5, st[k + 1]);
+        A(q > 0 ? 1 : 0, () => bez([x + 80, by - 10], [x + 150, by - 10], [xs[k + 1] - 110, by + 107], [xs[k + 1] - 34, by + 107], { color: C.terra, lw: 3, head: true, dash: [7, 5], p: q }));
+      }
+    });
+    // gradient back to draft weights
+    const bp = ap(t, cue(26, 'helping'), 0.6);
+    A(bp, () => {
+      T('losses on every rollout step  →  update the draft weights', CX, gy + 392, { size: 22, weight: 700, color: C.terraD, align: 'center' });
+    });
+  });
+  // sentence 27: better drafts → longer accepted runs
+  const lp = ap(t, S(27), 0.6);
+  A(lp, () => {
+    const y1 = 1185, y2 = 1290;
+    T('weaker draft', X0, y1 + 2, { size: 22, weight: 700, color: C.ink2, base: 'middle' });
+    T('better draft', X0, y2 + 2, { size: 22, weight: 700, color: C.ink2, base: 'middle' });
+    const x0 = 290, u = 62;
+    const r1 = ['acc', 'acc', 'rej'], r2 = ['acc', 'acc', 'acc', 'acc', 'acc', 'tgt'];
+    const t1 = cue(27, 'longer');
+    r1.forEach((s, k) => box(x0 + k * (u + 6), y1 - 22, u * ap(t, S(27) + k * 0.08, 0.3), 44, 9, CHIP[s].fill, CHIP[s].stroke, 2.5));
+    r2.forEach((s, k) => box(x0 + k * (u + 6), y2 - 22, u * ap(t, t1 + k * 0.1, 0.3), 44, 9, CHIP[s].fill, CHIP[s].stroke, 2.5));
+    A(ap(t, t1 + 0.7, 0.4), () => T('longer accepted run', x0 + 6 * (u + 6) + 10, y2 + 2, { size: 22, weight: 700, color: C.sageD, base: 'middle' }));
+    A(ap(t, cue(27, 'fewer'), 0.5), () => T('→ fewer target calls  →  potentially faster', CX, 1375, { size: 25, weight: 700, color: C.ink, align: 'center' }));
+    T('illustrative', X1, y1 + 2, { size: 19, color: C.mute, align: 'right', base: 'middle', italic: true });
+  });
+}
+
+// ---------- Scene 10: reported performance (sentences 28–29) ----------
+function scene10(t) {
+  title('Reported performance', t, S(28) - 0.1);
+  const sp = ap(t, cue(28, 'six') - 0.2, 0.7);
+  A(sp, () => {
+    card(X0, 500, X1 - X0, 230, { r: 26, fill: '#FBF3EE', stroke: '#EBCDBE' });
+    T('up to', X0 + 40, 600, { size: 34, weight: 600, color: C.ink2 });
+    T('6.5×', X0 + 150, 640, { size: 130, weight: 700, font: SERIF, color: C.terra });
+    T('speedup reported in the', X0 + 470, 580, { size: 24, color: C.ink2 });
+    T('original EAGLE-3 paper', X0 + 470, 614, { size: 24, weight: 700, color: C.ink });
+    T('in its evaluated settings', X0 + 470, 648, { size: 24, color: C.ink2 });
+    T('A reported experimental result — not a guarantee.', X0 + 40, 702, { size: 22, color: C.mute, italic: true });
+  });
+  // illustrative wall-clock comparison (12 tokens)
+  const tp = ss(t, cue(28, 'reported'), cue(28, 'evaluated') + 0.6);
+  const y1 = 820, y2 = 960, x0 = X0, u = 58;
+  A(ap(t, S(28) + 0.2, 0.5), () => {
+    T('Standard decoding — 12 target passes', x0, y1 - 18, { size: 23, weight: 700, color: C.ink });
+    T('EAGLE-3 — draft + verify rounds', x0, y2 - 18, { size: 23, weight: 700, color: C.ink });
+    const tot = 12 * (u + 4), now = tp * tot;
+    for (let k = 0; k < 12; k++) { const x = x0 + k * (u + 4), f = clamp((now - k * (u + 4)) / u); box(x, y1, u, 50, 8, null, C.line, 1.5); if (f > 0) box(x, y1, u * f, 50, 8, C.ink); }
+    // rounds: 4 draft ticks + a verify block that yields 4 / 5 / 3 tokens
+    const yields = [4, 5, 3]; let x = x0, made = 0;
+    yields.forEach(n => {
+      for (let k = 0; k < 4; k++) { const f = clamp((now - (x - x0)) / 12); if (f > 0) box(x, y2 + 8, 12 * f, 34, 4, C.terra); x += 15; }
+      const vw = 88, f = clamp((now - (x - x0)) / vw);
+      box(x, y2, vw, 50, 8, null, C.line, 1.5);
+      if (f > 0) box(x, y2, vw * f, 50, 8, C.ink);
+      if (f >= 1) { for (let k = 0; k < n; k++) box(x + 6 + k * 16, y2 + 60, 13, 13, 3, k === n - 1 ? C.blue : C.sage); made += n; }
+      x += vw + 12;
+    });
+    T(`${Math.min(12, Math.floor(now / (u + 4) + 1e-6))} tokens`, X1, y1 + 26, { size: 22, weight: 700, color: C.ink2, align: 'right', base: 'middle' });
+    T(`${made} tokens`, X1, y2 + 26, { size: 22, weight: 700, color: C.sageD, align: 'right', base: 'middle' });
+    legend([['draft', 'draft step'], ['gen', 'target pass / verify'], ['acc', 'accepted']], x0, y2 + 120, 20);
+    T('Illustrative timeline — verification still costs a target pass.', x0, y2 + 165, { size: 21, color: C.mute, italic: true });
+  });
+  // sentence 29: what speedup depends on
+  const dp = ap(t, cue(29, 'depends'), 0.5);
+  A(dp, () => {
+    T('Actual speedup depends on', X0, 1210, { size: 28, weight: 700, color: C.ink });
+    const f = [['model', cue(29, 'model')], ['hardware', cue(29, 'hardware')], ['workload', cue(29, 'workload')], ['acceptance rate', cue(29, 'acceptance')]];
+    let x = X0;
+    f.forEach(([s, t0]) => { const p = pop(t, t0, 0.4); ctx.save(); ctx.translate(x, 1280); ctx.scale(p, p); ctx.translate(-x, -1280); const w = pill(s, x, 1280, { size: 25, fill: s.startsWith('acc') ? C.sageL : '#EDE7DD', color: s.startsWith('acc') ? C.sageD : C.ink }); ctx.restore(); x += w + 12; });
+  });
+}
+
+// ---------- Scene 11: closing mental model (sentences 30–33) ----------
+function scene11(t) {
+  title('The mental model', t, S(30) - 0.1);
+  const cx = CX, cy = 780, R = 215;
+  const nodes = [['Draft', -Math.PI / 2, C.terra], ['Verify', 0, C.ink], ['Accept', Math.PI / 2, C.sage], ['Repeat', Math.PI, C.warm]];
+  const l0 = S(30) + 0.2, end = E(33);
+  // loop highlight cycles deterministically until the narration ends, then rests on "Accept"
+  const cyc = 3.2;
+  const ph = t < end ? ((t - l0) / cyc) % 1 : 0.5;
+  const act = t < l0 ? -1 : Math.floor(ph * 4);
+  const sp1 = cue(32, 'speculate'), vf = cue(32, 'verify');
+  A(ap(t, l0, 0.7), () => {
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.strokeStyle = C.line; ctx.lineWidth = 6; ctx.stroke();
+    if (t >= l0) { ctx.beginPath(); ctx.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + ph * Math.PI * 2); ctx.strokeStyle = mix(C.line, C.terra, 0.75); ctx.lineWidth = 6; ctx.stroke(); }
+    for (let k = 0; k < 4; k++) { const a = -Math.PI / 2 + (k + 0.5) * Math.PI / 2; head(cx + R * Math.cos(a), cy + R * Math.sin(a), a + Math.PI / 2, C.beigeD, 20); }
+    mark(cx, cy, 46, C.terra);
+    nodes.forEach(([s, a, col], k) => {
+      const x = cx + R * Math.cos(a), y = cy + R * Math.sin(a), on = k === act ? 1 : 0;
+      const em = (k === 0 ? ss(t, sp1 - 0.6, sp1) * (1 - ss(t, vf - 0.4, vf)) : k === 1 ? ss(t, vf - 0.3, vf + 0.2) * (1 - ss(t, E(32), E(32) + 0.5)) : 0);
+      const w = 200, h = 84;
+      ctx.save();
+      if (on || em) { ctx.shadowColor = col; ctx.shadowBlur = 30; }
+      box(x - w / 2, y - h / 2, w, h, 22, on || em ? col : '#FFFFFF', col, 3);
+      ctx.restore();
+      T(s, x, y + 2, { size: 34, weight: 700, color: on || em ? '#fff' : col, align: 'center', base: 'middle', font: SERIF });
+    });
+    A(ss(t, sp1 - 0.6, sp1), () => T('lightweight model speculates', cx, cy - R - 64, { size: 23, weight: 600, color: C.terraD, align: 'center' }));
+    A(ss(t, vf - 0.3, vf + 0.2), () => T('large model verifies', cx + R - 20, cy - 70, { size: 23, weight: 600, color: C.ink, align: 'right' }));
+  });
+  // output stream grows one round per loop cycle
+  const oy = 1105;
+  A(ap(t, l0, 0.6), () => {
+    T('OUTPUT', X0, oy - 42, { size: 20, weight: 700, color: C.mute, track: 2 });
+    const rounds = [[3, 1], [2, 1], [4, 1], [1, 1], [3, 1], [2, 1]];
+    let x = X0, n = t < l0 ? 0 : t < end ? Math.floor((t - l0) / cyc + 0.6) : rounds.length;
+    rounds.forEach(([a, b], r) => {
+      for (let k = 0; k < a + b; k++) {
+        const vis = r < n;
+        if (vis) box(x, oy - 15, 22, 30, 5, k < a ? C.sage : C.blue);
+        else box(x, oy - 15, 22, 30, 5, null, C.line, 1.5);
+        x += 26;
+      }
+      x += 10;
+    });
+  });
+  // sentence 31: the anti-pattern
+  const ap31 = ap(t, cue(31, 'expensive'), 0.5) * (1 - ss(t, cue(33, 'without') - 0.4, cue(33, 'without')));
+  A(ap31, () => {
+    T('expensive model generates every token from scratch', CX, 1190, { size: 26, weight: 600, color: C.ink2, align: 'center' });
+    line(CX - 330, 1181, CX - 330 + 660 * ss(t, cue(31, 'scratch'), cue(31, 'scratch') + 0.5), 1181, C.red, 3.5);
+  });
+  // final statement (stays through the end hold)
+  const fp = ap(t, cue(33, 'without') - 0.2, 0.8);
+  A(fp, () => {
+    card(X0, 1170, X1 - X0, 250, { r: 26, fill: '#FBF3EE', stroke: '#EBCDBE' });
+    T('Speculate cheaply.', CX, 1250, { size: 54, weight: 700, font: SERIF, color: C.terra, align: 'center' });
+    T('Verify efficiently.', CX, 1318, { size: 54, weight: 700, font: SERIF, color: C.ink, align: 'center' });
+    A(ap(t, cue(33, 'distribution') - 0.3, 0.6), () => T('Target output distribution preserved with correct verification', CX, 1378, { size: 21, weight: 600, color: C.sageD, align: 'center' }));
+  });
+}
+
+/* ---------------- scene table & transitions ---------------- */
+const SCENE_DEF = [
+  { a: 0, b: 0, f: scene0, name: 'Hook' },
+  { a: 1, b: 4, f: scene1, name: 'Bottleneck' },
+  { a: 5, b: 9, f: scene2, name: 'Speculative decoding' },
+  { a: 10, b: 11, f: scene3, name: 'Accept / reject' },
+  { a: 12, b: 13, f: scene4, name: 'The catch' },
+  { a: 14, b: 17, f: scene5, name: 'EAGLE-3 features' },
+  { a: 18, b: 20, f: scene6, name: 'Draft tree' },
+  { a: 21, b: 23, f: scene7, name: 'Tree attention' },
+  { a: 24, b: 24, f: scene8, name: 'Accepted prefix' },
+  { a: 25, b: 27, f: scene9, name: 'Why it drafts better' },
+  { a: 28, b: 29, f: scene10, name: 'Performance' },
+  { a: 30, b: 33, f: scene11, name: 'Mental model' },
+];
+let SC = [];
+const TR = 0.32;                     // half-width of a crossfade, centred in the pause between sentences
+function buildScenes() {
+  SC = SCENE_DEF.map((d, k) => ({ ...d, from: k === 0 ? 0 : (E(SCENE_DEF[k - 1].b) + S(d.a)) / 2 }));
+  SC.forEach((s, k) => { s.to = k + 1 < SC.length ? SC[k + 1].from : TOTAL; });
+}
+
+/* ---------------- subtitles: one short phrase at a time, from aligned words ---------------- */
+let PHRASES = [];
+function buildPhrases() {
+  PHRASES = [];
+  SENT.forEach(s => {
+    const ws = s.words; let cur = [];
+    ws.forEach((w, i) => {
+      cur.push(w);
+      const left = ws.length - 1 - i;
+      const punct = /[,.?;:!]$/.test(w.w);
+      if ((punct && cur.length >= 2) || (cur.length >= 6 && left > 2) || left === 0) { PHRASES.push(cur); cur = []; }
+    });
+    if (cur.length) PHRASES.push(cur);
+  });
+  PHRASES = PHRASES.map(ws => ({ words: ws, start: LEAD + ws[0].start - 0.08, end: LEAD + ws[ws.length - 1].end }));
+  PHRASES.forEach((p, i) => { const nx = PHRASES[i + 1]; p.end = Math.min(nx ? nx.start - 0.02 : Infinity, p.end + 0.55); });
+}
+function subtitles(t) {
+  const ph = PHRASES.find(p => t >= p.start && t < p.end); if (!ph) return;
+  const a = Math.min(ss(t, ph.start, ph.start + 0.12), 1 - ss(t, ph.end - 0.12, ph.end));
+  const size = 42, maxW = 840, lh = 54, o = { size, weight: 600 };
+  const lines = [[]]; let lw = 0; const sp = tw(' ', o);
+  ph.words.forEach(w => { const ww = tw(w.w, o); if (lw + ww > maxW && lines[lines.length - 1].length) { lines.push([]); lw = 0; } lines[lines.length - 1].push(w); lw += ww + sp; });
+  const widths = lines.map(L => L.reduce((s, w) => s + tw(w.w, o), 0) + sp * (L.length - 1));
+  const bw = Math.max(...widths) + 56, bh = lines.length * lh + 28, by = 1545 - bh / 2;
+  A(a, () => {
+    box(CX - bw / 2, by, bw, bh, 22, 'rgba(255,255,255,0.95)', C.line, 2);
+    lines.forEach((L, li) => {
+      let x = CX - widths[li] / 2; const y = by + 14 + lh * li + lh / 2 + 2;
+      L.forEach(w => {
+        const said = t >= LEAD + w.start, now = said && t < LEAD + w.end + 0.05;
+        T(w.w, x, y, { ...o, color: now ? C.terra : said ? C.ink : C.mute, base: 'middle' });
+        x += tw(w.w, o) + sp;
+      });
+    });
+  });
+}
+
+/* ---------------- chrome: header, progress, disclosure ---------------- */
+function chrome(t) {
+  mark(124, 262, 20, C.terra);
+  T('EAGLE-3 · SPECULATIVE DECODING', 156, 272, { size: 23, weight: 700, color: C.ink2, track: 2.5 });
+  const k = Math.max(0, SC.findIndex(s => t >= s.from && t < s.to));
+  const idx = t >= TOTAL ? SC.length - 1 : k;
+  T(`${String(idx + 1).padStart(2, '0')} / ${String(SC.length).padStart(2, '0')}`, X1, 272, { size: 23, weight: 700, color: C.mute, align: 'right' });
+  const gp = 6, gw = (X1 - X0 - (SC.length - 1) * gp) / SC.length;
+  SC.forEach((s, i) => {
+    const x = X0 + i * (gw + gp), p = ss(t, s.from, s.to);
+    box(x, 298, gw, 6, 3, C.line);
+    if (p > 0) box(x, 298, gw * p, 6, 3, C.terra);
+  });
+  T('AI-generated narration (OpenAI TTS) · simplified, illustrative diagrams', X0, 338, { size: 19, color: C.mute });
+}
+
+/* ---------------- the frame function ---------------- */
+function draw(t) {
+  t = clamp(t, 0, TOTAL);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.setLineDash([]);
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  A(0.05, () => mark(1010, 1820, 120, C.terra, 0.3));
+  for (let k = 0; k < SC.length; k++) {
+    const s = SC[k];
+    const inA = k === 0 ? 1 : eio(ss(t, s.from - TR, s.from + TR));
+    const outA = k === SC.length - 1 ? 1 : 1 - eio(ss(t, s.to - TR, s.to + TR));
+    const a = Math.min(inA, outA); if (a <= 0.001) continue;
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.translate(0, inA < 1 ? (1 - inA) * 24 : outA < 1 ? -(1 - outA) * 24 : 0);
+    s.f(t);
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+  chrome(t);
+  subtitles(t);
+}
+
+/* ---------------- boot & live preview ---------------- */
+async function boot() {
+  let tm = window.TIMING;
+  if (!tm) { try { tm = await (await fetch('timings.json')).json(); } catch (e) { console.error('no timing data: run `node render.mjs --inject`'); return; } }
+  initTiming(tm); buildScenes(); buildPhrases();
+  await document.fonts.ready;
+  window.draw = draw; window.SCENES = SC.map(s => ({ name: s.name, from: s.from, to: s.to }));
+  draw(0);
+  if (window.__RENDERING) { document.body.classList.add('rendering'); return; }
+  preview();
+}
+function preview() {
+  const audio = document.getElementById('audio'), btn = document.getElementById('play'), seek = document.getElementById('seek');
+  const time = document.getElementById('time'), jump = document.getElementById('jump');
+  seek.max = TOTAL;
+  SC.forEach((s, i) => { const o = document.createElement('option'); o.value = s.from; o.textContent = `${i + 1}. ${s.name}`; jump.appendChild(o); });
+  let playing = false, clock0 = 0, t0 = 0, cur = 0, hasAudio = false;
+  audio.addEventListener('canplay', () => { hasAudio = true; }, { once: true });
+  audio.addEventListener('error', () => { hasAudio = false; });
+  const now = () => (playing ? (hasAudio ? audio.currentTime : t0 + (performance.now() - clock0) / 1000) : cur);
+  function setT(t) { cur = clamp(t, 0, TOTAL); t0 = cur; clock0 = performance.now(); if (hasAudio) audio.currentTime = cur; }
+  function frame() {
+    const t = now();
+    if (t >= TOTAL) { playing = false; btn.textContent = 'Play'; cur = TOTAL; audio.pause(); }
+    draw(t); seek.value = t; time.textContent = `${t.toFixed(2)} / ${TOTAL.toFixed(2)}`;
+    if (playing) requestAnimationFrame(frame);
+  }
+  btn.onclick = () => {
+    if (playing) { cur = now(); playing = false; audio.pause(); btn.textContent = 'Play'; frame(); return; }
+    if (cur >= TOTAL) setT(0);
+    setT(cur); playing = true; btn.textContent = 'Pause';
+    if (hasAudio) audio.play().catch(() => { hasAudio = false; clock0 = performance.now(); });
+    requestAnimationFrame(frame);
+  };
+  document.getElementById('back').onclick = () => { setT(now() - 5); if (!playing) frame(); };
+  seek.oninput = () => { setT(+seek.value); if (!playing) frame(); };
+  jump.onchange = () => { setT(+jump.value + 0.01); if (!playing) frame(); };
+  window.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); btn.click(); } if (e.code === 'ArrowLeft') { setT(now() - 2); if (!playing) frame(); } if (e.code === 'ArrowRight') { setT(now() + 2); if (!playing) frame(); } });
+  const q = new URLSearchParams(location.search).get('t'); if (q) setT(+q);
+  frame();
+}
+window.ready = boot();
+</script>
+</body>
+</html>

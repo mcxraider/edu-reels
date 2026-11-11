@@ -1,0 +1,3364 @@
+{
+ "source": "audio/narration.wav",
+ "duration": 168.479,
+ "method": "whisper-1 word anchors + Needleman-Wunsch alignment to narration.txt + RMS pause snapping",
+ "qa": {
+  "script_words": 467,
+  "matched_words": 460,
+  "match_rate": 0.985,
+  "unmatched_script_words": [
+   "hidden-state",
+   "target-model",
+   "training-time",
+   "target-model",
+   "six",
+   "point",
+   "five"
+  ],
+  "verbatim_check": {
+   "recogniser": "gpt-4o-transcribe",
+   "differences": []
+  },
+  "recognised_text": "Have you ever wondered why even the most powerful GPUs still generate LLM responses one token at a time? Here's the problem. In a standard autoregressive Transformer, predicting the next token requires running the entire model forward. And you can't generate the following token until the previous one has been determined. That means producing five tokens typically requires five sequential forward passes. But what if we could predict several future tokens cheaply, and verify them together? That's the idea behind speculative decoding. We introduce two models, a small draft model and a large target model. The draft model proposes several possible future tokens. Instead of generating every token individually, the large model processes the proposed sequence in a single verification pass. Using the appropriate acceptance procedure, correct proposals are retained, while rejected proposals are discarded and generation continues from the corrected prefix. The important insight is that verifying multiple positions together can be cheaper than generating them sequentially with the large model. But there's a challenge. If the draft model frequently predicts tokens that the target model rejects, we lose much of the speed advantage. This is where Eagle3 comes in. Rather than relying on an entirely independent drafting model, Eagle3 uses information from the large model's own internal representations. Specifically, it combines hidden state features from multiple Transformer layers to provide a richer signal for the lightweight draft model. Unlike earlier Eagle methods that focus on predicting future features, Eagle3 trains its draft model to predict tokens directly. Now imagine the draft model proposing several possible continuations. Instead of creating just one linear sequence, we can organize candidate continuations into a tree. Each branch represents a different possible sequence of future tokens. The large target model then verifies the tree using a specially constructed attention mask. Each candidate can attend to the shared prompt and its own ancestors, but not to unrelated branches. This allows multiple candidate paths to be evaluated in one target model pass. The verification procedure determines which proposed tokens can be accepted, and generation continues from the accepted prefix. And here's the clever part. Eagle3's training time test approach exposes the draft model to its own rollout behavior during training, helping it learn to make better predictions when drafting repeatedly. More accurate proposals mean longer accepted continuations, fewer expensive target model calls, and potentially faster generation. In the original Eagle3 paper, the researchers reported speedups of up to 6.5 times in their evaluated settings. Actual acceleration depends on the model, hardware, workload, and acceptance rate. So the big idea is simple. Don't make the expensive model generate every token from scratch. Let a lightweight model speculate, then let the large model verify. That's how Eagle3 can accelerate LLM decoding without changing the target model's intended output distribution when the appropriate verification procedure is used."
+ },
+ "pauses": [
+  [
+   6.27,
+   7.43
+  ],
+  [
+   8.1,
+   8.84
+  ],
+  [
+   10.84,
+   11.18
+  ],
+  [
+   14.33,
+   14.83
+  ],
+  [
+   18.07,
+   18.59
+  ],
+  [
+   22.63,
+   23.43
+  ],
+  [
+   25.91,
+   26.23
+  ],
+  [
+   27.32,
+   27.97
+  ],
+  [
+   30.01,
+   30.58
+  ],
+  [
+   31.67,
+   32.01
+  ],
+  [
+   32.96,
+   33.21
+  ],
+  [
+   34.25,
+   34.7
+  ],
+  [
+   37.37,
+   37.72
+  ],
+  [
+   39.65,
+   40.0
+  ],
+  [
+   43.66,
+   44.33
+  ],
+  [
+   46.11,
+   46.51
+  ],
+  [
+   47.83,
+   48.18
+  ],
+  [
+   52.34,
+   53.0
+  ],
+  [
+   58.59,
+   59.24
+  ],
+  [
+   60.04,
+   60.46
+  ],
+  [
+   63.77,
+   64.1
+  ],
+  [
+   65.65,
+   66.03
+  ],
+  [
+   67.49,
+   67.85
+  ],
+  [
+   70.59,
+   70.94
+  ],
+  [
+   74.46,
+   75.08
+  ],
+  [
+   75.72,
+   76.04
+  ],
+  [
+   80.15,
+   80.44
+  ],
+  [
+   81.61,
+   82.13
+  ],
+  [
+   85.25,
+   85.71
+  ],
+  [
+   88.47,
+   89.1
+  ],
+  [
+   92.4,
+   92.92
+  ],
+  [
+   94.81,
+   95.15
+  ],
+  [
+   97.52,
+   97.99
+  ],
+  [
+   100.91,
+   101.58
+  ],
+  [
+   103.7,
+   103.98
+  ],
+  [
+   105.9,
+   106.31
+  ],
+  [
+   108.07,
+   108.48
+  ],
+  [
+   109.45,
+   109.77
+  ],
+  [
+   111.07,
+   111.63
+  ],
+  [
+   115.35,
+   115.93
+  ],
+  [
+   117.53,
+   117.84
+  ],
+  [
+   119.51,
+   119.85
+  ],
+  [
+   122.2,
+   122.77
+  ],
+  [
+   123.71,
+   124.18
+  ],
+  [
+   125.89,
+   126.18
+  ],
+  [
+   129.26,
+   129.65
+  ],
+  [
+   131.25,
+   131.56
+  ],
+  [
+   132.6,
+   133.11
+  ],
+  [
+   135.84,
+   136.29
+  ],
+  [
+   137.81,
+   138.16
+  ],
+  [
+   139.69,
+   140.07
+  ],
+  [
+   141.4,
+   141.69
+  ],
+  [
+   145.61,
+   146.16
+  ],
+  [
+   147.91,
+   148.26
+  ],
+  [
+   148.67,
+   148.91
+  ],
+  [
+   149.37,
+   150.04
+  ],
+  [
+   151.01,
+   151.43
+  ],
+  [
+   152.78,
+   153.16
+  ],
+  [
+   156.04,
+   156.52
+  ],
+  [
+   157.92,
+   158.29
+  ],
+  [
+   159.82,
+   160.46
+  ],
+  [
+   162.85,
+   163.19
+  ],
+  [
+   165.83,
+   166.12
+  ],
+  [
+   168.21,
+   168.47
+  ]
+ ],
+ "timeline": {
+  "lead_in": 1.0,
+  "tail_hold": 4.0,
+  "fps": 30,
+  "total": 173.479
+ },
+ "sentences": [
+  {
+   "i": 0,
+   "text": "Have you ever wondered why even the most powerful GPUs still generate LLM responses one token at a time?",
+   "start": 0.0,
+   "end": 6.27,
+   "words": [
+    {
+     "w": "Have",
+     "start": 0.0,
+     "end": 0.2,
+     "matched": true
+    },
+    {
+     "w": "you",
+     "start": 0.2,
+     "end": 0.32,
+     "matched": true
+    },
+    {
+     "w": "ever",
+     "start": 0.32,
+     "end": 0.7,
+     "matched": true
+    },
+    {
+     "w": "wondered",
+     "start": 0.7,
+     "end": 0.82,
+     "matched": true
+    },
+    {
+     "w": "why",
+     "start": 0.82,
+     "end": 1.08,
+     "matched": true
+    },
+    {
+     "w": "even",
+     "start": 1.08,
+     "end": 1.38,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 1.38,
+     "end": 1.54,
+     "matched": true
+    },
+    {
+     "w": "most",
+     "start": 1.54,
+     "end": 1.84,
+     "matched": true
+    },
+    {
+     "w": "powerful",
+     "start": 1.84,
+     "end": 2.24,
+     "matched": true
+    },
+    {
+     "w": "GPUs",
+     "start": 2.24,
+     "end": 3.06,
+     "matched": true
+    },
+    {
+     "w": "still",
+     "start": 3.06,
+     "end": 3.5,
+     "matched": true
+    },
+    {
+     "w": "generate",
+     "start": 3.5,
+     "end": 3.84,
+     "matched": true
+    },
+    {
+     "w": "LLM",
+     "start": 3.84,
+     "end": 4.44,
+     "matched": true
+    },
+    {
+     "w": "responses",
+     "start": 4.44,
+     "end": 4.86,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 4.86,
+     "end": 5.32,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 5.32,
+     "end": 5.56,
+     "matched": true
+    },
+    {
+     "w": "at",
+     "start": 5.56,
+     "end": 5.9,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 5.9,
+     "end": 6.22,
+     "matched": true
+    },
+    {
+     "w": "time?",
+     "start": 6.22,
+     "end": 6.28,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 1,
+   "text": "Here's the problem.",
+   "start": 7.43,
+   "end": 8.1,
+   "words": [
+    {
+     "w": "Here's",
+     "start": 7.02,
+     "end": 7.62,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 7.62,
+     "end": 7.88,
+     "matched": true
+    },
+    {
+     "w": "problem.",
+     "start": 7.88,
+     "end": 8.06,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 2,
+   "text": "In a standard autoregressive Transformer, predicting the next token requires running the entire model forward.",
+   "start": 8.84,
+   "end": 14.33,
+   "words": [
+    {
+     "w": "In",
+     "start": 8.9,
+     "end": 8.94,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 8.94,
+     "end": 9.18,
+     "matched": true
+    },
+    {
+     "w": "standard",
+     "start": 9.18,
+     "end": 9.46,
+     "matched": true
+    },
+    {
+     "w": "autoregressive",
+     "start": 9.46,
+     "end": 10.38,
+     "matched": true
+    },
+    {
+     "w": "Transformer,",
+     "start": 10.38,
+     "end": 11.12,
+     "matched": true
+    },
+    {
+     "w": "predicting",
+     "start": 11.52,
+     "end": 11.52,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 11.52,
+     "end": 11.76,
+     "matched": true
+    },
+    {
+     "w": "next",
+     "start": 11.76,
+     "end": 12.1,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 12.1,
+     "end": 12.28,
+     "matched": true
+    },
+    {
+     "w": "requires",
+     "start": 12.28,
+     "end": 12.76,
+     "matched": true
+    },
+    {
+     "w": "running",
+     "start": 12.76,
+     "end": 13.04,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 13.04,
+     "end": 13.24,
+     "matched": true
+    },
+    {
+     "w": "entire",
+     "start": 13.24,
+     "end": 13.68,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 13.68,
+     "end": 13.9,
+     "matched": true
+    },
+    {
+     "w": "forward.",
+     "start": 13.9,
+     "end": 14.32,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 3,
+   "text": "And you can't generate the following token until the previous one has been determined.",
+   "start": 14.83,
+   "end": 18.07,
+   "words": [
+    {
+     "w": "And",
+     "start": 14.56,
+     "end": 14.96,
+     "matched": true
+    },
+    {
+     "w": "you",
+     "start": 14.96,
+     "end": 15.08,
+     "matched": true
+    },
+    {
+     "w": "can't",
+     "start": 15.08,
+     "end": 15.38,
+     "matched": true
+    },
+    {
+     "w": "generate",
+     "start": 15.38,
+     "end": 15.6,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 15.6,
+     "end": 15.84,
+     "matched": true
+    },
+    {
+     "w": "following",
+     "start": 15.84,
+     "end": 16.12,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 16.12,
+     "end": 16.42,
+     "matched": true
+    },
+    {
+     "w": "until",
+     "start": 16.42,
+     "end": 16.66,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 16.66,
+     "end": 16.84,
+     "matched": true
+    },
+    {
+     "w": "previous",
+     "start": 16.84,
+     "end": 17.18,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 17.18,
+     "end": 17.36,
+     "matched": true
+    },
+    {
+     "w": "has",
+     "start": 17.36,
+     "end": 17.54,
+     "matched": true
+    },
+    {
+     "w": "been",
+     "start": 17.54,
+     "end": 17.72,
+     "matched": true
+    },
+    {
+     "w": "determined.",
+     "start": 17.72,
+     "end": 17.98,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 4,
+   "text": "That means producing five tokens typically requires five sequential forward passes.",
+   "start": 18.59,
+   "end": 22.63,
+   "words": [
+    {
+     "w": "That",
+     "start": 18.48,
+     "end": 18.76,
+     "matched": true
+    },
+    {
+     "w": "means",
+     "start": 18.76,
+     "end": 18.96,
+     "matched": true
+    },
+    {
+     "w": "producing",
+     "start": 18.96,
+     "end": 19.3,
+     "matched": true
+    },
+    {
+     "w": "five",
+     "start": 19.3,
+     "end": 19.76,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 19.76,
+     "end": 20.02,
+     "matched": true
+    },
+    {
+     "w": "typically",
+     "start": 20.02,
+     "end": 20.48,
+     "matched": true
+    },
+    {
+     "w": "requires",
+     "start": 20.48,
+     "end": 20.92,
+     "matched": true
+    },
+    {
+     "w": "five",
+     "start": 20.92,
+     "end": 21.4,
+     "matched": true
+    },
+    {
+     "w": "sequential",
+     "start": 21.4,
+     "end": 21.8,
+     "matched": true
+    },
+    {
+     "w": "forward",
+     "start": 21.8,
+     "end": 22.24,
+     "matched": true
+    },
+    {
+     "w": "passes.",
+     "start": 22.24,
+     "end": 22.58,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 5,
+   "text": "But what if we could predict several future tokens cheaply, and verify them together?",
+   "start": 23.43,
+   "end": 27.32,
+   "words": [
+    {
+     "w": "But",
+     "start": 22.96,
+     "end": 23.56,
+     "matched": true
+    },
+    {
+     "w": "what",
+     "start": 23.56,
+     "end": 23.7,
+     "matched": true
+    },
+    {
+     "w": "if",
+     "start": 23.7,
+     "end": 23.8,
+     "matched": true
+    },
+    {
+     "w": "we",
+     "start": 23.8,
+     "end": 23.9,
+     "matched": true
+    },
+    {
+     "w": "could",
+     "start": 23.9,
+     "end": 24.14,
+     "matched": true
+    },
+    {
+     "w": "predict",
+     "start": 24.14,
+     "end": 24.36,
+     "matched": true
+    },
+    {
+     "w": "several",
+     "start": 24.36,
+     "end": 24.72,
+     "matched": true
+    },
+    {
+     "w": "future",
+     "start": 24.72,
+     "end": 25.14,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 25.14,
+     "end": 25.4,
+     "matched": true
+    },
+    {
+     "w": "cheaply,",
+     "start": 25.4,
+     "end": 25.88,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 26.24,
+     "end": 26.54,
+     "matched": true
+    },
+    {
+     "w": "verify",
+     "start": 26.54,
+     "end": 26.7,
+     "matched": true
+    },
+    {
+     "w": "them",
+     "start": 26.7,
+     "end": 26.96,
+     "matched": true
+    },
+    {
+     "w": "together?",
+     "start": 26.96,
+     "end": 27.26,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 6,
+   "text": "That's the idea behind speculative decoding.",
+   "start": 27.97,
+   "end": 29.995,
+   "words": [
+    {
+     "w": "That's",
+     "start": 27.88,
+     "end": 28.24,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 28.24,
+     "end": 28.66,
+     "matched": true
+    },
+    {
+     "w": "idea",
+     "start": 28.66,
+     "end": 28.66,
+     "matched": true
+    },
+    {
+     "w": "behind",
+     "start": 28.66,
+     "end": 28.98,
+     "matched": true
+    },
+    {
+     "w": "speculative",
+     "start": 28.98,
+     "end": 29.5,
+     "matched": true
+    },
+    {
+     "w": "decoding.",
+     "start": 29.5,
+     "end": 29.98,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 7,
+   "text": "We introduce two models: a small draft model and a large target model.",
+   "start": 29.995,
+   "end": 34.25,
+   "words": [
+    {
+     "w": "We",
+     "start": 29.98,
+     "end": 30.66,
+     "matched": true
+    },
+    {
+     "w": "introduce",
+     "start": 30.66,
+     "end": 31.04,
+     "matched": true
+    },
+    {
+     "w": "two",
+     "start": 31.04,
+     "end": 31.34,
+     "matched": true
+    },
+    {
+     "w": "models:",
+     "start": 31.34,
+     "end": 31.58,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 32.1,
+     "end": 32.2,
+     "matched": true
+    },
+    {
+     "w": "small",
+     "start": 32.2,
+     "end": 32.38,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 32.38,
+     "end": 32.64,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 32.64,
+     "end": 32.9,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 32.9,
+     "end": 33.28,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 33.28,
+     "end": 33.56,
+     "matched": true
+    },
+    {
+     "w": "large",
+     "start": 33.56,
+     "end": 33.68,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 33.68,
+     "end": 33.96,
+     "matched": true
+    },
+    {
+     "w": "model.",
+     "start": 33.96,
+     "end": 34.22,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 8,
+   "text": "The draft model proposes several possible future tokens.",
+   "start": 34.7,
+   "end": 37.37,
+   "words": [
+    {
+     "w": "The",
+     "start": 34.74,
+     "end": 34.84,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 34.84,
+     "end": 35.08,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 35.08,
+     "end": 35.38,
+     "matched": true
+    },
+    {
+     "w": "proposes",
+     "start": 35.38,
+     "end": 35.78,
+     "matched": true
+    },
+    {
+     "w": "several",
+     "start": 35.78,
+     "end": 36.16,
+     "matched": true
+    },
+    {
+     "w": "possible",
+     "start": 36.16,
+     "end": 36.62,
+     "matched": true
+    },
+    {
+     "w": "future",
+     "start": 36.62,
+     "end": 37.0,
+     "matched": true
+    },
+    {
+     "w": "tokens.",
+     "start": 37.0,
+     "end": 37.3,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 9,
+   "text": "Instead of generating every token individually, the large model processes the proposed sequence in a single verification pass.",
+   "start": 37.72,
+   "end": 43.66,
+   "words": [
+    {
+     "w": "Instead",
+     "start": 37.96,
+     "end": 37.96,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 37.96,
+     "end": 38.32,
+     "matched": true
+    },
+    {
+     "w": "generating",
+     "start": 38.32,
+     "end": 38.52,
+     "matched": true
+    },
+    {
+     "w": "every",
+     "start": 38.52,
+     "end": 38.88,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 38.88,
+     "end": 39.06,
+     "matched": true
+    },
+    {
+     "w": "individually,",
+     "start": 39.06,
+     "end": 39.56,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 39.98,
+     "end": 40.16,
+     "matched": true
+    },
+    {
+     "w": "large",
+     "start": 40.16,
+     "end": 40.44,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 40.44,
+     "end": 40.66,
+     "matched": true
+    },
+    {
+     "w": "processes",
+     "start": 40.66,
+     "end": 41.12,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 41.12,
+     "end": 41.44,
+     "matched": true
+    },
+    {
+     "w": "proposed",
+     "start": 41.44,
+     "end": 41.74,
+     "matched": true
+    },
+    {
+     "w": "sequence",
+     "start": 41.74,
+     "end": 42.1,
+     "matched": true
+    },
+    {
+     "w": "in",
+     "start": 42.1,
+     "end": 42.3,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 42.3,
+     "end": 42.48,
+     "matched": true
+    },
+    {
+     "w": "single",
+     "start": 42.48,
+     "end": 42.66,
+     "matched": true
+    },
+    {
+     "w": "verification",
+     "start": 42.66,
+     "end": 43.2,
+     "matched": true
+    },
+    {
+     "w": "pass.",
+     "start": 43.2,
+     "end": 43.72,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 10,
+   "text": "Using the appropriate acceptance procedure, correct proposals are retained, while rejected proposals are discarded and generation continues from the corrected prefix.",
+   "start": 44.33,
+   "end": 52.34,
+   "words": [
+    {
+     "w": "Using",
+     "start": 44.56,
+     "end": 44.56,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 44.56,
+     "end": 44.8,
+     "matched": true
+    },
+    {
+     "w": "appropriate",
+     "start": 44.8,
+     "end": 45.14,
+     "matched": true
+    },
+    {
+     "w": "acceptance",
+     "start": 45.14,
+     "end": 45.62,
+     "matched": true
+    },
+    {
+     "w": "procedure,",
+     "start": 45.62,
+     "end": 46.06,
+     "matched": true
+    },
+    {
+     "w": "correct",
+     "start": 46.62,
+     "end": 46.8,
+     "matched": true
+    },
+    {
+     "w": "proposals",
+     "start": 46.8,
+     "end": 47.18,
+     "matched": true
+    },
+    {
+     "w": "are",
+     "start": 47.18,
+     "end": 47.82,
+     "matched": true
+    },
+    {
+     "w": "retained,",
+     "start": 47.82,
+     "end": 47.82,
+     "matched": true
+    },
+    {
+     "w": "while",
+     "start": 48.08,
+     "end": 48.44,
+     "matched": true
+    },
+    {
+     "w": "rejected",
+     "start": 48.44,
+     "end": 48.74,
+     "matched": true
+    },
+    {
+     "w": "proposals",
+     "start": 48.74,
+     "end": 49.16,
+     "matched": true
+    },
+    {
+     "w": "are",
+     "start": 49.16,
+     "end": 49.52,
+     "matched": true
+    },
+    {
+     "w": "discarded",
+     "start": 49.52,
+     "end": 49.78,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 49.78,
+     "end": 50.18,
+     "matched": true
+    },
+    {
+     "w": "generation",
+     "start": 50.18,
+     "end": 50.62,
+     "matched": true
+    },
+    {
+     "w": "continues",
+     "start": 50.62,
+     "end": 51.12,
+     "matched": true
+    },
+    {
+     "w": "from",
+     "start": 51.12,
+     "end": 51.34,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 51.34,
+     "end": 51.54,
+     "matched": true
+    },
+    {
+     "w": "corrected",
+     "start": 51.54,
+     "end": 51.78,
+     "matched": true
+    },
+    {
+     "w": "prefix.",
+     "start": 51.78,
+     "end": 52.28,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 11,
+   "text": "The important insight is that verifying multiple positions together can be cheaper than generating them sequentially with the large model.",
+   "start": 53.0,
+   "end": 58.59,
+   "words": [
+    {
+     "w": "The",
+     "start": 52.52,
+     "end": 53.12,
+     "matched": true
+    },
+    {
+     "w": "important",
+     "start": 53.12,
+     "end": 53.44,
+     "matched": true
+    },
+    {
+     "w": "insight",
+     "start": 53.44,
+     "end": 53.72,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 53.72,
+     "end": 53.92,
+     "matched": true
+    },
+    {
+     "w": "that",
+     "start": 53.92,
+     "end": 54.14,
+     "matched": true
+    },
+    {
+     "w": "verifying",
+     "start": 54.14,
+     "end": 54.5,
+     "matched": true
+    },
+    {
+     "w": "multiple",
+     "start": 54.5,
+     "end": 54.96,
+     "matched": true
+    },
+    {
+     "w": "positions",
+     "start": 54.96,
+     "end": 55.36,
+     "matched": true
+    },
+    {
+     "w": "together",
+     "start": 55.36,
+     "end": 55.76,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 55.76,
+     "end": 55.98,
+     "matched": true
+    },
+    {
+     "w": "be",
+     "start": 55.98,
+     "end": 56.22,
+     "matched": true
+    },
+    {
+     "w": "cheaper",
+     "start": 56.22,
+     "end": 56.4,
+     "matched": true
+    },
+    {
+     "w": "than",
+     "start": 56.4,
+     "end": 56.68,
+     "matched": true
+    },
+    {
+     "w": "generating",
+     "start": 56.68,
+     "end": 57.0,
+     "matched": true
+    },
+    {
+     "w": "them",
+     "start": 57.0,
+     "end": 57.3,
+     "matched": true
+    },
+    {
+     "w": "sequentially",
+     "start": 57.3,
+     "end": 57.64,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 57.64,
+     "end": 57.9,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 57.9,
+     "end": 58.06,
+     "matched": true
+    },
+    {
+     "w": "large",
+     "start": 58.06,
+     "end": 58.32,
+     "matched": true
+    },
+    {
+     "w": "model.",
+     "start": 58.32,
+     "end": 58.54,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 12,
+   "text": "But there's a challenge.",
+   "start": 59.24,
+   "end": 60.04,
+   "words": [
+    {
+     "w": "But",
+     "start": 59.02,
+     "end": 59.36,
+     "matched": true
+    },
+    {
+     "w": "there's",
+     "start": 59.36,
+     "end": 59.52,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 59.52,
+     "end": 59.96,
+     "matched": true
+    },
+    {
+     "w": "challenge.",
+     "start": 59.96,
+     "end": 59.96,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 13,
+   "text": "If the draft model frequently predicts tokens that the target model rejects, we lose much of the speed advantage.",
+   "start": 60.46,
+   "end": 65.65,
+   "words": [
+    {
+     "w": "If",
+     "start": 59.96,
+     "end": 60.52,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 60.52,
+     "end": 60.7,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 60.7,
+     "end": 60.98,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 60.98,
+     "end": 61.26,
+     "matched": true
+    },
+    {
+     "w": "frequently",
+     "start": 61.26,
+     "end": 61.72,
+     "matched": true
+    },
+    {
+     "w": "predicts",
+     "start": 61.72,
+     "end": 62.42,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 62.42,
+     "end": 62.42,
+     "matched": true
+    },
+    {
+     "w": "that",
+     "start": 62.42,
+     "end": 62.62,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 62.62,
+     "end": 62.78,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 62.78,
+     "end": 63.04,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 63.04,
+     "end": 63.32,
+     "matched": true
+    },
+    {
+     "w": "rejects,",
+     "start": 63.32,
+     "end": 64.1,
+     "matched": true
+    },
+    {
+     "w": "we",
+     "start": 64.16,
+     "end": 64.24,
+     "matched": true
+    },
+    {
+     "w": "lose",
+     "start": 64.24,
+     "end": 64.46,
+     "matched": true
+    },
+    {
+     "w": "much",
+     "start": 64.46,
+     "end": 64.74,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 64.74,
+     "end": 64.98,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 64.98,
+     "end": 65.04,
+     "matched": true
+    },
+    {
+     "w": "speed",
+     "start": 65.04,
+     "end": 65.22,
+     "matched": true
+    },
+    {
+     "w": "advantage.",
+     "start": 65.22,
+     "end": 65.64,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 14,
+   "text": "This is where EAGLE-3 comes in.",
+   "start": 66.03,
+   "end": 67.49,
+   "words": [
+    {
+     "w": "This",
+     "start": 66.16,
+     "end": 66.18,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 66.18,
+     "end": 66.34,
+     "matched": true
+    },
+    {
+     "w": "where",
+     "start": 66.34,
+     "end": 66.54,
+     "matched": true
+    },
+    {
+     "w": "EAGLE-3",
+     "start": 66.54,
+     "end": 66.94,
+     "matched": true
+    },
+    {
+     "w": "comes",
+     "start": 66.94,
+     "end": 67.22,
+     "matched": true
+    },
+    {
+     "w": "in.",
+     "start": 67.22,
+     "end": 67.74,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 15,
+   "text": "Rather than relying on an entirely independent drafting model, EAGLE-3 uses information from the large model's own internal representations.",
+   "start": 67.85,
+   "end": 74.46,
+   "words": [
+    {
+     "w": "Rather",
+     "start": 68.08,
+     "end": 68.08,
+     "matched": true
+    },
+    {
+     "w": "than",
+     "start": 68.08,
+     "end": 68.34,
+     "matched": true
+    },
+    {
+     "w": "relying",
+     "start": 68.34,
+     "end": 68.56,
+     "matched": true
+    },
+    {
+     "w": "on",
+     "start": 68.56,
+     "end": 68.8,
+     "matched": true
+    },
+    {
+     "w": "an",
+     "start": 68.8,
+     "end": 68.94,
+     "matched": true
+    },
+    {
+     "w": "entirely",
+     "start": 68.94,
+     "end": 69.34,
+     "matched": true
+    },
+    {
+     "w": "independent",
+     "start": 69.34,
+     "end": 69.86,
+     "matched": true
+    },
+    {
+     "w": "drafting",
+     "start": 69.86,
+     "end": 70.24,
+     "matched": true
+    },
+    {
+     "w": "model,",
+     "start": 70.24,
+     "end": 70.64,
+     "matched": true
+    },
+    {
+     "w": "EAGLE-3",
+     "start": 71.16,
+     "end": 71.44,
+     "matched": true
+    },
+    {
+     "w": "uses",
+     "start": 71.44,
+     "end": 71.74,
+     "matched": true
+    },
+    {
+     "w": "information",
+     "start": 71.74,
+     "end": 72.2,
+     "matched": true
+    },
+    {
+     "w": "from",
+     "start": 72.2,
+     "end": 72.4,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 72.4,
+     "end": 72.56,
+     "matched": true
+    },
+    {
+     "w": "large",
+     "start": 72.56,
+     "end": 72.84,
+     "matched": true
+    },
+    {
+     "w": "model's",
+     "start": 72.84,
+     "end": 73.22,
+     "matched": true
+    },
+    {
+     "w": "own",
+     "start": 73.22,
+     "end": 73.44,
+     "matched": true
+    },
+    {
+     "w": "internal",
+     "start": 73.44,
+     "end": 73.74,
+     "matched": true
+    },
+    {
+     "w": "representations.",
+     "start": 73.74,
+     "end": 74.36,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 16,
+   "text": "Specifically, it combines hidden-state features from multiple Transformer layers to provide a richer signal for the lightweight draft model.",
+   "start": 75.08,
+   "end": 81.61,
+   "words": [
+    {
+     "w": "Specifically,",
+     "start": 75.34,
+     "end": 75.62,
+     "matched": true
+    },
+    {
+     "w": "it",
+     "start": 76.02,
+     "end": 76.2,
+     "matched": true
+    },
+    {
+     "w": "combines",
+     "start": 76.2,
+     "end": 76.5,
+     "matched": true
+    },
+    {
+     "w": "hidden-state",
+     "start": 76.5,
+     "end": 77.12,
+     "matched": false
+    },
+    {
+     "w": "features",
+     "start": 77.12,
+     "end": 77.38,
+     "matched": true
+    },
+    {
+     "w": "from",
+     "start": 77.38,
+     "end": 77.68,
+     "matched": true
+    },
+    {
+     "w": "multiple",
+     "start": 77.68,
+     "end": 78.04,
+     "matched": true
+    },
+    {
+     "w": "Transformer",
+     "start": 78.04,
+     "end": 78.72,
+     "matched": true
+    },
+    {
+     "w": "layers",
+     "start": 78.72,
+     "end": 78.86,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 78.86,
+     "end": 79.14,
+     "matched": true
+    },
+    {
+     "w": "provide",
+     "start": 79.14,
+     "end": 79.36,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 79.36,
+     "end": 79.58,
+     "matched": true
+    },
+    {
+     "w": "richer",
+     "start": 79.58,
+     "end": 79.78,
+     "matched": true
+    },
+    {
+     "w": "signal",
+     "start": 79.78,
+     "end": 80.08,
+     "matched": true
+    },
+    {
+     "w": "for",
+     "start": 80.08,
+     "end": 80.52,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 80.52,
+     "end": 80.7,
+     "matched": true
+    },
+    {
+     "w": "lightweight",
+     "start": 80.7,
+     "end": 81.0,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 81.0,
+     "end": 81.3,
+     "matched": true
+    },
+    {
+     "w": "model.",
+     "start": 81.3,
+     "end": 81.58,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 17,
+   "text": "Unlike earlier EAGLE methods that focus on predicting future features, EAGLE-3 trains its draft model to predict tokens directly.",
+   "start": 82.13,
+   "end": 88.47,
+   "words": [
+    {
+     "w": "Unlike",
+     "start": 82.24,
+     "end": 82.44,
+     "matched": true
+    },
+    {
+     "w": "earlier",
+     "start": 82.44,
+     "end": 82.82,
+     "matched": true
+    },
+    {
+     "w": "EAGLE",
+     "start": 82.82,
+     "end": 83.08,
+     "matched": true
+    },
+    {
+     "w": "methods",
+     "start": 83.08,
+     "end": 83.38,
+     "matched": true
+    },
+    {
+     "w": "that",
+     "start": 83.38,
+     "end": 83.64,
+     "matched": true
+    },
+    {
+     "w": "focus",
+     "start": 83.64,
+     "end": 83.88,
+     "matched": true
+    },
+    {
+     "w": "on",
+     "start": 83.88,
+     "end": 84.2,
+     "matched": true
+    },
+    {
+     "w": "predicting",
+     "start": 84.2,
+     "end": 84.4,
+     "matched": true
+    },
+    {
+     "w": "future",
+     "start": 84.4,
+     "end": 84.86,
+     "matched": true
+    },
+    {
+     "w": "features,",
+     "start": 84.86,
+     "end": 85.24,
+     "matched": true
+    },
+    {
+     "w": "EAGLE-3",
+     "start": 85.9,
+     "end": 86.22,
+     "matched": true
+    },
+    {
+     "w": "trains",
+     "start": 86.22,
+     "end": 86.48,
+     "matched": true
+    },
+    {
+     "w": "its",
+     "start": 86.48,
+     "end": 86.74,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 86.74,
+     "end": 86.92,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 86.92,
+     "end": 87.18,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 87.18,
+     "end": 87.62,
+     "matched": true
+    },
+    {
+     "w": "predict",
+     "start": 87.62,
+     "end": 87.66,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 87.66,
+     "end": 88.0,
+     "matched": true
+    },
+    {
+     "w": "directly.",
+     "start": 88.0,
+     "end": 88.48,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 18,
+   "text": "Now imagine the draft model proposing several possible continuations.",
+   "start": 89.1,
+   "end": 92.4,
+   "words": [
+    {
+     "w": "Now",
+     "start": 89.06,
+     "end": 89.34,
+     "matched": true
+    },
+    {
+     "w": "imagine",
+     "start": 89.34,
+     "end": 89.64,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 89.64,
+     "end": 89.92,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 89.92,
+     "end": 89.94,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 89.94,
+     "end": 89.94,
+     "matched": true
+    },
+    {
+     "w": "proposing",
+     "start": 89.94,
+     "end": 90.7,
+     "matched": true
+    },
+    {
+     "w": "several",
+     "start": 90.7,
+     "end": 91.16,
+     "matched": true
+    },
+    {
+     "w": "possible",
+     "start": 91.16,
+     "end": 91.62,
+     "matched": true
+    },
+    {
+     "w": "continuations.",
+     "start": 91.62,
+     "end": 92.32,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 19,
+   "text": "Instead of creating just one linear sequence, we can organize candidate continuations into a tree.",
+   "start": 92.92,
+   "end": 97.52,
+   "words": [
+    {
+     "w": "Instead",
+     "start": 93.12,
+     "end": 93.12,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 93.12,
+     "end": 93.34,
+     "matched": true
+    },
+    {
+     "w": "creating",
+     "start": 93.34,
+     "end": 93.58,
+     "matched": true
+    },
+    {
+     "w": "just",
+     "start": 93.58,
+     "end": 93.88,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 93.88,
+     "end": 94.12,
+     "matched": true
+    },
+    {
+     "w": "linear",
+     "start": 94.12,
+     "end": 94.42,
+     "matched": true
+    },
+    {
+     "w": "sequence,",
+     "start": 94.42,
+     "end": 94.76,
+     "matched": true
+    },
+    {
+     "w": "we",
+     "start": 95.16,
+     "end": 95.24,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 95.24,
+     "end": 95.5,
+     "matched": true
+    },
+    {
+     "w": "organize",
+     "start": 95.5,
+     "end": 95.82,
+     "matched": true
+    },
+    {
+     "w": "candidate",
+     "start": 95.82,
+     "end": 96.18,
+     "matched": true
+    },
+    {
+     "w": "continuations",
+     "start": 96.18,
+     "end": 96.82,
+     "matched": true
+    },
+    {
+     "w": "into",
+     "start": 96.82,
+     "end": 97.1,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 97.1,
+     "end": 97.48,
+     "matched": true
+    },
+    {
+     "w": "tree.",
+     "start": 97.48,
+     "end": 97.48,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 20,
+   "text": "Each branch represents a different possible sequence of future tokens.",
+   "start": 97.99,
+   "end": 100.91,
+   "words": [
+    {
+     "w": "Each",
+     "start": 98.08,
+     "end": 98.22,
+     "matched": true
+    },
+    {
+     "w": "branch",
+     "start": 98.22,
+     "end": 98.48,
+     "matched": true
+    },
+    {
+     "w": "represents",
+     "start": 98.48,
+     "end": 98.84,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 98.84,
+     "end": 99.06,
+     "matched": true
+    },
+    {
+     "w": "different",
+     "start": 99.06,
+     "end": 99.32,
+     "matched": true
+    },
+    {
+     "w": "possible",
+     "start": 99.32,
+     "end": 99.78,
+     "matched": true
+    },
+    {
+     "w": "sequence",
+     "start": 99.78,
+     "end": 100.08,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 100.08,
+     "end": 100.26,
+     "matched": true
+    },
+    {
+     "w": "future",
+     "start": 100.26,
+     "end": 100.54,
+     "matched": true
+    },
+    {
+     "w": "tokens.",
+     "start": 100.54,
+     "end": 100.78,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 21,
+   "text": "The large target model then verifies the tree using a specially constructed attention mask.",
+   "start": 101.58,
+   "end": 105.9,
+   "words": [
+    {
+     "w": "The",
+     "start": 101.38,
+     "end": 101.72,
+     "matched": true
+    },
+    {
+     "w": "large",
+     "start": 101.72,
+     "end": 102.02,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 102.02,
+     "end": 102.26,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 102.26,
+     "end": 102.54,
+     "matched": true
+    },
+    {
+     "w": "then",
+     "start": 102.54,
+     "end": 103.26,
+     "matched": true
+    },
+    {
+     "w": "verifies",
+     "start": 103.26,
+     "end": 103.26,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 103.26,
+     "end": 103.7,
+     "matched": true
+    },
+    {
+     "w": "tree",
+     "start": 103.7,
+     "end": 103.7,
+     "matched": true
+    },
+    {
+     "w": "using",
+     "start": 103.7,
+     "end": 104.18,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 104.18,
+     "end": 104.42,
+     "matched": true
+    },
+    {
+     "w": "specially",
+     "start": 104.42,
+     "end": 104.74,
+     "matched": true
+    },
+    {
+     "w": "constructed",
+     "start": 104.74,
+     "end": 105.14,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 105.14,
+     "end": 105.58,
+     "matched": true
+    },
+    {
+     "w": "mask.",
+     "start": 105.58,
+     "end": 105.96,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 22,
+   "text": "Each candidate can attend to the shared prompt and its own ancestors, but not to unrelated branches.",
+   "start": 106.31,
+   "end": 111.07,
+   "words": [
+    {
+     "w": "Each",
+     "start": 106.38,
+     "end": 106.56,
+     "matched": true
+    },
+    {
+     "w": "candidate",
+     "start": 106.56,
+     "end": 106.76,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 106.76,
+     "end": 107.04,
+     "matched": true
+    },
+    {
+     "w": "attend",
+     "start": 107.04,
+     "end": 107.26,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 107.26,
+     "end": 107.42,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 107.42,
+     "end": 107.62,
+     "matched": true
+    },
+    {
+     "w": "shared",
+     "start": 107.62,
+     "end": 107.8,
+     "matched": true
+    },
+    {
+     "w": "prompt",
+     "start": 107.8,
+     "end": 108.1,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 108.1,
+     "end": 108.58,
+     "matched": true
+    },
+    {
+     "w": "its",
+     "start": 108.58,
+     "end": 108.74,
+     "matched": true
+    },
+    {
+     "w": "own",
+     "start": 108.74,
+     "end": 109.06,
+     "matched": true
+    },
+    {
+     "w": "ancestors,",
+     "start": 109.06,
+     "end": 109.38,
+     "matched": true
+    },
+    {
+     "w": "but",
+     "start": 109.78,
+     "end": 109.9,
+     "matched": true
+    },
+    {
+     "w": "not",
+     "start": 109.9,
+     "end": 110.02,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 110.02,
+     "end": 110.62,
+     "matched": true
+    },
+    {
+     "w": "unrelated",
+     "start": 110.62,
+     "end": 110.62,
+     "matched": true
+    },
+    {
+     "w": "branches.",
+     "start": 110.62,
+     "end": 110.98,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 23,
+   "text": "This allows multiple candidate paths to be evaluated in one target-model pass.",
+   "start": 111.63,
+   "end": 115.35,
+   "words": [
+    {
+     "w": "This",
+     "start": 111.54,
+     "end": 111.86,
+     "matched": true
+    },
+    {
+     "w": "allows",
+     "start": 111.86,
+     "end": 112.1,
+     "matched": true
+    },
+    {
+     "w": "multiple",
+     "start": 112.1,
+     "end": 112.56,
+     "matched": true
+    },
+    {
+     "w": "candidate",
+     "start": 112.56,
+     "end": 112.9,
+     "matched": true
+    },
+    {
+     "w": "paths",
+     "start": 112.9,
+     "end": 113.2,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 113.2,
+     "end": 113.4,
+     "matched": true
+    },
+    {
+     "w": "be",
+     "start": 113.4,
+     "end": 113.96,
+     "matched": true
+    },
+    {
+     "w": "evaluated",
+     "start": 113.96,
+     "end": 113.96,
+     "matched": true
+    },
+    {
+     "w": "in",
+     "start": 113.96,
+     "end": 114.22,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 114.22,
+     "end": 114.48,
+     "matched": true
+    },
+    {
+     "w": "target-model",
+     "start": 114.48,
+     "end": 115.0,
+     "matched": false
+    },
+    {
+     "w": "pass.",
+     "start": 115.0,
+     "end": 115.38,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 24,
+   "text": "The verification procedure determines which proposed tokens can be accepted, and generation continues from the accepted prefix.",
+   "start": 115.93,
+   "end": 122.2,
+   "words": [
+    {
+     "w": "The",
+     "start": 115.6,
+     "end": 116.08,
+     "matched": true
+    },
+    {
+     "w": "verification",
+     "start": 116.08,
+     "end": 116.56,
+     "matched": true
+    },
+    {
+     "w": "procedure",
+     "start": 116.56,
+     "end": 117.04,
+     "matched": true
+    },
+    {
+     "w": "determines",
+     "start": 117.04,
+     "end": 117.48,
+     "matched": true
+    },
+    {
+     "w": "which",
+     "start": 117.48,
+     "end": 118.04,
+     "matched": true
+    },
+    {
+     "w": "proposed",
+     "start": 118.04,
+     "end": 118.46,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 118.46,
+     "end": 118.74,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 118.74,
+     "end": 118.98,
+     "matched": true
+    },
+    {
+     "w": "be",
+     "start": 118.98,
+     "end": 119.18,
+     "matched": true
+    },
+    {
+     "w": "accepted,",
+     "start": 119.18,
+     "end": 119.46,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 119.8,
+     "end": 119.92,
+     "matched": true
+    },
+    {
+     "w": "generation",
+     "start": 119.92,
+     "end": 120.46,
+     "matched": true
+    },
+    {
+     "w": "continues",
+     "start": 120.46,
+     "end": 120.92,
+     "matched": true
+    },
+    {
+     "w": "from",
+     "start": 120.92,
+     "end": 121.16,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 121.16,
+     "end": 121.7,
+     "matched": true
+    },
+    {
+     "w": "accepted",
+     "start": 121.7,
+     "end": 121.7,
+     "matched": true
+    },
+    {
+     "w": "prefix.",
+     "start": 121.7,
+     "end": 122.16,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 25,
+   "text": "And here's the clever part.",
+   "start": 122.77,
+   "end": 123.71,
+   "words": [
+    {
+     "w": "And",
+     "start": 122.82,
+     "end": 122.92,
+     "matched": true
+    },
+    {
+     "w": "here's",
+     "start": 122.92,
+     "end": 123.08,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 123.08,
+     "end": 123.3,
+     "matched": true
+    },
+    {
+     "w": "clever",
+     "start": 123.3,
+     "end": 123.46,
+     "matched": true
+    },
+    {
+     "w": "part.",
+     "start": 123.46,
+     "end": 123.82,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 26,
+   "text": "EAGLE-3's training-time test approach exposes the draft model to its own rollout behavior during training, helping it learn to make better predictions when drafting repeatedly.",
+   "start": 124.18,
+   "end": 132.6,
+   "words": [
+    {
+     "w": "EAGLE-3's",
+     "start": 124.44,
+     "end": 124.76,
+     "matched": true
+    },
+    {
+     "w": "training-time",
+     "start": 124.76,
+     "end": 125.32,
+     "matched": false
+    },
+    {
+     "w": "test",
+     "start": 125.32,
+     "end": 125.58,
+     "matched": true
+    },
+    {
+     "w": "approach",
+     "start": 125.58,
+     "end": 125.96,
+     "matched": true
+    },
+    {
+     "w": "exposes",
+     "start": 125.96,
+     "end": 126.62,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 126.62,
+     "end": 126.88,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 126.88,
+     "end": 127.08,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 127.08,
+     "end": 127.3,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 127.3,
+     "end": 127.5,
+     "matched": true
+    },
+    {
+     "w": "its",
+     "start": 127.5,
+     "end": 127.64,
+     "matched": true
+    },
+    {
+     "w": "own",
+     "start": 127.64,
+     "end": 128.0,
+     "matched": true
+    },
+    {
+     "w": "rollout",
+     "start": 128.0,
+     "end": 128.2,
+     "matched": true
+    },
+    {
+     "w": "behavior",
+     "start": 128.2,
+     "end": 128.56,
+     "matched": true
+    },
+    {
+     "w": "during",
+     "start": 128.56,
+     "end": 128.88,
+     "matched": true
+    },
+    {
+     "w": "training,",
+     "start": 128.88,
+     "end": 129.22,
+     "matched": true
+    },
+    {
+     "w": "helping",
+     "start": 129.84,
+     "end": 129.84,
+     "matched": true
+    },
+    {
+     "w": "it",
+     "start": 129.84,
+     "end": 130.06,
+     "matched": true
+    },
+    {
+     "w": "learn",
+     "start": 130.06,
+     "end": 130.2,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 130.2,
+     "end": 130.4,
+     "matched": true
+    },
+    {
+     "w": "make",
+     "start": 130.4,
+     "end": 130.5,
+     "matched": true
+    },
+    {
+     "w": "better",
+     "start": 130.5,
+     "end": 130.8,
+     "matched": true
+    },
+    {
+     "w": "predictions",
+     "start": 130.8,
+     "end": 131.12,
+     "matched": true
+    },
+    {
+     "w": "when",
+     "start": 131.12,
+     "end": 131.76,
+     "matched": true
+    },
+    {
+     "w": "drafting",
+     "start": 131.76,
+     "end": 132.04,
+     "matched": true
+    },
+    {
+     "w": "repeatedly.",
+     "start": 132.04,
+     "end": 132.56,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 27,
+   "text": "More accurate proposals mean longer accepted continuations, fewer expensive target-model calls, and potentially faster generation.",
+   "start": 133.11,
+   "end": 139.69,
+   "words": [
+    {
+     "w": "More",
+     "start": 133.2,
+     "end": 133.36,
+     "matched": true
+    },
+    {
+     "w": "accurate",
+     "start": 133.36,
+     "end": 133.66,
+     "matched": true
+    },
+    {
+     "w": "proposals",
+     "start": 133.66,
+     "end": 134.08,
+     "matched": true
+    },
+    {
+     "w": "mean",
+     "start": 134.08,
+     "end": 134.4,
+     "matched": true
+    },
+    {
+     "w": "longer",
+     "start": 134.4,
+     "end": 134.7,
+     "matched": true
+    },
+    {
+     "w": "accepted",
+     "start": 134.7,
+     "end": 135.08,
+     "matched": true
+    },
+    {
+     "w": "continuations,",
+     "start": 135.08,
+     "end": 135.76,
+     "matched": true
+    },
+    {
+     "w": "fewer",
+     "start": 136.42,
+     "end": 136.48,
+     "matched": true
+    },
+    {
+     "w": "expensive",
+     "start": 136.48,
+     "end": 136.98,
+     "matched": true
+    },
+    {
+     "w": "target-model",
+     "start": 136.98,
+     "end": 137.52,
+     "matched": false
+    },
+    {
+     "w": "calls,",
+     "start": 137.52,
+     "end": 137.82,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 138.16,
+     "end": 138.38,
+     "matched": true
+    },
+    {
+     "w": "potentially",
+     "start": 138.38,
+     "end": 138.7,
+     "matched": true
+    },
+    {
+     "w": "faster",
+     "start": 138.7,
+     "end": 139.12,
+     "matched": true
+    },
+    {
+     "w": "generation.",
+     "start": 139.12,
+     "end": 139.58,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 28,
+   "text": "In the original EAGLE-3 paper, the researchers reported speedups of up to six point five times in their evaluated settings.",
+   "start": 140.07,
+   "end": 145.61,
+   "words": [
+    {
+     "w": "In",
+     "start": 139.74,
+     "end": 140.16,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 140.16,
+     "end": 140.32,
+     "matched": true
+    },
+    {
+     "w": "original",
+     "start": 140.32,
+     "end": 140.6,
+     "matched": true
+    },
+    {
+     "w": "EAGLE-3",
+     "start": 140.6,
+     "end": 141.08,
+     "matched": true
+    },
+    {
+     "w": "paper,",
+     "start": 141.08,
+     "end": 141.36,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 141.52,
+     "end": 141.96,
+     "matched": true
+    },
+    {
+     "w": "researchers",
+     "start": 141.96,
+     "end": 142.2,
+     "matched": true
+    },
+    {
+     "w": "reported",
+     "start": 142.2,
+     "end": 142.56,
+     "matched": true
+    },
+    {
+     "w": "speedups",
+     "start": 142.56,
+     "end": 143.0,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 143.0,
+     "end": 143.2,
+     "matched": true
+    },
+    {
+     "w": "up",
+     "start": 143.2,
+     "end": 143.28,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 143.28,
+     "end": 143.5,
+     "matched": true
+    },
+    {
+     "w": "six",
+     "start": 143.5,
+     "end": 143.707,
+     "matched": false
+    },
+    {
+     "w": "point",
+     "start": 143.707,
+     "end": 143.913,
+     "matched": false
+    },
+    {
+     "w": "five",
+     "start": 143.913,
+     "end": 144.12,
+     "matched": false
+    },
+    {
+     "w": "times",
+     "start": 144.12,
+     "end": 144.42,
+     "matched": true
+    },
+    {
+     "w": "in",
+     "start": 144.42,
+     "end": 144.6,
+     "matched": true
+    },
+    {
+     "w": "their",
+     "start": 144.6,
+     "end": 144.76,
+     "matched": true
+    },
+    {
+     "w": "evaluated",
+     "start": 144.76,
+     "end": 145.16,
+     "matched": true
+    },
+    {
+     "w": "settings.",
+     "start": 145.16,
+     "end": 145.58,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 29,
+   "text": "Actual acceleration depends on the model, hardware, workload, and acceptance rate.",
+   "start": 146.16,
+   "end": 151.01,
+   "words": [
+    {
+     "w": "Actual",
+     "start": 146.36,
+     "end": 146.5,
+     "matched": true
+    },
+    {
+     "w": "acceleration",
+     "start": 146.5,
+     "end": 147.02,
+     "matched": true
+    },
+    {
+     "w": "depends",
+     "start": 147.02,
+     "end": 147.38,
+     "matched": true
+    },
+    {
+     "w": "on",
+     "start": 147.38,
+     "end": 147.52,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 147.52,
+     "end": 147.88,
+     "matched": true
+    },
+    {
+     "w": "model,",
+     "start": 147.88,
+     "end": 147.88,
+     "matched": true
+    },
+    {
+     "w": "hardware,",
+     "start": 148.6,
+     "end": 148.6,
+     "matched": true
+    },
+    {
+     "w": "workload,",
+     "start": 148.6,
+     "end": 149.38,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 149.76,
+     "end": 150.36,
+     "matched": true
+    },
+    {
+     "w": "acceptance",
+     "start": 150.36,
+     "end": 150.8,
+     "matched": true
+    },
+    {
+     "w": "rate.",
+     "start": 150.8,
+     "end": 151.1,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 30,
+   "text": "So the big idea is simple.",
+   "start": 151.43,
+   "end": 152.78,
+   "words": [
+    {
+     "w": "So",
+     "start": 151.44,
+     "end": 151.58,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 151.58,
+     "end": 151.72,
+     "matched": true
+    },
+    {
+     "w": "big",
+     "start": 151.72,
+     "end": 152.02,
+     "matched": true
+    },
+    {
+     "w": "idea",
+     "start": 152.02,
+     "end": 152.2,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 152.2,
+     "end": 152.48,
+     "matched": true
+    },
+    {
+     "w": "simple.",
+     "start": 152.48,
+     "end": 152.78,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 31,
+   "text": "Don't make the expensive model generate every token from scratch.",
+   "start": 153.16,
+   "end": 156.04,
+   "words": [
+    {
+     "w": "Don't",
+     "start": 153.42,
+     "end": 153.42,
+     "matched": true
+    },
+    {
+     "w": "make",
+     "start": 153.42,
+     "end": 153.6,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 153.6,
+     "end": 153.76,
+     "matched": true
+    },
+    {
+     "w": "expensive",
+     "start": 153.76,
+     "end": 154.2,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 154.2,
+     "end": 154.48,
+     "matched": true
+    },
+    {
+     "w": "generate",
+     "start": 154.48,
+     "end": 154.86,
+     "matched": true
+    },
+    {
+     "w": "every",
+     "start": 154.86,
+     "end": 155.18,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 155.18,
+     "end": 155.38,
+     "matched": true
+    },
+    {
+     "w": "from",
+     "start": 155.38,
+     "end": 155.7,
+     "matched": true
+    },
+    {
+     "w": "scratch.",
+     "start": 155.7,
+     "end": 156.06,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 32,
+   "text": "Let a lightweight model speculate, then let the large model verify.",
+   "start": 156.52,
+   "end": 159.82,
+   "words": [
+    {
+     "w": "Let",
+     "start": 156.64,
+     "end": 156.68,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 156.68,
+     "end": 156.92,
+     "matched": true
+    },
+    {
+     "w": "lightweight",
+     "start": 156.92,
+     "end": 157.1,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 157.1,
+     "end": 157.42,
+     "matched": true
+    },
+    {
+     "w": "speculate,",
+     "start": 157.42,
+     "end": 157.86,
+     "matched": true
+    },
+    {
+     "w": "then",
+     "start": 158.12,
+     "end": 158.48,
+     "matched": true
+    },
+    {
+     "w": "let",
+     "start": 158.48,
+     "end": 158.64,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 158.64,
+     "end": 158.82,
+     "matched": true
+    },
+    {
+     "w": "large",
+     "start": 158.82,
+     "end": 159.08,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 159.08,
+     "end": 159.34,
+     "matched": true
+    },
+    {
+     "w": "verify.",
+     "start": 159.34,
+     "end": 159.78,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 33,
+   "text": "That's how EAGLE-3 can accelerate LLM decoding without changing the target model's intended output distribution when the appropriate verification procedure is used.",
+   "start": 160.46,
+   "end": 168.21,
+   "words": [
+    {
+     "w": "That's",
+     "start": 160.08,
+     "end": 160.72,
+     "matched": true
+    },
+    {
+     "w": "how",
+     "start": 160.72,
+     "end": 160.86,
+     "matched": true
+    },
+    {
+     "w": "EAGLE-3",
+     "start": 160.86,
+     "end": 161.28,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 161.28,
+     "end": 161.52,
+     "matched": true
+    },
+    {
+     "w": "accelerate",
+     "start": 161.52,
+     "end": 161.94,
+     "matched": true
+    },
+    {
+     "w": "LLM",
+     "start": 161.94,
+     "end": 162.4,
+     "matched": true
+    },
+    {
+     "w": "decoding",
+     "start": 162.4,
+     "end": 162.78,
+     "matched": true
+    },
+    {
+     "w": "without",
+     "start": 162.78,
+     "end": 163.44,
+     "matched": true
+    },
+    {
+     "w": "changing",
+     "start": 163.44,
+     "end": 163.78,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 163.78,
+     "end": 164.04,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 164.04,
+     "end": 164.22,
+     "matched": true
+    },
+    {
+     "w": "model's",
+     "start": 164.22,
+     "end": 164.7,
+     "matched": true
+    },
+    {
+     "w": "intended",
+     "start": 164.7,
+     "end": 164.9,
+     "matched": true
+    },
+    {
+     "w": "output",
+     "start": 164.9,
+     "end": 165.24,
+     "matched": true
+    },
+    {
+     "w": "distribution",
+     "start": 165.24,
+     "end": 165.74,
+     "matched": true
+    },
+    {
+     "w": "when",
+     "start": 165.74,
+     "end": 166.22,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 166.22,
+     "end": 166.4,
+     "matched": true
+    },
+    {
+     "w": "appropriate",
+     "start": 166.4,
+     "end": 166.78,
+     "matched": true
+    },
+    {
+     "w": "verification",
+     "start": 166.78,
+     "end": 167.34,
+     "matched": true
+    },
+    {
+     "w": "procedure",
+     "start": 167.34,
+     "end": 167.74,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 167.74,
+     "end": 167.98,
+     "matched": true
+    },
+    {
+     "w": "used.",
+     "start": 167.98,
+     "end": 168.24,
+     "matched": true
+    }
+   ]
+  }
+ ]
+}

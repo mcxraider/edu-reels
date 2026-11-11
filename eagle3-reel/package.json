@@ -1,0 +1,14 @@
+{
+  "name": "eagle3-reel",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "audio": "python3 generate_audio.py --speed 1.12 && python3 align_audio.py",
+    "inject": "node render.mjs --inject",
+    "preview": "node render.mjs --inject && node render.mjs --audio && python3 -m http.server 8000",
+    "stills": "node render.mjs --stills 3 20 40 50 63 80 88 96 105 112 120 130 145 150 165 172",
+    "render": "node render.mjs"
+  },
+  "dependencies": { "puppeteer-core": "^23.11.1" }
+}
