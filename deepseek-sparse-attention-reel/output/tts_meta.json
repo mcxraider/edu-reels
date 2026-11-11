@@ -1,0 +1,9 @@
+{
+  "model": "gpt-4o-mini-tts",
+  "voice": "cedar",
+  "speed": 1.0,
+  "instructions": "Voice: a calm, confident, articulate male machine-learning educator. Tone: warm and technically knowledgeable, never salesy or over-excited. Pacing: natural educational narration at a measured pace, with short pauses between conceptual sections and a brief beat after rhetorical questions. Pronunciation: say 'DeepSeek' as one word; 'V3.2' as 'vee three point two'; 'ReLU' as 'ray-loo'; 'top-k' as 'top kay'.",
+  "requests": 1,
+  "sample_rate": 24000,
+  "duration_s": 137.95
+}

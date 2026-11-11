@@ -1,0 +1,2661 @@
+{
+ "source": "narration.wav",
+ "duration": 137.95,
+ "method": "whisper-1 word anchors + Needleman-Wunsch alignment to script.txt + RMS pause snapping",
+ "qa": {
+  "script_words": 362,
+  "matched_words": 356,
+  "match_rate": 0.9834,
+  "unmatched_script_words": [
+   "twenty-eight",
+   "V3.2.",
+   "relevance",
+   "forty-eight",
+   "long-context",
+   "DeepSeek"
+  ],
+  "recognised_text": "Imagine you're running a language model with a context window of one hundred and twenty-eight thousand tokens. With standard attention, every new query token needs to compare itself against all previous tokens. But here's the problem. What if only a small fraction of those tokens are actually relevant? That's the idea behind DeepSeek Sparse Attention, introduced in DeepSeek V3.2. Instead of performing full attention over the entire context, DeepSeek introduces a lightweight component called the Lightning Indexer. Here's how it works. First, imagine our context contains thousands of tokens, each represented by a key and value. When a new query arrives, the Lightning Indexer compares that query against the historical tokens. It uses smaller projections and multiple indexing heads to calculate relevant scores. Each indexing head computes a dot product between its query representation and the historical keys, applies a ReLU activation, and contributes a weighted score. These scores are aggregated to estimate which previous tokens are most important. Now comes the interesting part. Instead of sending every token into the expensive main attention computation, DeepSeek selects only the top two thousand and forty-eight tokens with the highest indexing scores. Notice that these tokens can come from anywhere in the previous context. They're not necessarily the most recent tokens, and they don't need to be adjacent. Next, DeepSeek's main attention mechanism operates on this selected subset, computing attention weights and aggregating information from their corresponding values. This is where the computational savings come from. With dense attention, the main attention operation grows with the full context length. With sparse attention, the main attention only needs to process the selected tokens. However, there's an important catch. The Lightning Indexer still needs to score the historical context to decide which tokens to select. So sparse attention doesn't eliminate all the cost of searching through a long sequence. It replaces expensive full attention with a cheaper indexing operation, followed by attention on a much smaller subset. The key insight? Not every token needs the same amount of computational attention. By learning which tokens matter most, DeepSeek can make long context processing more efficient, while preserving useful information. And that's the fundamental idea behind DeepSeek's sparse attention."
+ },
+ "pauses": [
+  [
+   4.86,
+   5.77
+  ],
+  [
+   6.76,
+   7.15
+  ],
+  [
+   8.38,
+   8.66
+  ],
+  [
+   11.31,
+   11.9
+  ],
+  [
+   12.65,
+   13.54
+  ],
+  [
+   15.62,
+   15.91
+  ],
+  [
+   16.72,
+   17.49
+  ],
+  [
+   19.69,
+   20.25
+  ],
+  [
+   22.3,
+   23.0
+  ],
+  [
+   25.78,
+   26.28
+  ],
+  [
+   28.36,
+   28.6
+  ],
+  [
+   29.83,
+   30.71
+  ],
+  [
+   31.48,
+   32.22
+  ],
+  [
+   32.45,
+   32.89
+  ],
+  [
+   35.25,
+   35.72
+  ],
+  [
+   37.06,
+   37.24
+  ],
+  [
+   37.7,
+   38.41
+  ],
+  [
+   39.61,
+   39.97
+  ],
+  [
+   41.72,
+   41.94
+  ],
+  [
+   43.19,
+   44.12
+  ],
+  [
+   45.48,
+   45.75
+  ],
+  [
+   48.31,
+   49.15
+  ],
+  [
+   50.93,
+   51.28
+  ],
+  [
+   52.69,
+   52.99
+  ],
+  [
+   53.95,
+   54.32
+  ],
+  [
+   55.62,
+   55.94
+  ],
+  [
+   57.21,
+   58.3
+  ],
+  [
+   61.07,
+   61.35
+  ],
+  [
+   62.02,
+   62.58
+  ],
+  [
+   63.58,
+   64.33
+  ],
+  [
+   67.66,
+   68.12
+  ],
+  [
+   71.23,
+   71.54
+  ],
+  [
+   72.88,
+   73.75
+  ],
+  [
+   76.7,
+   77.52
+  ],
+  [
+   79.4,
+   79.83
+  ],
+  [
+   80.96,
+   82.18
+  ],
+  [
+   85.51,
+   86.05
+  ],
+  [
+   86.99,
+   87.33
+  ],
+  [
+   88.47,
+   88.65
+  ],
+  [
+   89.84,
+   90.99
+  ],
+  [
+   92.99,
+   93.74
+  ],
+  [
+   94.62,
+   94.94
+  ],
+  [
+   97.4,
+   98.15
+  ],
+  [
+   98.97,
+   99.38
+  ],
+  [
+   102.19,
+   102.92
+  ],
+  [
+   103.3,
+   103.77
+  ],
+  [
+   104.67,
+   105.28
+  ],
+  [
+   108.05,
+   108.45
+  ],
+  [
+   109.75,
+   110.87
+  ],
+  [
+   114.52,
+   115.33
+  ],
+  [
+   117.06,
+   117.39
+  ],
+  [
+   118.79,
+   119.34
+  ],
+  [
+   121.27,
+   122.47
+  ],
+  [
+   123.06,
+   123.5
+  ],
+  [
+   126.31,
+   127.1
+  ],
+  [
+   128.63,
+   129.11
+  ],
+  [
+   131.71,
+   132.19
+  ],
+  [
+   133.53,
+   134.46
+  ],
+  [
+   137.56,
+   137.95
+  ]
+ ],
+ "timeline": {
+  "lead_in": 1.0,
+  "tail_hold": 3.2,
+  "fps": 30,
+  "total": 142.15
+ },
+ "sentences": [
+  {
+   "i": 0,
+   "text": "Imagine you're running a language model with a context window of one hundred and twenty-eight thousand tokens.",
+   "start": 0.0,
+   "end": 4.86,
+   "words": [
+    {
+     "w": "Imagine",
+     "start": 0.0,
+     "end": 0.56,
+     "matched": true
+    },
+    {
+     "w": "you're",
+     "start": 0.56,
+     "end": 0.94,
+     "matched": true
+    },
+    {
+     "w": "running",
+     "start": 0.94,
+     "end": 1.12,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 1.12,
+     "end": 1.38,
+     "matched": true
+    },
+    {
+     "w": "language",
+     "start": 1.38,
+     "end": 1.58,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 1.58,
+     "end": 1.88,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 1.88,
+     "end": 2.18,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 2.18,
+     "end": 2.7,
+     "matched": true
+    },
+    {
+     "w": "context",
+     "start": 2.7,
+     "end": 2.7,
+     "matched": true
+    },
+    {
+     "w": "window",
+     "start": 2.7,
+     "end": 3.0,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 3.0,
+     "end": 3.4,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 3.4,
+     "end": 3.48,
+     "matched": true
+    },
+    {
+     "w": "hundred",
+     "start": 3.48,
+     "end": 3.66,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 3.66,
+     "end": 3.98,
+     "matched": true
+    },
+    {
+     "w": "twenty-eight",
+     "start": 3.98,
+     "end": 4.26,
+     "matched": false
+    },
+    {
+     "w": "thousand",
+     "start": 4.26,
+     "end": 4.68,
+     "matched": true
+    },
+    {
+     "w": "tokens.",
+     "start": 4.68,
+     "end": 4.94,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 1,
+   "text": "With standard attention, every new query token needs to compare itself against all previous tokens.",
+   "start": 5.77,
+   "end": 11.31,
+   "words": [
+    {
+     "w": "With",
+     "start": 5.88,
+     "end": 5.96,
+     "matched": true
+    },
+    {
+     "w": "standard",
+     "start": 5.96,
+     "end": 6.3,
+     "matched": true
+    },
+    {
+     "w": "attention,",
+     "start": 6.3,
+     "end": 6.66,
+     "matched": true
+    },
+    {
+     "w": "every",
+     "start": 7.12,
+     "end": 7.44,
+     "matched": true
+    },
+    {
+     "w": "new",
+     "start": 7.44,
+     "end": 7.82,
+     "matched": true
+    },
+    {
+     "w": "query",
+     "start": 7.82,
+     "end": 8.0,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 8.0,
+     "end": 8.38,
+     "matched": true
+    },
+    {
+     "w": "needs",
+     "start": 8.38,
+     "end": 8.86,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 8.86,
+     "end": 9.3,
+     "matched": true
+    },
+    {
+     "w": "compare",
+     "start": 9.3,
+     "end": 9.3,
+     "matched": true
+    },
+    {
+     "w": "itself",
+     "start": 9.3,
+     "end": 9.72,
+     "matched": true
+    },
+    {
+     "w": "against",
+     "start": 9.72,
+     "end": 10.02,
+     "matched": true
+    },
+    {
+     "w": "all",
+     "start": 10.02,
+     "end": 10.52,
+     "matched": true
+    },
+    {
+     "w": "previous",
+     "start": 10.52,
+     "end": 10.94,
+     "matched": true
+    },
+    {
+     "w": "tokens.",
+     "start": 10.94,
+     "end": 11.22,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 2,
+   "text": "But here's the problem.",
+   "start": 11.9,
+   "end": 12.65,
+   "words": [
+    {
+     "w": "But",
+     "start": 11.54,
+     "end": 12.08,
+     "matched": true
+    },
+    {
+     "w": "here's",
+     "start": 12.08,
+     "end": 12.24,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 12.24,
+     "end": 12.68,
+     "matched": true
+    },
+    {
+     "w": "problem.",
+     "start": 12.68,
+     "end": 12.68,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 3,
+   "text": "What if only a small fraction of those tokens are actually relevant?",
+   "start": 13.54,
+   "end": 16.72,
+   "words": [
+    {
+     "w": "What",
+     "start": 13.54,
+     "end": 13.68,
+     "matched": true
+    },
+    {
+     "w": "if",
+     "start": 13.68,
+     "end": 13.86,
+     "matched": true
+    },
+    {
+     "w": "only",
+     "start": 13.86,
+     "end": 14.06,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 14.06,
+     "end": 14.22,
+     "matched": true
+    },
+    {
+     "w": "small",
+     "start": 14.22,
+     "end": 14.56,
+     "matched": true
+    },
+    {
+     "w": "fraction",
+     "start": 14.56,
+     "end": 14.9,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 14.9,
+     "end": 15.16,
+     "matched": true
+    },
+    {
+     "w": "those",
+     "start": 15.16,
+     "end": 15.4,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 15.4,
+     "end": 15.54,
+     "matched": true
+    },
+    {
+     "w": "are",
+     "start": 15.54,
+     "end": 16.04,
+     "matched": true
+    },
+    {
+     "w": "actually",
+     "start": 16.04,
+     "end": 16.52,
+     "matched": true
+    },
+    {
+     "w": "relevant?",
+     "start": 16.52,
+     "end": 16.74,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 4,
+   "text": "That's the idea behind DeepSeek Sparse Attention, introduced in DeepSeek V3.2.",
+   "start": 17.49,
+   "end": 22.3,
+   "words": [
+    {
+     "w": "That's",
+     "start": 17.4,
+     "end": 17.74,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 17.74,
+     "end": 18.16,
+     "matched": true
+    },
+    {
+     "w": "idea",
+     "start": 18.16,
+     "end": 18.16,
+     "matched": true
+    },
+    {
+     "w": "behind",
+     "start": 18.16,
+     "end": 18.58,
+     "matched": true
+    },
+    {
+     "w": "DeepSeek",
+     "start": 18.58,
+     "end": 19.0,
+     "matched": true
+    },
+    {
+     "w": "Sparse",
+     "start": 19.0,
+     "end": 19.36,
+     "matched": true
+    },
+    {
+     "w": "Attention,",
+     "start": 19.36,
+     "end": 19.68,
+     "matched": true
+    },
+    {
+     "w": "introduced",
+     "start": 20.7,
+     "end": 20.7,
+     "matched": true
+    },
+    {
+     "w": "in",
+     "start": 20.7,
+     "end": 21.06,
+     "matched": true
+    },
+    {
+     "w": "DeepSeek",
+     "start": 21.06,
+     "end": 21.38,
+     "matched": true
+    },
+    {
+     "w": "V3.2.",
+     "start": 21.38,
+     "end": 23.0,
+     "matched": false
+    }
+   ]
+  },
+  {
+   "i": 5,
+   "text": "Instead of performing full attention over the entire context, DeepSeek introduces a lightweight component called the Lightning Indexer.",
+   "start": 23.0,
+   "end": 29.83,
+   "words": [
+    {
+     "w": "Instead",
+     "start": 23.0,
+     "end": 23.3,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 23.3,
+     "end": 23.56,
+     "matched": true
+    },
+    {
+     "w": "performing",
+     "start": 23.56,
+     "end": 23.84,
+     "matched": true
+    },
+    {
+     "w": "full",
+     "start": 23.84,
+     "end": 24.28,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 24.28,
+     "end": 24.56,
+     "matched": true
+    },
+    {
+     "w": "over",
+     "start": 24.56,
+     "end": 24.86,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 24.86,
+     "end": 25.02,
+     "matched": true
+    },
+    {
+     "w": "entire",
+     "start": 25.02,
+     "end": 25.38,
+     "matched": true
+    },
+    {
+     "w": "context,",
+     "start": 25.38,
+     "end": 25.8,
+     "matched": true
+    },
+    {
+     "w": "DeepSeek",
+     "start": 26.54,
+     "end": 26.78,
+     "matched": true
+    },
+    {
+     "w": "introduces",
+     "start": 26.78,
+     "end": 27.24,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 27.24,
+     "end": 27.54,
+     "matched": true
+    },
+    {
+     "w": "lightweight",
+     "start": 27.54,
+     "end": 27.92,
+     "matched": true
+    },
+    {
+     "w": "component",
+     "start": 27.92,
+     "end": 28.36,
+     "matched": true
+    },
+    {
+     "w": "called",
+     "start": 28.36,
+     "end": 28.8,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 28.8,
+     "end": 29.14,
+     "matched": true
+    },
+    {
+     "w": "Lightning",
+     "start": 29.14,
+     "end": 29.36,
+     "matched": true
+    },
+    {
+     "w": "Indexer.",
+     "start": 29.36,
+     "end": 29.84,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 6,
+   "text": "Here's how it works.",
+   "start": 30.71,
+   "end": 31.48,
+   "words": [
+    {
+     "w": "Here's",
+     "start": 30.58,
+     "end": 30.94,
+     "matched": true
+    },
+    {
+     "w": "how",
+     "start": 30.94,
+     "end": 31.06,
+     "matched": true
+    },
+    {
+     "w": "it",
+     "start": 31.06,
+     "end": 31.2,
+     "matched": true
+    },
+    {
+     "w": "works.",
+     "start": 31.2,
+     "end": 31.44,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 7,
+   "text": "First, imagine our context contains thousands of tokens, each represented by a key and value.",
+   "start": 32.22,
+   "end": 37.7,
+   "words": [
+    {
+     "w": "First,",
+     "start": 32.18,
+     "end": 32.58,
+     "matched": true
+    },
+    {
+     "w": "imagine",
+     "start": 32.84,
+     "end": 33.26,
+     "matched": true
+    },
+    {
+     "w": "our",
+     "start": 33.26,
+     "end": 33.52,
+     "matched": true
+    },
+    {
+     "w": "context",
+     "start": 33.52,
+     "end": 33.86,
+     "matched": true
+    },
+    {
+     "w": "contains",
+     "start": 33.86,
+     "end": 34.34,
+     "matched": true
+    },
+    {
+     "w": "thousands",
+     "start": 34.34,
+     "end": 34.72,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 34.72,
+     "end": 35.24,
+     "matched": true
+    },
+    {
+     "w": "tokens,",
+     "start": 35.24,
+     "end": 35.24,
+     "matched": true
+    },
+    {
+     "w": "each",
+     "start": 35.74,
+     "end": 36.02,
+     "matched": true
+    },
+    {
+     "w": "represented",
+     "start": 36.02,
+     "end": 36.36,
+     "matched": true
+    },
+    {
+     "w": "by",
+     "start": 36.36,
+     "end": 36.6,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 36.6,
+     "end": 37.04,
+     "matched": true
+    },
+    {
+     "w": "key",
+     "start": 37.04,
+     "end": 37.04,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 37.04,
+     "end": 37.42,
+     "matched": true
+    },
+    {
+     "w": "value.",
+     "start": 37.42,
+     "end": 37.74,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 8,
+   "text": "When a new query arrives, the Lightning Indexer compares that query against the historical tokens.",
+   "start": 38.41,
+   "end": 43.19,
+   "words": [
+    {
+     "w": "When",
+     "start": 38.4,
+     "end": 38.54,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 38.54,
+     "end": 38.7,
+     "matched": true
+    },
+    {
+     "w": "new",
+     "start": 38.7,
+     "end": 39.16,
+     "matched": true
+    },
+    {
+     "w": "query",
+     "start": 39.16,
+     "end": 39.16,
+     "matched": true
+    },
+    {
+     "w": "arrives,",
+     "start": 39.16,
+     "end": 39.58,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 39.98,
+     "end": 40.2,
+     "matched": true
+    },
+    {
+     "w": "Lightning",
+     "start": 40.2,
+     "end": 40.38,
+     "matched": true
+    },
+    {
+     "w": "Indexer",
+     "start": 40.38,
+     "end": 40.8,
+     "matched": true
+    },
+    {
+     "w": "compares",
+     "start": 40.8,
+     "end": 41.12,
+     "matched": true
+    },
+    {
+     "w": "that",
+     "start": 41.12,
+     "end": 41.42,
+     "matched": true
+    },
+    {
+     "w": "query",
+     "start": 41.42,
+     "end": 41.68,
+     "matched": true
+    },
+    {
+     "w": "against",
+     "start": 41.68,
+     "end": 42.18,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 42.18,
+     "end": 42.42,
+     "matched": true
+    },
+    {
+     "w": "historical",
+     "start": 42.42,
+     "end": 42.76,
+     "matched": true
+    },
+    {
+     "w": "tokens.",
+     "start": 42.76,
+     "end": 43.12,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 9,
+   "text": "It uses smaller projections and multiple indexing heads to calculate relevance scores.",
+   "start": 44.12,
+   "end": 48.31,
+   "words": [
+    {
+     "w": "It",
+     "start": 43.72,
+     "end": 44.3,
+     "matched": true
+    },
+    {
+     "w": "uses",
+     "start": 44.3,
+     "end": 44.5,
+     "matched": true
+    },
+    {
+     "w": "smaller",
+     "start": 44.5,
+     "end": 44.94,
+     "matched": true
+    },
+    {
+     "w": "projections",
+     "start": 44.94,
+     "end": 45.38,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 45.38,
+     "end": 45.94,
+     "matched": true
+    },
+    {
+     "w": "multiple",
+     "start": 45.94,
+     "end": 46.34,
+     "matched": true
+    },
+    {
+     "w": "indexing",
+     "start": 46.34,
+     "end": 46.84,
+     "matched": true
+    },
+    {
+     "w": "heads",
+     "start": 46.84,
+     "end": 46.92,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 46.92,
+     "end": 47.3,
+     "matched": true
+    },
+    {
+     "w": "calculate",
+     "start": 47.3,
+     "end": 47.54,
+     "matched": true
+    },
+    {
+     "w": "relevance",
+     "start": 47.54,
+     "end": 47.96,
+     "matched": false
+    },
+    {
+     "w": "scores.",
+     "start": 47.96,
+     "end": 48.28,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 10,
+   "text": "Each indexing head computes a dot product between its query representation and the historical keys, applies a ReLU activation, and contributes a weighted score.",
+   "start": 49.15,
+   "end": 57.21,
+   "words": [
+    {
+     "w": "Each",
+     "start": 48.96,
+     "end": 49.38,
+     "matched": true
+    },
+    {
+     "w": "indexing",
+     "start": 49.38,
+     "end": 49.88,
+     "matched": true
+    },
+    {
+     "w": "head",
+     "start": 49.88,
+     "end": 50.02,
+     "matched": true
+    },
+    {
+     "w": "computes",
+     "start": 50.02,
+     "end": 50.32,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 50.32,
+     "end": 50.56,
+     "matched": true
+    },
+    {
+     "w": "dot",
+     "start": 50.56,
+     "end": 50.7,
+     "matched": true
+    },
+    {
+     "w": "product",
+     "start": 50.7,
+     "end": 51.02,
+     "matched": true
+    },
+    {
+     "w": "between",
+     "start": 51.02,
+     "end": 51.52,
+     "matched": true
+    },
+    {
+     "w": "its",
+     "start": 51.52,
+     "end": 51.76,
+     "matched": true
+    },
+    {
+     "w": "query",
+     "start": 51.76,
+     "end": 51.98,
+     "matched": true
+    },
+    {
+     "w": "representation",
+     "start": 51.98,
+     "end": 52.5,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 52.5,
+     "end": 53.1,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 53.1,
+     "end": 53.32,
+     "matched": true
+    },
+    {
+     "w": "historical",
+     "start": 53.32,
+     "end": 53.58,
+     "matched": true
+    },
+    {
+     "w": "keys,",
+     "start": 53.58,
+     "end": 53.9,
+     "matched": true
+    },
+    {
+     "w": "applies",
+     "start": 53.9,
+     "end": 54.6,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 54.6,
+     "end": 54.82,
+     "matched": true
+    },
+    {
+     "w": "ReLU",
+     "start": 54.82,
+     "end": 55.02,
+     "matched": true
+    },
+    {
+     "w": "activation,",
+     "start": 55.02,
+     "end": 55.52,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 56.0,
+     "end": 56.14,
+     "matched": true
+    },
+    {
+     "w": "contributes",
+     "start": 56.14,
+     "end": 56.46,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 56.46,
+     "end": 56.98,
+     "matched": true
+    },
+    {
+     "w": "weighted",
+     "start": 56.98,
+     "end": 56.98,
+     "matched": true
+    },
+    {
+     "w": "score.",
+     "start": 56.98,
+     "end": 57.24,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 11,
+   "text": "These scores are aggregated to estimate which previous tokens are most important.",
+   "start": 58.3,
+   "end": 62.02,
+   "words": [
+    {
+     "w": "These",
+     "start": 58.46,
+     "end": 58.54,
+     "matched": true
+    },
+    {
+     "w": "scores",
+     "start": 58.54,
+     "end": 58.76,
+     "matched": true
+    },
+    {
+     "w": "are",
+     "start": 58.76,
+     "end": 59.04,
+     "matched": true
+    },
+    {
+     "w": "aggregated",
+     "start": 59.04,
+     "end": 59.42,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 59.42,
+     "end": 59.76,
+     "matched": true
+    },
+    {
+     "w": "estimate",
+     "start": 59.76,
+     "end": 59.98,
+     "matched": true
+    },
+    {
+     "w": "which",
+     "start": 59.98,
+     "end": 60.3,
+     "matched": true
+    },
+    {
+     "w": "previous",
+     "start": 60.3,
+     "end": 60.78,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 60.78,
+     "end": 61.0,
+     "matched": true
+    },
+    {
+     "w": "are",
+     "start": 61.0,
+     "end": 61.46,
+     "matched": true
+    },
+    {
+     "w": "most",
+     "start": 61.46,
+     "end": 61.76,
+     "matched": true
+    },
+    {
+     "w": "important.",
+     "start": 61.76,
+     "end": 62.06,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 12,
+   "text": "Now comes the interesting part.",
+   "start": 62.58,
+   "end": 63.58,
+   "words": [
+    {
+     "w": "Now",
+     "start": 62.68,
+     "end": 62.76,
+     "matched": true
+    },
+    {
+     "w": "comes",
+     "start": 62.76,
+     "end": 62.98,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 62.98,
+     "end": 63.12,
+     "matched": true
+    },
+    {
+     "w": "interesting",
+     "start": 63.12,
+     "end": 63.4,
+     "matched": true
+    },
+    {
+     "w": "part.",
+     "start": 63.4,
+     "end": 63.72,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 13,
+   "text": "Instead of sending every token into the expensive main attention computation, DeepSeek selects only the top two thousand and forty-eight tokens with the highest indexing scores.",
+   "start": 64.33,
+   "end": 72.88,
+   "words": [
+    {
+     "w": "Instead",
+     "start": 64.54,
+     "end": 64.54,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 64.54,
+     "end": 64.8,
+     "matched": true
+    },
+    {
+     "w": "sending",
+     "start": 64.8,
+     "end": 64.96,
+     "matched": true
+    },
+    {
+     "w": "every",
+     "start": 64.96,
+     "end": 65.38,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 65.38,
+     "end": 65.56,
+     "matched": true
+    },
+    {
+     "w": "into",
+     "start": 65.56,
+     "end": 65.82,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 65.82,
+     "end": 66.0,
+     "matched": true
+    },
+    {
+     "w": "expensive",
+     "start": 66.0,
+     "end": 66.48,
+     "matched": true
+    },
+    {
+     "w": "main",
+     "start": 66.48,
+     "end": 66.8,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 66.8,
+     "end": 66.98,
+     "matched": true
+    },
+    {
+     "w": "computation,",
+     "start": 66.98,
+     "end": 67.6,
+     "matched": true
+    },
+    {
+     "w": "DeepSeek",
+     "start": 68.4,
+     "end": 68.58,
+     "matched": true
+    },
+    {
+     "w": "selects",
+     "start": 68.58,
+     "end": 69.06,
+     "matched": true
+    },
+    {
+     "w": "only",
+     "start": 69.06,
+     "end": 69.32,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 69.32,
+     "end": 69.5,
+     "matched": true
+    },
+    {
+     "w": "top",
+     "start": 69.5,
+     "end": 69.76,
+     "matched": true
+    },
+    {
+     "w": "two",
+     "start": 69.76,
+     "end": 69.98,
+     "matched": true
+    },
+    {
+     "w": "thousand",
+     "start": 69.98,
+     "end": 70.32,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 70.32,
+     "end": 70.6,
+     "matched": true
+    },
+    {
+     "w": "forty-eight",
+     "start": 70.6,
+     "end": 70.96,
+     "matched": false
+    },
+    {
+     "w": "tokens",
+     "start": 70.96,
+     "end": 71.18,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 71.18,
+     "end": 71.66,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 71.66,
+     "end": 72.1,
+     "matched": true
+    },
+    {
+     "w": "highest",
+     "start": 72.1,
+     "end": 72.12,
+     "matched": true
+    },
+    {
+     "w": "indexing",
+     "start": 72.12,
+     "end": 72.64,
+     "matched": true
+    },
+    {
+     "w": "scores.",
+     "start": 72.64,
+     "end": 72.86,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 14,
+   "text": "Notice that these tokens can come from anywhere in the previous context.",
+   "start": 73.75,
+   "end": 76.7,
+   "words": [
+    {
+     "w": "Notice",
+     "start": 73.94,
+     "end": 74.0,
+     "matched": true
+    },
+    {
+     "w": "that",
+     "start": 74.0,
+     "end": 74.24,
+     "matched": true
+    },
+    {
+     "w": "these",
+     "start": 74.24,
+     "end": 74.48,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 74.48,
+     "end": 74.64,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 74.64,
+     "end": 74.9,
+     "matched": true
+    },
+    {
+     "w": "come",
+     "start": 74.9,
+     "end": 75.06,
+     "matched": true
+    },
+    {
+     "w": "from",
+     "start": 75.06,
+     "end": 75.28,
+     "matched": true
+    },
+    {
+     "w": "anywhere",
+     "start": 75.28,
+     "end": 75.64,
+     "matched": true
+    },
+    {
+     "w": "in",
+     "start": 75.64,
+     "end": 75.86,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 75.86,
+     "end": 75.98,
+     "matched": true
+    },
+    {
+     "w": "previous",
+     "start": 75.98,
+     "end": 76.32,
+     "matched": true
+    },
+    {
+     "w": "context.",
+     "start": 76.2,
+     "end": 76.72,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 15,
+   "text": "They're not necessarily the most recent tokens, and they don't need to be adjacent.",
+   "start": 77.52,
+   "end": 80.96,
+   "words": [
+    {
+     "w": "They're",
+     "start": 77.5,
+     "end": 77.68,
+     "matched": true
+    },
+    {
+     "w": "not",
+     "start": 77.68,
+     "end": 77.86,
+     "matched": true
+    },
+    {
+     "w": "necessarily",
+     "start": 77.86,
+     "end": 78.34,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 78.34,
+     "end": 78.52,
+     "matched": true
+    },
+    {
+     "w": "most",
+     "start": 78.52,
+     "end": 78.8,
+     "matched": true
+    },
+    {
+     "w": "recent",
+     "start": 78.8,
+     "end": 79.04,
+     "matched": true
+    },
+    {
+     "w": "tokens,",
+     "start": 79.04,
+     "end": 79.34,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 79.76,
+     "end": 79.92,
+     "matched": true
+    },
+    {
+     "w": "they",
+     "start": 79.92,
+     "end": 80.12,
+     "matched": true
+    },
+    {
+     "w": "don't",
+     "start": 80.12,
+     "end": 80.24,
+     "matched": true
+    },
+    {
+     "w": "need",
+     "start": 80.24,
+     "end": 80.4,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 80.4,
+     "end": 80.5,
+     "matched": true
+    },
+    {
+     "w": "be",
+     "start": 80.5,
+     "end": 80.66,
+     "matched": true
+    },
+    {
+     "w": "adjacent.",
+     "start": 80.66,
+     "end": 80.98,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 16,
+   "text": "Next, DeepSeek's main attention mechanism operates on this selected subset, computing attention weights and aggregating information from their corresponding values.",
+   "start": 82.18,
+   "end": 89.84,
+   "words": [
+    {
+     "w": "Next,",
+     "start": 81.82,
+     "end": 82.42,
+     "matched": true
+    },
+    {
+     "w": "DeepSeek's",
+     "start": 82.8,
+     "end": 83.2,
+     "matched": true
+    },
+    {
+     "w": "main",
+     "start": 83.2,
+     "end": 83.38,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 83.38,
+     "end": 83.6,
+     "matched": true
+    },
+    {
+     "w": "mechanism",
+     "start": 83.6,
+     "end": 84.08,
+     "matched": true
+    },
+    {
+     "w": "operates",
+     "start": 84.08,
+     "end": 84.52,
+     "matched": true
+    },
+    {
+     "w": "on",
+     "start": 84.52,
+     "end": 84.68,
+     "matched": true
+    },
+    {
+     "w": "this",
+     "start": 84.68,
+     "end": 84.84,
+     "matched": true
+    },
+    {
+     "w": "selected",
+     "start": 84.84,
+     "end": 85.16,
+     "matched": true
+    },
+    {
+     "w": "subset,",
+     "start": 85.16,
+     "end": 85.56,
+     "matched": true
+    },
+    {
+     "w": "computing",
+     "start": 86.34,
+     "end": 86.36,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 86.36,
+     "end": 86.76,
+     "matched": true
+    },
+    {
+     "w": "weights",
+     "start": 86.76,
+     "end": 86.96,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 86.96,
+     "end": 87.5,
+     "matched": true
+    },
+    {
+     "w": "aggregating",
+     "start": 87.5,
+     "end": 87.92,
+     "matched": true
+    },
+    {
+     "w": "information",
+     "start": 87.92,
+     "end": 88.38,
+     "matched": true
+    },
+    {
+     "w": "from",
+     "start": 88.38,
+     "end": 88.74,
+     "matched": true
+    },
+    {
+     "w": "their",
+     "start": 88.74,
+     "end": 88.92,
+     "matched": true
+    },
+    {
+     "w": "corresponding",
+     "start": 88.92,
+     "end": 89.44,
+     "matched": true
+    },
+    {
+     "w": "values.",
+     "start": 89.44,
+     "end": 89.84,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 17,
+   "text": "This is where the computational savings come from.",
+   "start": 90.99,
+   "end": 92.99,
+   "words": [
+    {
+     "w": "This",
+     "start": 90.64,
+     "end": 91.24,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 91.24,
+     "end": 91.42,
+     "matched": true
+    },
+    {
+     "w": "where",
+     "start": 91.42,
+     "end": 91.5,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 91.5,
+     "end": 91.78,
+     "matched": true
+    },
+    {
+     "w": "computational",
+     "start": 91.78,
+     "end": 92.2,
+     "matched": true
+    },
+    {
+     "w": "savings",
+     "start": 92.2,
+     "end": 92.54,
+     "matched": true
+    },
+    {
+     "w": "come",
+     "start": 92.54,
+     "end": 92.8,
+     "matched": true
+    },
+    {
+     "w": "from.",
+     "start": 92.8,
+     "end": 93.16,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 18,
+   "text": "With dense attention, the main attention operation grows with the full context length.",
+   "start": 93.74,
+   "end": 97.4,
+   "words": [
+    {
+     "w": "With",
+     "start": 93.8,
+     "end": 93.92,
+     "matched": true
+    },
+    {
+     "w": "dense",
+     "start": 93.92,
+     "end": 94.22,
+     "matched": true
+    },
+    {
+     "w": "attention,",
+     "start": 94.22,
+     "end": 94.5,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 94.94,
+     "end": 95.1,
+     "matched": true
+    },
+    {
+     "w": "main",
+     "start": 95.1,
+     "end": 95.32,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 95.32,
+     "end": 95.56,
+     "matched": true
+    },
+    {
+     "w": "operation",
+     "start": 95.56,
+     "end": 96.06,
+     "matched": true
+    },
+    {
+     "w": "grows",
+     "start": 96.06,
+     "end": 96.34,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 96.34,
+     "end": 96.54,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 96.54,
+     "end": 96.72,
+     "matched": true
+    },
+    {
+     "w": "full",
+     "start": 96.72,
+     "end": 96.88,
+     "matched": true
+    },
+    {
+     "w": "context",
+     "start": 96.88,
+     "end": 97.22,
+     "matched": true
+    },
+    {
+     "w": "length.",
+     "start": 97.22,
+     "end": 97.46,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 19,
+   "text": "With sparse attention, the main attention only needs to process the selected tokens.",
+   "start": 98.15,
+   "end": 102.19,
+   "words": [
+    {
+     "w": "With",
+     "start": 98.18,
+     "end": 98.36,
+     "matched": true
+    },
+    {
+     "w": "sparse",
+     "start": 98.36,
+     "end": 98.6,
+     "matched": true
+    },
+    {
+     "w": "attention,",
+     "start": 98.6,
+     "end": 98.92,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 99.38,
+     "end": 99.56,
+     "matched": true
+    },
+    {
+     "w": "main",
+     "start": 99.56,
+     "end": 99.76,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 99.76,
+     "end": 99.96,
+     "matched": true
+    },
+    {
+     "w": "only",
+     "start": 99.96,
+     "end": 100.42,
+     "matched": true
+    },
+    {
+     "w": "needs",
+     "start": 100.42,
+     "end": 100.62,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 100.62,
+     "end": 100.84,
+     "matched": true
+    },
+    {
+     "w": "process",
+     "start": 100.84,
+     "end": 101.14,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 101.14,
+     "end": 101.78,
+     "matched": true
+    },
+    {
+     "w": "selected",
+     "start": 101.78,
+     "end": 101.78,
+     "matched": true
+    },
+    {
+     "w": "tokens.",
+     "start": 101.78,
+     "end": 102.08,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 20,
+   "text": "However, there's an important catch.",
+   "start": 102.92,
+   "end": 104.67,
+   "words": [
+    {
+     "w": "However,",
+     "start": 102.8,
+     "end": 103.3,
+     "matched": true
+    },
+    {
+     "w": "there's",
+     "start": 103.46,
+     "end": 103.94,
+     "matched": true
+    },
+    {
+     "w": "an",
+     "start": 103.94,
+     "end": 104.08,
+     "matched": true
+    },
+    {
+     "w": "important",
+     "start": 104.08,
+     "end": 104.38,
+     "matched": true
+    },
+    {
+     "w": "catch.",
+     "start": 104.38,
+     "end": 104.68,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 21,
+   "text": "The Lightning Indexer still needs to score the historical context to decide which tokens to select.",
+   "start": 105.28,
+   "end": 109.75,
+   "words": [
+    {
+     "w": "The",
+     "start": 105.3,
+     "end": 105.46,
+     "matched": true
+    },
+    {
+     "w": "Lightning",
+     "start": 105.46,
+     "end": 105.8,
+     "matched": true
+    },
+    {
+     "w": "Indexer",
+     "start": 105.8,
+     "end": 106.2,
+     "matched": true
+    },
+    {
+     "w": "still",
+     "start": 106.2,
+     "end": 106.42,
+     "matched": true
+    },
+    {
+     "w": "needs",
+     "start": 106.42,
+     "end": 106.64,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 106.64,
+     "end": 107.0,
+     "matched": true
+    },
+    {
+     "w": "score",
+     "start": 107.0,
+     "end": 107.0,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 107.0,
+     "end": 107.24,
+     "matched": true
+    },
+    {
+     "w": "historical",
+     "start": 107.24,
+     "end": 107.6,
+     "matched": true
+    },
+    {
+     "w": "context",
+     "start": 107.6,
+     "end": 108.06,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 108.06,
+     "end": 108.52,
+     "matched": true
+    },
+    {
+     "w": "decide",
+     "start": 108.52,
+     "end": 108.82,
+     "matched": true
+    },
+    {
+     "w": "which",
+     "start": 108.82,
+     "end": 109.18,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 109.18,
+     "end": 109.34,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 109.34,
+     "end": 109.6,
+     "matched": true
+    },
+    {
+     "w": "select.",
+     "start": 109.6,
+     "end": 109.88,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 22,
+   "text": "So sparse attention doesn't eliminate all the cost of searching through a long sequence.",
+   "start": 110.87,
+   "end": 114.52,
+   "words": [
+    {
+     "w": "So",
+     "start": 110.92,
+     "end": 111.14,
+     "matched": true
+    },
+    {
+     "w": "sparse",
+     "start": 111.14,
+     "end": 111.36,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 111.36,
+     "end": 111.7,
+     "matched": true
+    },
+    {
+     "w": "doesn't",
+     "start": 111.7,
+     "end": 112.06,
+     "matched": true
+    },
+    {
+     "w": "eliminate",
+     "start": 112.06,
+     "end": 112.42,
+     "matched": true
+    },
+    {
+     "w": "all",
+     "start": 112.42,
+     "end": 112.78,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 112.78,
+     "end": 112.94,
+     "matched": true
+    },
+    {
+     "w": "cost",
+     "start": 112.94,
+     "end": 113.2,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 113.2,
+     "end": 113.6,
+     "matched": true
+    },
+    {
+     "w": "searching",
+     "start": 113.6,
+     "end": 113.6,
+     "matched": true
+    },
+    {
+     "w": "through",
+     "start": 113.6,
+     "end": 113.82,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 113.82,
+     "end": 114.0,
+     "matched": true
+    },
+    {
+     "w": "long",
+     "start": 114.0,
+     "end": 114.18,
+     "matched": true
+    },
+    {
+     "w": "sequence.",
+     "start": 114.18,
+     "end": 114.5,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 23,
+   "text": "It replaces expensive full attention with a cheaper indexing operation, followed by attention on a much smaller subset.",
+   "start": 115.33,
+   "end": 121.27,
+   "words": [
+    {
+     "w": "It",
+     "start": 115.42,
+     "end": 115.48,
+     "matched": true
+    },
+    {
+     "w": "replaces",
+     "start": 115.48,
+     "end": 115.82,
+     "matched": true
+    },
+    {
+     "w": "expensive",
+     "start": 115.82,
+     "end": 116.4,
+     "matched": true
+    },
+    {
+     "w": "full",
+     "start": 116.4,
+     "end": 116.7,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 116.7,
+     "end": 116.92,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 116.92,
+     "end": 117.5,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 117.5,
+     "end": 117.88,
+     "matched": true
+    },
+    {
+     "w": "cheaper",
+     "start": 117.88,
+     "end": 117.94,
+     "matched": true
+    },
+    {
+     "w": "indexing",
+     "start": 117.94,
+     "end": 118.42,
+     "matched": true
+    },
+    {
+     "w": "operation,",
+     "start": 118.42,
+     "end": 118.86,
+     "matched": true
+    },
+    {
+     "w": "followed",
+     "start": 119.52,
+     "end": 119.52,
+     "matched": true
+    },
+    {
+     "w": "by",
+     "start": 119.52,
+     "end": 119.8,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 119.8,
+     "end": 120.12,
+     "matched": true
+    },
+    {
+     "w": "on",
+     "start": 120.12,
+     "end": 120.32,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 120.32,
+     "end": 120.42,
+     "matched": true
+    },
+    {
+     "w": "much",
+     "start": 120.42,
+     "end": 120.8,
+     "matched": true
+    },
+    {
+     "w": "smaller",
+     "start": 120.8,
+     "end": 120.94,
+     "matched": true
+    },
+    {
+     "w": "subset.",
+     "start": 120.94,
+     "end": 121.3,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 24,
+   "text": "The key insight?",
+   "start": 122.47,
+   "end": 123.06,
+   "words": [
+    {
+     "w": "The",
+     "start": 122.42,
+     "end": 122.58,
+     "matched": true
+    },
+    {
+     "w": "key",
+     "start": 122.58,
+     "end": 122.76,
+     "matched": true
+    },
+    {
+     "w": "insight?",
+     "start": 122.76,
+     "end": 123.06,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 25,
+   "text": "Not every token needs the same amount of computational attention.",
+   "start": 123.5,
+   "end": 126.31,
+   "words": [
+    {
+     "w": "Not",
+     "start": 123.64,
+     "end": 123.78,
+     "matched": true
+    },
+    {
+     "w": "every",
+     "start": 123.78,
+     "end": 124.12,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 124.12,
+     "end": 124.36,
+     "matched": true
+    },
+    {
+     "w": "needs",
+     "start": 124.36,
+     "end": 124.6,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 124.6,
+     "end": 124.8,
+     "matched": true
+    },
+    {
+     "w": "same",
+     "start": 124.8,
+     "end": 125.0,
+     "matched": true
+    },
+    {
+     "w": "amount",
+     "start": 125.0,
+     "end": 125.24,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 125.24,
+     "end": 125.54,
+     "matched": true
+    },
+    {
+     "w": "computational",
+     "start": 125.54,
+     "end": 125.94,
+     "matched": true
+    },
+    {
+     "w": "attention.",
+     "start": 125.72,
+     "end": 126.32,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 26,
+   "text": "By learning which tokens matter most, DeepSeek can make long-context processing more efficient while preserving useful information.",
+   "start": 127.1,
+   "end": 133.53,
+   "words": [
+    {
+     "w": "By",
+     "start": 127.1,
+     "end": 127.24,
+     "matched": true
+    },
+    {
+     "w": "learning",
+     "start": 127.24,
+     "end": 127.48,
+     "matched": true
+    },
+    {
+     "w": "which",
+     "start": 127.48,
+     "end": 127.82,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 127.82,
+     "end": 128.08,
+     "matched": true
+    },
+    {
+     "w": "matter",
+     "start": 128.08,
+     "end": 128.34,
+     "matched": true
+    },
+    {
+     "w": "most,",
+     "start": 128.34,
+     "end": 128.74,
+     "matched": true
+    },
+    {
+     "w": "DeepSeek",
+     "start": 129.38,
+     "end": 129.56,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 129.56,
+     "end": 129.84,
+     "matched": true
+    },
+    {
+     "w": "make",
+     "start": 129.84,
+     "end": 130.02,
+     "matched": true
+    },
+    {
+     "w": "long-context",
+     "start": 130.02,
+     "end": 130.68,
+     "matched": false
+    },
+    {
+     "w": "processing",
+     "start": 130.68,
+     "end": 131.08,
+     "matched": true
+    },
+    {
+     "w": "more",
+     "start": 131.08,
+     "end": 131.38,
+     "matched": true
+    },
+    {
+     "w": "efficient",
+     "start": 131.38,
+     "end": 131.86,
+     "matched": true
+    },
+    {
+     "w": "while",
+     "start": 132.24,
+     "end": 132.38,
+     "matched": true
+    },
+    {
+     "w": "preserving",
+     "start": 132.38,
+     "end": 132.72,
+     "matched": true
+    },
+    {
+     "w": "useful",
+     "start": 132.72,
+     "end": 133.08,
+     "matched": true
+    },
+    {
+     "w": "information.",
+     "start": 133.08,
+     "end": 133.5,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 27,
+   "text": "And that's the fundamental idea behind DeepSeek Sparse Attention.",
+   "start": 134.46,
+   "end": 137.56,
+   "words": [
+    {
+     "w": "And",
+     "start": 134.48,
+     "end": 134.66,
+     "matched": true
+    },
+    {
+     "w": "that's",
+     "start": 134.66,
+     "end": 134.92,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 134.92,
+     "end": 135.14,
+     "matched": true
+    },
+    {
+     "w": "fundamental",
+     "start": 135.14,
+     "end": 135.48,
+     "matched": true
+    },
+    {
+     "w": "idea",
+     "start": 135.48,
+     "end": 135.9,
+     "matched": true
+    },
+    {
+     "w": "behind",
+     "start": 135.9,
+     "end": 136.36,
+     "matched": true
+    },
+    {
+     "w": "DeepSeek",
+     "start": 136.36,
+     "end": 136.98,
+     "matched": false
+    },
+    {
+     "w": "Sparse",
+     "start": 136.98,
+     "end": 137.16,
+     "matched": true
+    },
+    {
+     "w": "Attention.",
+     "start": 137.16,
+     "end": 137.46,
+     "matched": true
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,55 @@
+Imagine you're running a language model with a context window of one hundred and twenty-eight thousand tokens.
+
+With standard attention, every new query token needs to compare itself against all previous tokens.
+
+But here's the problem.
+
+What if only a small fraction of those tokens are actually relevant?
+
+That's the idea behind DeepSeek Sparse Attention, introduced in DeepSeek V3.2.
+
+Instead of performing full attention over the entire context, DeepSeek introduces a lightweight component called the Lightning Indexer.
+
+Here's how it works.
+
+First, imagine our context contains thousands of tokens, each represented by a key and value.
+
+When a new query arrives, the Lightning Indexer compares that query against the historical tokens.
+
+It uses smaller projections and multiple indexing heads to calculate relevance scores.
+
+Each indexing head computes a dot product between its query representation and the historical keys, applies a ReLU activation, and contributes a weighted score.
+
+These scores are aggregated to estimate which previous tokens are most important.
+
+Now comes the interesting part.
+
+Instead of sending every token into the expensive main attention computation, DeepSeek selects only the top two thousand and forty-eight tokens with the highest indexing scores.
+
+Notice that these tokens can come from anywhere in the previous context.
+
+They're not necessarily the most recent tokens, and they don't need to be adjacent.
+
+Next, DeepSeek's main attention mechanism operates on this selected subset, computing attention weights and aggregating information from their corresponding values.
+
+This is where the computational savings come from.
+
+With dense attention, the main attention operation grows with the full context length.
+
+With sparse attention, the main attention only needs to process the selected tokens.
+
+However, there's an important catch.
+
+The Lightning Indexer still needs to score the historical context to decide which tokens to select.
+
+So sparse attention doesn't eliminate all the cost of searching through a long sequence.
+
+It replaces expensive full attention with a cheaper indexing operation, followed by attention on a much smaller subset.
+
+The key insight?
+
+Not every token needs the same amount of computational attention.
+
+By learning which tokens matter most, DeepSeek can make long-context processing more efficient while preserving useful information.
+
+And that's the fundamental idea behind DeepSeek Sparse Attention.

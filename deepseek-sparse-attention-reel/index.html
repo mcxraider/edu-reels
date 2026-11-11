@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How DeepSeek Sparse Attention works — animated reel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin: 0; background: #1f1d1a; color: #eee; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  #wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px; }
+  canvas { height: calc(100vh - 96px); aspect-ratio: 9 / 16; background: #F8F5F0; border-radius: 8px; box-shadow: 0 6px 30px rgba(0,0,0,.4); }
+  #ui { display: flex; gap: 10px; align-items: center; width: min(92vw, 760px); font-size: 13px; }
+  #ui button { background: #C96442; color: #fff; border: 0; border-radius: 6px; padding: 7px 14px; font-weight: 600; cursor: pointer; }
+  #ui input[type=range] { flex: 1; accent-color: #C96442; }
+  #ui span { font-variant-numeric: tabular-nums; min-width: 120px; text-align: right; }
+  #ui select { background: #2b2926; color: #eee; border: 1px solid #555; border-radius: 4px; }
+  body.rendering #ui { display: none; }
+  body.rendering #wrap { padding: 0; }
+  body.rendering canvas { height: auto; width: 1080px; border-radius: 0; box-shadow: none; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c" width="1080" height="1920"></canvas>
+  <div id="ui">
+    <button id="play">Play</button>
+    <button id="back" title="-5 s">−5s</button>
+    <input id="seek" type="range" min="0" max="1" step="0.001" value="0">
+    <select id="jump" title="Jump to scene"></select>
+    <span id="time">0.00 / 0.00</span>
+  </div>
+</div>
+<audio id="audio" src="output/audio_final.m4a" preload="auto"></audio>
+
+<!-- DATA:BEGIN (injected by `node render.mjs --inject` from timings.json) -->
+<script id="data">window.TIMING = {"source":"narration.wav","duration":137.95,"method":"whisper-1 word anchors + Needleman-Wunsch alignment to script.txt + RMS pause snapping","timeline":{"lead_in":1,"tail_hold":3.2,"fps":30,"total":142.15},"sentences":[{"i":0,"text":"Imagine you're running a language model with a context window of one hundred and twenty-eight thousand tokens.","start":0,"end":4.86,"words":[{"w":"Imagine","start":0,"end":0.56,"matched":true},{"w":"you're","start":0.56,"end":0.94,"matched":true},{"w":"running","start":0.94,"end":1.12,"matched":true},{"w":"a","start":1.12,"end":1.38,"matched":true},{"w":"language","start":1.38,"end":1.58,"matched":true},{"w":"model","start":1.58,"end":1.88,"matched":true},{"w":"with","start":1.88,"end":2.18,"matched":true},{"w":"a","start":2.18,"end":2.7,"matched":true},{"w":"context","start":2.7,"end":2.7,"matched":true},{"w":"window","start":2.7,"end":3,"matched":true},{"w":"of","start":3,"end":3.4,"matched":true},{"w":"one","start":3.4,"end":3.48,"matched":true},{"w":"hundred","start":3.48,"end":3.66,"matched":true},{"w":"and","start":3.66,"end":3.98,"matched":true},{"w":"twenty-eight","start":3.98,"end":4.26,"matched":false},{"w":"thousand","start":4.26,"end":4.68,"matched":true},{"w":"tokens.","start":4.68,"end":4.94,"matched":true}]},{"i":1,"text":"With standard attention, every new query token needs to compare itself against all previous tokens.","start":5.77,"end":11.31,"words":[{"w":"With","start":5.88,"end":5.96,"matched":true},{"w":"standard","start":5.96,"end":6.3,"matched":true},{"w":"attention,","start":6.3,"end":6.66,"matched":true},{"w":"every","start":7.12,"end":7.44,"matched":true},{"w":"new","start":7.44,"end":7.82,"matched":true},{"w":"query","start":7.82,"end":8,"matched":true},{"w":"token","start":8,"end":8.38,"matched":true},{"w":"needs","start":8.38,"end":8.86,"matched":true},{"w":"to","start":8.86,"end":9.3,"matched":true},{"w":"compare","start":9.3,"end":9.3,"matched":true},{"w":"itself","start":9.3,"end":9.72,"matched":true},{"w":"against","start":9.72,"end":10.02,"matched":true},{"w":"all","start":10.02,"end":10.52,"matched":true},{"w":"previous","start":10.52,"end":10.94,"matched":true},{"w":"tokens.","start":10.94,"end":11.22,"matched":true}]},{"i":2,"text":"But here's the problem.","start":11.9,"end":12.65,"words":[{"w":"But","start":11.54,"end":12.08,"matched":true},{"w":"here's","start":12.08,"end":12.24,"matched":true},{"w":"the","start":12.24,"end":12.68,"matched":true},{"w":"problem.","start":12.68,"end":12.68,"matched":true}]},{"i":3,"text":"What if only a small fraction of those tokens are actually relevant?","start":13.54,"end":16.72,"words":[{"w":"What","start":13.54,"end":13.68,"matched":true},{"w":"if","start":13.68,"end":13.86,"matched":true},{"w":"only","start":13.86,"end":14.06,"matched":true},{"w":"a","start":14.06,"end":14.22,"matched":true},{"w":"small","start":14.22,"end":14.56,"matched":true},{"w":"fraction","start":14.56,"end":14.9,"matched":true},{"w":"of","start":14.9,"end":15.16,"matched":true},{"w":"those","start":15.16,"end":15.4,"matched":true},{"w":"tokens","start":15.4,"end":15.54,"matched":true},{"w":"are","start":15.54,"end":16.04,"matched":true},{"w":"actually","start":16.04,"end":16.52,"matched":true},{"w":"relevant?","start":16.52,"end":16.74,"matched":true}]},{"i":4,"text":"That's the idea behind DeepSeek Sparse Attention, introduced in DeepSeek V3.2.","start":17.49,"end":22.3,"words":[{"w":"That's","start":17.4,"end":17.74,"matched":true},{"w":"the","start":17.74,"end":18.16,"matched":true},{"w":"idea","start":18.16,"end":18.16,"matched":true},{"w":"behind","start":18.16,"end":18.58,"matched":true},{"w":"DeepSeek","start":18.58,"end":19,"matched":true},{"w":"Sparse","start":19,"end":19.36,"matched":true},{"w":"Attention,","start":19.36,"end":19.68,"matched":true},{"w":"introduced","start":20.7,"end":20.7,"matched":true},{"w":"in","start":20.7,"end":21.06,"matched":true},{"w":"DeepSeek","start":21.06,"end":21.38,"matched":true},{"w":"V3.2.","start":21.38,"end":23,"matched":false}]},{"i":5,"text":"Instead of performing full attention over the entire context, DeepSeek introduces a lightweight component called the Lightning Indexer.","start":23,"end":29.83,"words":[{"w":"Instead","start":23,"end":23.3,"matched":true},{"w":"of","start":23.3,"end":23.56,"matched":true},{"w":"performing","start":23.56,"end":23.84,"matched":true},{"w":"full","start":23.84,"end":24.28,"matched":true},{"w":"attention","start":24.28,"end":24.56,"matched":true},{"w":"over","start":24.56,"end":24.86,"matched":true},{"w":"the","start":24.86,"end":25.02,"matched":true},{"w":"entire","start":25.02,"end":25.38,"matched":true},{"w":"context,","start":25.38,"end":25.8,"matched":true},{"w":"DeepSeek","start":26.54,"end":26.78,"matched":true},{"w":"introduces","start":26.78,"end":27.24,"matched":true},{"w":"a","start":27.24,"end":27.54,"matched":true},{"w":"lightweight","start":27.54,"end":27.92,"matched":true},{"w":"component","start":27.92,"end":28.36,"matched":true},{"w":"called","start":28.36,"end":28.8,"matched":true},{"w":"the","start":28.8,"end":29.14,"matched":true},{"w":"Lightning","start":29.14,"end":29.36,"matched":true},{"w":"Indexer.","start":29.36,"end":29.84,"matched":true}]},{"i":6,"text":"Here's how it works.","start":30.71,"end":31.48,"words":[{"w":"Here's","start":30.58,"end":30.94,"matched":true},{"w":"how","start":30.94,"end":31.06,"matched":true},{"w":"it","start":31.06,"end":31.2,"matched":true},{"w":"works.","start":31.2,"end":31.44,"matched":true}]},{"i":7,"text":"First, imagine our context contains thousands of tokens, each represented by a key and value.","start":32.22,"end":37.7,"words":[{"w":"First,","start":32.18,"end":32.58,"matched":true},{"w":"imagine","start":32.84,"end":33.26,"matched":true},{"w":"our","start":33.26,"end":33.52,"matched":true},{"w":"context","start":33.52,"end":33.86,"matched":true},{"w":"contains","start":33.86,"end":34.34,"matched":true},{"w":"thousands","start":34.34,"end":34.72,"matched":true},{"w":"of","start":34.72,"end":35.24,"matched":true},{"w":"tokens,","start":35.24,"end":35.24,"matched":true},{"w":"each","start":35.74,"end":36.02,"matched":true},{"w":"represented","start":36.02,"end":36.36,"matched":true},{"w":"by","start":36.36,"end":36.6,"matched":true},{"w":"a","start":36.6,"end":37.04,"matched":true},{"w":"key","start":37.04,"end":37.04,"matched":true},{"w":"and","start":37.04,"end":37.42,"matched":true},{"w":"value.","start":37.42,"end":37.74,"matched":true}]},{"i":8,"text":"When a new query arrives, the Lightning Indexer compares that query against the historical tokens.","start":38.41,"end":43.19,"words":[{"w":"When","start":38.4,"end":38.54,"matched":true},{"w":"a","start":38.54,"end":38.7,"matched":true},{"w":"new","start":38.7,"end":39.16,"matched":true},{"w":"query","start":39.16,"end":39.16,"matched":true},{"w":"arrives,","start":39.16,"end":39.58,"matched":true},{"w":"the","start":39.98,"end":40.2,"matched":true},{"w":"Lightning","start":40.2,"end":40.38,"matched":true},{"w":"Indexer","start":40.38,"end":40.8,"matched":true},{"w":"compares","start":40.8,"end":41.12,"matched":true},{"w":"that","start":41.12,"end":41.42,"matched":true},{"w":"query","start":41.42,"end":41.68,"matched":true},{"w":"against","start":41.68,"end":42.18,"matched":true},{"w":"the","start":42.18,"end":42.42,"matched":true},{"w":"historical","start":42.42,"end":42.76,"matched":true},{"w":"tokens.","start":42.76,"end":43.12,"matched":true}]},{"i":9,"text":"It uses smaller projections and multiple indexing heads to calculate relevance scores.","start":44.12,"end":48.31,"words":[{"w":"It","start":43.72,"end":44.3,"matched":true},{"w":"uses","start":44.3,"end":44.5,"matched":true},{"w":"smaller","start":44.5,"end":44.94,"matched":true},{"w":"projections","start":44.94,"end":45.38,"matched":true},{"w":"and","start":45.38,"end":45.94,"matched":true},{"w":"multiple","start":45.94,"end":46.34,"matched":true},{"w":"indexing","start":46.34,"end":46.84,"matched":true},{"w":"heads","start":46.84,"end":46.92,"matched":true},{"w":"to","start":46.92,"end":47.3,"matched":true},{"w":"calculate","start":47.3,"end":47.54,"matched":true},{"w":"relevance","start":47.54,"end":47.96,"matched":false},{"w":"scores.","start":47.96,"end":48.28,"matched":true}]},{"i":10,"text":"Each indexing head computes a dot product between its query representation and the historical keys, applies a ReLU activation, and contributes a weighted score.","start":49.15,"end":57.21,"words":[{"w":"Each","start":48.96,"end":49.38,"matched":true},{"w":"indexing","start":49.38,"end":49.88,"matched":true},{"w":"head","start":49.88,"end":50.02,"matched":true},{"w":"computes","start":50.02,"end":50.32,"matched":true},{"w":"a","start":50.32,"end":50.56,"matched":true},{"w":"dot","start":50.56,"end":50.7,"matched":true},{"w":"product","start":50.7,"end":51.02,"matched":true},{"w":"between","start":51.02,"end":51.52,"matched":true},{"w":"its","start":51.52,"end":51.76,"matched":true},{"w":"query","start":51.76,"end":51.98,"matched":true},{"w":"representation","start":51.98,"end":52.5,"matched":true},{"w":"and","start":52.5,"end":53.1,"matched":true},{"w":"the","start":53.1,"end":53.32,"matched":true},{"w":"historical","start":53.32,"end":53.58,"matched":true},{"w":"keys,","start":53.58,"end":53.9,"matched":true},{"w":"applies","start":53.9,"end":54.6,"matched":true},{"w":"a","start":54.6,"end":54.82,"matched":true},{"w":"ReLU","start":54.82,"end":55.02,"matched":true},{"w":"activation,","start":55.02,"end":55.52,"matched":true},{"w":"and","start":56,"end":56.14,"matched":true},{"w":"contributes","start":56.14,"end":56.46,"matched":true},{"w":"a","start":56.46,"end":56.98,"matched":true},{"w":"weighted","start":56.98,"end":56.98,"matched":true},{"w":"score.","start":56.98,"end":57.24,"matched":true}]},{"i":11,"text":"These scores are aggregated to estimate which previous tokens are most important.","start":58.3,"end":62.02,"words":[{"w":"These","start":58.46,"end":58.54,"matched":true},{"w":"scores","start":58.54,"end":58.76,"matched":true},{"w":"are","start":58.76,"end":59.04,"matched":true},{"w":"aggregated","start":59.04,"end":59.42,"matched":true},{"w":"to","start":59.42,"end":59.76,"matched":true},{"w":"estimate","start":59.76,"end":59.98,"matched":true},{"w":"which","start":59.98,"end":60.3,"matched":true},{"w":"previous","start":60.3,"end":60.78,"matched":true},{"w":"tokens","start":60.78,"end":61,"matched":true},{"w":"are","start":61,"end":61.46,"matched":true},{"w":"most","start":61.46,"end":61.76,"matched":true},{"w":"important.","start":61.76,"end":62.06,"matched":true}]},{"i":12,"text":"Now comes the interesting part.","start":62.58,"end":63.58,"words":[{"w":"Now","start":62.68,"end":62.76,"matched":true},{"w":"comes","start":62.76,"end":62.98,"matched":true},{"w":"the","start":62.98,"end":63.12,"matched":true},{"w":"interesting","start":63.12,"end":63.4,"matched":true},{"w":"part.","start":63.4,"end":63.72,"matched":true}]},{"i":13,"text":"Instead of sending every token into the expensive main attention computation, DeepSeek selects only the top two thousand and forty-eight tokens with the highest indexing scores.","start":64.33,"end":72.88,"words":[{"w":"Instead","start":64.54,"end":64.54,"matched":true},{"w":"of","start":64.54,"end":64.8,"matched":true},{"w":"sending","start":64.8,"end":64.96,"matched":true},{"w":"every","start":64.96,"end":65.38,"matched":true},{"w":"token","start":65.38,"end":65.56,"matched":true},{"w":"into","start":65.56,"end":65.82,"matched":true},{"w":"the","start":65.82,"end":66,"matched":true},{"w":"expensive","start":66,"end":66.48,"matched":true},{"w":"main","start":66.48,"end":66.8,"matched":true},{"w":"attention","start":66.8,"end":66.98,"matched":true},{"w":"computation,","start":66.98,"end":67.6,"matched":true},{"w":"DeepSeek","start":68.4,"end":68.58,"matched":true},{"w":"selects","start":68.58,"end":69.06,"matched":true},{"w":"only","start":69.06,"end":69.32,"matched":true},{"w":"the","start":69.32,"end":69.5,"matched":true},{"w":"top","start":69.5,"end":69.76,"matched":true},{"w":"two","start":69.76,"end":69.98,"matched":true},{"w":"thousand","start":69.98,"end":70.32,"matched":true},{"w":"and","start":70.32,"end":70.6,"matched":true},{"w":"forty-eight","start":70.6,"end":70.96,"matched":false},{"w":"tokens","start":70.96,"end":71.18,"matched":true},{"w":"with","start":71.18,"end":71.66,"matched":true},{"w":"the","start":71.66,"end":72.1,"matched":true},{"w":"highest","start":72.1,"end":72.12,"matched":true},{"w":"indexing","start":72.12,"end":72.64,"matched":true},{"w":"scores.","start":72.64,"end":72.86,"matched":true}]},{"i":14,"text":"Notice that these tokens can come from anywhere in the previous context.","start":73.75,"end":76.7,"words":[{"w":"Notice","start":73.94,"end":74,"matched":true},{"w":"that","start":74,"end":74.24,"matched":true},{"w":"these","start":74.24,"end":74.48,"matched":true},{"w":"tokens","start":74.48,"end":74.64,"matched":true},{"w":"can","start":74.64,"end":74.9,"matched":true},{"w":"come","start":74.9,"end":75.06,"matched":true},{"w":"from","start":75.06,"end":75.28,"matched":true},{"w":"anywhere","start":75.28,"end":75.64,"matched":true},{"w":"in","start":75.64,"end":75.86,"matched":true},{"w":"the","start":75.86,"end":75.98,"matched":true},{"w":"previous","start":75.98,"end":76.32,"matched":true},{"w":"context.","start":76.2,"end":76.72,"matched":true}]},{"i":15,"text":"They're not necessarily the most recent tokens, and they don't need to be adjacent.","start":77.52,"end":80.96,"words":[{"w":"They're","start":77.5,"end":77.68,"matched":true},{"w":"not","start":77.68,"end":77.86,"matched":true},{"w":"necessarily","start":77.86,"end":78.34,"matched":true},{"w":"the","start":78.34,"end":78.52,"matched":true},{"w":"most","start":78.52,"end":78.8,"matched":true},{"w":"recent","start":78.8,"end":79.04,"matched":true},{"w":"tokens,","start":79.04,"end":79.34,"matched":true},{"w":"and","start":79.76,"end":79.92,"matched":true},{"w":"they","start":79.92,"end":80.12,"matched":true},{"w":"don't","start":80.12,"end":80.24,"matched":true},{"w":"need","start":80.24,"end":80.4,"matched":true},{"w":"to","start":80.4,"end":80.5,"matched":true},{"w":"be","start":80.5,"end":80.66,"matched":true},{"w":"adjacent.","start":80.66,"end":80.98,"matched":true}]},{"i":16,"text":"Next, DeepSeek's main attention mechanism operates on this selected subset, computing attention weights and aggregating information from their corresponding values.","start":82.18,"end":89.84,"words":[{"w":"Next,","start":81.82,"end":82.42,"matched":true},{"w":"DeepSeek's","start":82.8,"end":83.2,"matched":true},{"w":"main","start":83.2,"end":83.38,"matched":true},{"w":"attention","start":83.38,"end":83.6,"matched":true},{"w":"mechanism","start":83.6,"end":84.08,"matched":true},{"w":"operates","start":84.08,"end":84.52,"matched":true},{"w":"on","start":84.52,"end":84.68,"matched":true},{"w":"this","start":84.68,"end":84.84,"matched":true},{"w":"selected","start":84.84,"end":85.16,"matched":true},{"w":"subset,","start":85.16,"end":85.56,"matched":true},{"w":"computing","start":86.34,"end":86.36,"matched":true},{"w":"attention","start":86.36,"end":86.76,"matched":true},{"w":"weights","start":86.76,"end":86.96,"matched":true},{"w":"and","start":86.96,"end":87.5,"matched":true},{"w":"aggregating","start":87.5,"end":87.92,"matched":true},{"w":"information","start":87.92,"end":88.38,"matched":true},{"w":"from","start":88.38,"end":88.74,"matched":true},{"w":"their","start":88.74,"end":88.92,"matched":true},{"w":"corresponding","start":88.92,"end":89.44,"matched":true},{"w":"values.","start":89.44,"end":89.84,"matched":true}]},{"i":17,"text":"This is where the computational savings come from.","start":90.99,"end":92.99,"words":[{"w":"This","start":90.64,"end":91.24,"matched":true},{"w":"is","start":91.24,"end":91.42,"matched":true},{"w":"where","start":91.42,"end":91.5,"matched":true},{"w":"the","start":91.5,"end":91.78,"matched":true},{"w":"computational","start":91.78,"end":92.2,"matched":true},{"w":"savings","start":92.2,"end":92.54,"matched":true},{"w":"come","start":92.54,"end":92.8,"matched":true},{"w":"from.","start":92.8,"end":93.16,"matched":true}]},{"i":18,"text":"With dense attention, the main attention operation grows with the full context length.","start":93.74,"end":97.4,"words":[{"w":"With","start":93.8,"end":93.92,"matched":true},{"w":"dense","start":93.92,"end":94.22,"matched":true},{"w":"attention,","start":94.22,"end":94.5,"matched":true},{"w":"the","start":94.94,"end":95.1,"matched":true},{"w":"main","start":95.1,"end":95.32,"matched":true},{"w":"attention","start":95.32,"end":95.56,"matched":true},{"w":"operation","start":95.56,"end":96.06,"matched":true},{"w":"grows","start":96.06,"end":96.34,"matched":true},{"w":"with","start":96.34,"end":96.54,"matched":true},{"w":"the","start":96.54,"end":96.72,"matched":true},{"w":"full","start":96.72,"end":96.88,"matched":true},{"w":"context","start":96.88,"end":97.22,"matched":true},{"w":"length.","start":97.22,"end":97.46,"matched":true}]},{"i":19,"text":"With sparse attention, the main attention only needs to process the selected tokens.","start":98.15,"end":102.19,"words":[{"w":"With","start":98.18,"end":98.36,"matched":true},{"w":"sparse","start":98.36,"end":98.6,"matched":true},{"w":"attention,","start":98.6,"end":98.92,"matched":true},{"w":"the","start":99.38,"end":99.56,"matched":true},{"w":"main","start":99.56,"end":99.76,"matched":true},{"w":"attention","start":99.76,"end":99.96,"matched":true},{"w":"only","start":99.96,"end":100.42,"matched":true},{"w":"needs","start":100.42,"end":100.62,"matched":true},{"w":"to","start":100.62,"end":100.84,"matched":true},{"w":"process","start":100.84,"end":101.14,"matched":true},{"w":"the","start":101.14,"end":101.78,"matched":true},{"w":"selected","start":101.78,"end":101.78,"matched":true},{"w":"tokens.","start":101.78,"end":102.08,"matched":true}]},{"i":20,"text":"However, there's an important catch.","start":102.92,"end":104.67,"words":[{"w":"However,","start":102.8,"end":103.3,"matched":true},{"w":"there's","start":103.46,"end":103.94,"matched":true},{"w":"an","start":103.94,"end":104.08,"matched":true},{"w":"important","start":104.08,"end":104.38,"matched":true},{"w":"catch.","start":104.38,"end":104.68,"matched":true}]},{"i":21,"text":"The Lightning Indexer still needs to score the historical context to decide which tokens to select.","start":105.28,"end":109.75,"words":[{"w":"The","start":105.3,"end":105.46,"matched":true},{"w":"Lightning","start":105.46,"end":105.8,"matched":true},{"w":"Indexer","start":105.8,"end":106.2,"matched":true},{"w":"still","start":106.2,"end":106.42,"matched":true},{"w":"needs","start":106.42,"end":106.64,"matched":true},{"w":"to","start":106.64,"end":107,"matched":true},{"w":"score","start":107,"end":107,"matched":true},{"w":"the","start":107,"end":107.24,"matched":true},{"w":"historical","start":107.24,"end":107.6,"matched":true},{"w":"context","start":107.6,"end":108.06,"matched":true},{"w":"to","start":108.06,"end":108.52,"matched":true},{"w":"decide","start":108.52,"end":108.82,"matched":true},{"w":"which","start":108.82,"end":109.18,"matched":true},{"w":"tokens","start":109.18,"end":109.34,"matched":true},{"w":"to","start":109.34,"end":109.6,"matched":true},{"w":"select.","start":109.6,"end":109.88,"matched":true}]},{"i":22,"text":"So sparse attention doesn't eliminate all the cost of searching through a long sequence.","start":110.87,"end":114.52,"words":[{"w":"So","start":110.92,"end":111.14,"matched":true},{"w":"sparse","start":111.14,"end":111.36,"matched":true},{"w":"attention","start":111.36,"end":111.7,"matched":true},{"w":"doesn't","start":111.7,"end":112.06,"matched":true},{"w":"eliminate","start":112.06,"end":112.42,"matched":true},{"w":"all","start":112.42,"end":112.78,"matched":true},{"w":"the","start":112.78,"end":112.94,"matched":true},{"w":"cost","start":112.94,"end":113.2,"matched":true},{"w":"of","start":113.2,"end":113.6,"matched":true},{"w":"searching","start":113.6,"end":113.6,"matched":true},{"w":"through","start":113.6,"end":113.82,"matched":true},{"w":"a","start":113.82,"end":114,"matched":true},{"w":"long","start":114,"end":114.18,"matched":true},{"w":"sequence.","start":114.18,"end":114.5,"matched":true}]},{"i":23,"text":"It replaces expensive full attention with a cheaper indexing operation, followed by attention on a much smaller subset.","start":115.33,"end":121.27,"words":[{"w":"It","start":115.42,"end":115.48,"matched":true},{"w":"replaces","start":115.48,"end":115.82,"matched":true},{"w":"expensive","start":115.82,"end":116.4,"matched":true},{"w":"full","start":116.4,"end":116.7,"matched":true},{"w":"attention","start":116.7,"end":116.92,"matched":true},{"w":"with","start":116.92,"end":117.5,"matched":true},{"w":"a","start":117.5,"end":117.88,"matched":true},{"w":"cheaper","start":117.88,"end":117.94,"matched":true},{"w":"indexing","start":117.94,"end":118.42,"matched":true},{"w":"operation,","start":118.42,"end":118.86,"matched":true},{"w":"followed","start":119.52,"end":119.52,"matched":true},{"w":"by","start":119.52,"end":119.8,"matched":true},{"w":"attention","start":119.8,"end":120.12,"matched":true},{"w":"on","start":120.12,"end":120.32,"matched":true},{"w":"a","start":120.32,"end":120.42,"matched":true},{"w":"much","start":120.42,"end":120.8,"matched":true},{"w":"smaller","start":120.8,"end":120.94,"matched":true},{"w":"subset.","start":120.94,"end":121.3,"matched":true}]},{"i":24,"text":"The key insight?","start":122.47,"end":123.06,"words":[{"w":"The","start":122.42,"end":122.58,"matched":true},{"w":"key","start":122.58,"end":122.76,"matched":true},{"w":"insight?","start":122.76,"end":123.06,"matched":true}]},{"i":25,"text":"Not every token needs the same amount of computational attention.","start":123.5,"end":126.31,"words":[{"w":"Not","start":123.64,"end":123.78,"matched":true},{"w":"every","start":123.78,"end":124.12,"matched":true},{"w":"token","start":124.12,"end":124.36,"matched":true},{"w":"needs","start":124.36,"end":124.6,"matched":true},{"w":"the","start":124.6,"end":124.8,"matched":true},{"w":"same","start":124.8,"end":125,"matched":true},{"w":"amount","start":125,"end":125.24,"matched":true},{"w":"of","start":125.24,"end":125.54,"matched":true},{"w":"computational","start":125.54,"end":125.94,"matched":true},{"w":"attention.","start":125.72,"end":126.32,"matched":true}]},{"i":26,"text":"By learning which tokens matter most, DeepSeek can make long-context processing more efficient while preserving useful information.","start":127.1,"end":133.53,"words":[{"w":"By","start":127.1,"end":127.24,"matched":true},{"w":"learning","start":127.24,"end":127.48,"matched":true},{"w":"which","start":127.48,"end":127.82,"matched":true},{"w":"tokens","start":127.82,"end":128.08,"matched":true},{"w":"matter","start":128.08,"end":128.34,"matched":true},{"w":"most,","start":128.34,"end":128.74,"matched":true},{"w":"DeepSeek","start":129.38,"end":129.56,"matched":true},{"w":"can","start":129.56,"end":129.84,"matched":true},{"w":"make","start":129.84,"end":130.02,"matched":true},{"w":"long-context","start":130.02,"end":130.68,"matched":false},{"w":"processing","start":130.68,"end":131.08,"matched":true},{"w":"more","start":131.08,"end":131.38,"matched":true},{"w":"efficient","start":131.38,"end":131.86,"matched":true},{"w":"while","start":132.24,"end":132.38,"matched":true},{"w":"preserving","start":132.38,"end":132.72,"matched":true},{"w":"useful","start":132.72,"end":133.08,"matched":true},{"w":"information.","start":133.08,"end":133.5,"matched":true}]},{"i":27,"text":"And that's the fundamental idea behind DeepSeek Sparse Attention.","start":134.46,"end":137.56,"words":[{"w":"And","start":134.48,"end":134.66,"matched":true},{"w":"that's","start":134.66,"end":134.92,"matched":true},{"w":"the","start":134.92,"end":135.14,"matched":true},{"w":"fundamental","start":135.14,"end":135.48,"matched":true},{"w":"idea","start":135.48,"end":135.9,"matched":true},{"w":"behind","start":135.9,"end":136.36,"matched":true},{"w":"DeepSeek","start":136.36,"end":136.98,"matched":false},{"w":"Sparse","start":136.98,"end":137.16,"matched":true},{"w":"Attention.","start":137.16,"end":137.46,"matched":true}]}]};</script>
+<!-- DATA:END -->
+
+<script>
+'use strict';
+/* =====================================================================================
+   DeepSeek Sparse Attention — deterministic Canvas 2D reel.
+   draw(t) is a pure function of the timestamp t (seconds). No accumulated state, no
+   wall-clock. All randomness is a seeded PRNG evaluated once at load. Every visual cue is
+   keyed to the real narration timings (timings.json, forced-aligned to narration.wav).
+   ===================================================================================== */
+const W = 1080, H = 1920;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const SANS = '"Helvetica Neue", Helvetica, Arial, sans-serif';
+const SERIF = 'Georgia, "Times New Roman", serif';
+const MONO = 'Menlo, Monaco, monospace';
+const C = {
+  bg: '#F8F5F0', card: '#FFFDF9', ink: '#2B2926', ink2: '#5F5A53', mute: '#A39B90', line: '#E3DBCF',
+  terra: '#C96442', orange: '#D97A3A', beige: '#E8DCCB', sand: '#F0E8DC', sage: '#6F8F7E', sageL: '#DCE6DF',
+  terraL: '#F3DED4',
+};
+// Instagram Reels safe area (content kept inside): x 100..980, y 220..1440; subtitles 1450..1590.
+const X0 = 110, X1 = 970, CX = 540;
+
+/* ---------------- math helpers ---------------- */
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, p) => a + (b - a) * p;
+const ss = (t, a, b) => (b <= a ? (t >= a ? 1 : 0) : clamp((t - a) / (b - a)));
+const eio = x => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const eo = x => 1 - Math.pow(1 - x, 3);
+const ap = (t, a, d = 0.5) => eo(ss(t, a, a + d));          // appear progress
+const fmt = n => Math.round(n).toLocaleString('en-US');
+function hex(c) { const v = parseInt(c.slice(1), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; }
+function mix(c1, c2, p) {
+  const a = hex(c1), b = hex(c2);
+  return `rgb(${Math.round(lerp(a[0], b[0], p))},${Math.round(lerp(a[1], b[1], p))},${Math.round(lerp(a[2], b[2], p))})`;
+}
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ---------------- timing (audio-driven time warp) ---------------- */
+let TM, LEAD, TOTAL, SENT;
+function initTiming(tm) {
+  TM = tm; LEAD = tm.timeline.lead_in; TOTAL = tm.timeline.total; SENT = tm.sentences;
+  window.TOTAL = TOTAL;
+}
+const S = i => LEAD + SENT[i].start;                // sentence start on the video clock
+const E = i => LEAD + SENT[i].end;                  // sentence end on the video clock
+const norm = w => w.toLowerCase().replace(/[^a-z0-9]/g, '');
+const cueCache = {};
+function cue(i, needle, nth = 0) {                   // video time when word `needle` is spoken in sentence i
+  const key = i + '|' + needle + '|' + nth;
+  if (key in cueCache) return cueCache[key];
+  const ws = SENT[i].words.filter(w => norm(w.w).startsWith(norm(needle)));
+  if (!ws[nth]) { console.error('cue not found', i, needle); return (cueCache[key] = S(i)); }
+  return (cueCache[key] = LEAD + ws[nth].start);
+}
+const cueEnd = (i, needle, nth = 0) => {
+  const ws = SENT[i].words.filter(w => norm(w.w).startsWith(norm(needle)));
+  return ws[nth] ? LEAD + ws[nth].end : E(i);
+};
+
+/* ---------------- drawing primitives ---------------- */
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function box(x, y, w, h, r, fill, stroke, lw = 2) {
+  rr(x, y, w, h, r);
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); }
+}
+function card(x, y, w, h, o = {}) {
+  const r = o.r ?? 26;
+  ctx.save();
+  ctx.shadowColor = 'rgba(70,45,20,0.09)'; ctx.shadowBlur = 28; ctx.shadowOffsetY = 8;
+  box(x, y, w, h, r, o.fill || C.card);
+  ctx.restore();
+  box(x, y, w, h, r, null, o.stroke || C.line, o.lw || 2);
+}
+function A(a, fn) { if (a <= 0.001) return; ctx.save(); ctx.globalAlpha *= clamp(a); fn(); ctx.restore(); }
+function T(s, x, y, o = {}) {
+  ctx.font = `${o.italic ? 'italic ' : ''}${o.weight || 500} ${o.size || 32}px ${o.font || SANS}`;
+  ctx.fillStyle = o.color || C.ink; ctx.textAlign = o.align || 'left'; ctx.textBaseline = o.base || 'alphabetic';
+  ctx.letterSpacing = (o.track || 0) + 'px';
+  ctx.fillText(s, x, y);
+  ctx.letterSpacing = '0px';
+}
+function tw(s, o = {}) { ctx.font = `${o.italic ? 'italic ' : ''}${o.weight || 500} ${o.size || 32}px ${o.font || SANS}`; ctx.letterSpacing = (o.track || 0) + 'px'; const w = ctx.measureText(s).width; ctx.letterSpacing = '0px'; return w; }
+function line(x1, y1, x2, y2, color, lw = 2, dash) {
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+  ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.setLineDash(dash || []); ctx.stroke(); ctx.setLineDash([]);
+}
+function arrow(x1, y1, x2, y2, o = {}) {
+  const p = o.p ?? 1; if (p <= 0) return;
+  const x = lerp(x1, x2, p), y = lerp(y1, y2, p), hs = o.head ?? 13, col = o.color || C.mute;
+  const ang = Math.atan2(y2 - y1, x2 - x1);
+  line(x1, y1, x - Math.cos(ang) * hs * 0.6, y - Math.sin(ang) * hs * 0.6, col, o.lw || 3, o.dash);
+  ctx.beginPath(); ctx.moveTo(x, y);
+  ctx.lineTo(x - hs * Math.cos(ang - 0.45), y - hs * Math.sin(ang - 0.45));
+  ctx.lineTo(x - hs * Math.cos(ang + 0.45), y - hs * Math.sin(ang + 0.45));
+  ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+}
+function pill(s, x, y, o = {}) {           // x,y = left, vertical centre
+  const size = o.size || 28, padX = o.padX ?? 20, h = o.h || size + 22;
+  const w = tw(s, { size, weight: o.weight || 600 }) + padX * 2;
+  const xx = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w : x;
+  box(xx, y - h / 2, w, h, h / 2, o.fill || C.terraL, o.stroke || null, 2);
+  T(s, xx + w / 2, y + 1, { size, weight: o.weight || 600, color: o.color || C.terra, align: 'center', base: 'middle' });
+  return w;
+}
+// Claude-inspired asterisk mark: irregular tapered spokes with rounded tips.
+const MARK = (() => { const r = rng(7); return Array.from({ length: 11 }, (_, i) => ({ a: i / 11 * Math.PI * 2 + (r() - 0.5) * 0.18, l: 0.78 + r() * 0.22 })); })();
+function mark(x, y, R, col = C.terra, rot = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.fillStyle = col;
+  for (const s of MARK) {
+    const L = R * s.l, w0 = R * 0.16, w1 = R * 0.07;
+    const ca = Math.cos(s.a), sa = Math.sin(s.a), nx = -sa, ny = ca;
+    ctx.beginPath();
+    ctx.moveTo(nx * w0 * 0.5, ny * w0 * 0.5);
+    ctx.lineTo(ca * L + nx * w1, sa * L + ny * w1);
+    ctx.arc(ca * L, sa * L, w1, s.a + Math.PI / 2, s.a - Math.PI / 2, true);
+    ctx.lineTo(-nx * w0 * 0.5, -ny * w0 * 0.5);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.beginPath(); ctx.arc(0, 0, R * 0.14, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+/* Math typesetting: `_{..}` subscript, `^{..}` superscript, backticks = upright words. Letters italic. */
+function mathRuns(str) {
+  const runs = []; let i = 0;
+  while (i < str.length) {
+    const m = str.slice(i).match(/^([_^])\{([^}]*)\}/);
+    if (m) { runs.push({ s: m[2], lvl: m[1] === '_' ? 1 : 2 }); i += m[0].length; continue; }
+    let j = i; while (j < str.length && !/[_^]/.test(str[j])) j++;
+    if (j === i) j++;
+    runs.push({ s: str.slice(i, j), lvl: 0 }); i = j;
+  }
+  const out = [];
+  for (const r of runs) {
+    const parts = r.s.split(/(`[^`]*`)/);
+    for (const p of parts) {
+      if (!p) continue;
+      if (p[0] === '`') { out.push({ s: p.slice(1, -1), lvl: r.lvl, it: false }); continue; }
+      for (const q of p.split(/([A-Za-z]+)/)) if (q) out.push({ s: q, lvl: r.lvl, it: /^[A-Za-z]+$/.test(q) });
+    }
+  }
+  return out;
+}
+function M(str, x, y, size, o = {}) {
+  const runs = mathRuns(str);
+  const f = r => `${r.it ? 'italic ' : ''}${o.weight || 400} ${r.lvl ? size * 0.62 : size}px ${SERIF}`;
+  let w = 0; for (const r of runs) { ctx.font = f(r); w += ctx.measureText(r.s).width + (r.lvl ? 1 : 0); }
+  let xx = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w : x;
+  ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.fillStyle = o.color || C.ink;
+  for (const r of runs) {
+    ctx.font = f(r);
+    ctx.fillText(r.s, xx, y + (r.lvl === 1 ? size * 0.22 : r.lvl === 2 ? -size * 0.42 : 0));
+    xx += ctx.measureText(r.s).width + (r.lvl ? 1 : 0);
+  }
+  return w;
+}
+function heat(v) { return v < 0.5 ? mix('#F3ECE2', '#E7B49A', v / 0.5) : mix('#E7B49A', C.terra, (v - 0.5) / 0.5); }
+
+/* ---------------- seeded illustrative data (computed once) ---------------- */
+const R1 = rng(42);
+// Scene 2: causal attention weights (illustrative): mostly small, a few strong per row.
+const MAT_N = 24;
+const MATW = Array.from({ length: MAT_N }, (_, r) => {
+  const row = Array.from({ length: r + 1 }, () => 0.05 + R1() * 0.18);
+  const nStrong = r < 2 ? 1 : 2 + (R1() < 0.4 ? 1 : 0);
+  for (let k = 0; k < nStrong; k++) row[Math.floor(R1() * (r + 1))] = 0.7 + R1() * 0.3;
+  return row;
+});
+// Scene 3: per-row selected keys (k = 4 per query row, chosen per row, non-contiguous).
+const SM_N = 20, SM_K = 4;
+const SMSEL = Array.from({ length: SM_N }, (_, r) => {
+  const s = new Set(); const want = Math.min(r + 1, SM_K);
+  while (s.size < want) s.add(Math.floor(R1() * (r + 1)));
+  return s;
+});
+// Scene 4: indexer — 12 sample tokens; focus on token #8. Values are illustrative.
+const IDX_TOK = 12, IDX_FOCUS = 8;
+const HEADS = [ { dot: 0.90, w: 0.60 }, { dot: -0.60, w: 0.40 }, { dot: 0.50, w: 0.80 }, { dot: 0.30, w: 0.50 } ];
+HEADS.forEach(h => { h.relu = Math.max(0, h.dot); h.c = h.relu * h.w; });
+const IDX_SUM = HEADS.reduce((a, h) => a + h.c, 0);
+const IDX_SCORES = [0.22, 0.61, 0.08, 0.35, 0.92, 0.15, 0.27, 0.05, IDX_SUM, 0.30, 0.12, 0.44];
+// Scene 5: 48 sample tokens; 10 selected (scattered, non-adjacent mostly, not just recent).
+const TK_N = 48, TK_SEL = [2, 6, 11, 17, 19, 26, 31, 34, 40, 44];
+const TK_SCORE = Array.from({ length: TK_N }, (_, i) => TK_SEL.includes(i) ? 0.66 + R1() * 0.32 : 0.04 + R1() * 0.42);
+// Scene 6: 6 selected tokens shown entering main attention.
+const SA = [ { pos: 3, s: 1.4 }, { pos: 9, s: 0.6 }, { pos: 15, s: 2.1 }, { pos: 22, s: 0.9 }, { pos: 30, s: 1.7 }, { pos: 36, s: 0.3 } ];
+(() => { const m = Math.max(...SA.map(a => a.s)); const z = SA.reduce((a, b) => a + Math.exp(b.s - m), 0); SA.forEach(a => { a.p = Math.exp(a.s - m) / z; }); })();
+const SA_VEC = SA.map(() => Array.from({ length: 5 }, () => R1()));
+// Scene 7: fixed k = 3 keys per query row (illustrative k), so selected count does not grow with N.
+const MINISEL = Array.from({ length: 16 }, (_, r) => { const st = new Set(); while (st.size < Math.min(r + 1, 3)) st.add(Math.floor(R1() * (r + 1))); return st; });
+// Scene 7/8 strips
+const STRIP_SEL = new Set([3, 8, 14, 22, 27, 35, 41, 50, 57]);
+const STRIP_SCORE = Array.from({ length: 64 }, (_, i) => STRIP_SEL.has(i) ? 0.7 + R1() * 0.3 : 0.08 + R1() * 0.4);
+
+/* ---------------- shared scene furniture ---------------- */
+function title(s, t, t0, sub) {
+  const p = ap(t, t0, 0.7);
+  A(p, () => {
+    let size = 62; while (size > 40 && tw(s, { size, weight: 700, font: SERIF }) > X1 - X0) size -= 2;
+    T(s, X0, 425 + (1 - p) * 18, { size, weight: 700, font: SERIF, color: C.ink });
+    if (sub) T(sub, X0, 470 + (1 - p) * 18, { size: 28, weight: 500, color: C.ink2 });
+  });
+}
+function note(s, x, y, t0, t, o = {}) { const p = ap(t, t0, 0.5); A(p, () => T(s, x, y + (1 - p) * 10, { size: o.size || 27, weight: o.weight || 500, color: o.color || C.ink2, align: o.align || 'left', italic: o.italic })); }
+
+/* =====================================================================================
+   SCENES. Each scene: [first sentence, last sentence], title, draw(t). t is the absolute
+   video time; cues come from the forced-aligned narration.
+   ===================================================================================== */
+
+// ---------- Scene 1: the long-context problem (sentences 0–1) ----------
+function scene1(t) {
+  title('The long-context problem', t, 0.25, 'A 128K-token context window');
+  const cols = 20, rows = 16, cs = 34, g = 8, gx = 124, gy = 515, n = cols * rows;
+  const rev = eio(ss(t, cue(0, 'running'), cueEnd(0, 'tokens') + 0.2));
+  const shown = rev * n;
+  const qx = gx + cols * (cs + g) - g - 76, qy = 1205, qa = ap(t, S(1), 0.6);
+  const qcx = qx + 38, qcy = qy + 36;
+  const lp = ss(t, cue(1, 'compare'), cueEnd(1, 'previous') + 0.2);
+  // connection fan from the query to every earlier token-square
+  if (qa > 0) {
+    ctx.save(); ctx.globalAlpha *= 0.13 * qa;
+    for (let i = 0; i < Math.floor(lp * n); i++) {
+      const c = i % cols, r = Math.floor(i / cols);
+      line(qcx, qcy, gx + c * (cs + g) + cs / 2, gy + r * (cs + g) + cs / 2, C.orange, 1.2);
+    }
+    ctx.restore();
+  }
+  for (let i = 0; i < n; i++) {
+    const c = i % cols, r = Math.floor(i / cols);
+    const a = clamp(shown - i, 0, 1); if (a <= 0) continue;
+    const lit = lp > 0 && i < lp * n;
+    const front = lit && i > lp * n - 14;
+    A(a, () => box(gx + c * (cs + g), gy + r * (cs + g) + (1 - a) * 8, cs, cs, 7,
+      front ? C.orange : lit ? '#EBCDBB' : C.beige));
+  }
+  // counters
+  A(ap(t, cue(0, 'running'), 0.5), () => {
+    T(fmt(rev * 128000), X0 + 4, 1262, { size: 66, weight: 700, font: SERIF, color: C.ink });
+    T('tokens', X0 + 8 + tw(fmt(rev * 128000), { size: 66, weight: 700, font: SERIF }) + 10, 1262, { size: 34, weight: 600, color: C.ink2 });
+    T('each square ≈ 400 tokens · illustrative', X0 + 6, 1302, { size: 24, color: C.mute });
+  });
+  A(qa, () => {
+    ctx.save(); ctx.shadowColor = 'rgba(201,100,66,0.35)'; ctx.shadowBlur = 18;
+    box(qx, qy + (1 - qa) * 20, 76, 72, 16, C.orange); ctx.restore();
+    T('q', qcx, qcy + 4 + (1 - qa) * 20, { size: 40, italic: true, font: SERIF, weight: 700, color: '#fff', align: 'center', base: 'middle' });
+    T('new query', qx - 14, qy + 44, { size: 26, weight: 600, color: C.orange, align: 'right' });
+  });
+  A(ap(t, cue(1, 'standard'), 0.5), () => {
+    pill('Dense Attention', X0, 1365, { fill: C.terraL });
+    if (lp > 0) T(`1 query × ${fmt(lp * 128000)} keys`, X1 - 10, 1375, { size: 30, weight: 600, color: C.ink, align: 'right', font: SANS });
+  });
+  note('Comparisons per new token grow with N', X0, 1424, cueEnd(1, 'previous') - 0.6, t, { size: 26, color: C.terra, weight: 600 });
+}
+
+// ---------- Scene 2: why dense attention is expensive (sentences 2–3) ----------
+function scene2(t) {
+  const t0 = SC[1].from;
+  title('Why dense attention is expensive', t, t0 + 0.1, 'Causal attention: each query looks at all earlier keys');
+  const n = MAT_N, cs = 24, g = 3, step = cs + g, mx = 250, my = 560;
+  const grow = eio(ss(t, t0 + 0.35, S(3) - 0.1));
+  const sharp = eio(ss(t, cue(3, 'small'), cueEnd(3, 'relevant')));
+  // axes
+  A(ap(t, t0 + 0.3), () => {
+    T('keys  (earlier tokens)  →', mx, my - 18, { size: 24, weight: 600, color: C.ink2 });
+    ctx.save(); ctx.translate(mx - 22, my + 4); ctx.rotate(Math.PI / 2);
+    T('queries  →', 0, 0, { size: 24, weight: 600, color: C.ink2 }); ctx.restore();
+    line(mx, my + n * step + 14, mx + n * step - g, my + n * step + 14, C.mute, 2);
+    T('N', mx + (n * step) / 2, my + n * step + 48, { size: 32, italic: true, font: SERIF, align: 'center', color: C.ink });
+    line(mx + n * step + 14, my, mx + n * step + 14, my + n * step - g, C.mute, 2);
+    T('N', mx + n * step + 34, my + (n * step) / 2, { size: 32, italic: true, font: SERIF, color: C.ink, base: 'middle' });
+  });
+  for (let r = 0; r < n; r++) {
+    const ra = clamp(grow * n * 1.15 - r, 0, 1); if (ra <= 0) continue;
+    for (let c = 0; c <= r; c++) {
+      const v = MATW[r][c], strong = v > 0.6;
+      const vv = strong ? lerp(v * 0.75, v, sharp) : lerp(0.32, v * 0.6, sharp);
+      A(ra * (strong ? 1 : lerp(1, 0.55, sharp)), () => box(mx + c * step, my + r * step, cs, cs, 5, heat(vv)));
+      if (strong && sharp > 0.2) A(sharp, () => box(mx + c * step, my + r * step, cs, cs, 5, null, C.terra, 2));
+    }
+  }
+  A(ap(t, cue(2, 'problem') - 0.2), () => {
+    M('O(N^{2})', 870, 720, 76, { align: 'right', color: C.terra });
+    T('query–key pairs', 870, 764, { size: 26, color: C.ink2, align: 'right' });
+  });
+  A(ap(t, cue(2, 'problem') + 0.2), () => {
+    T('N = 128K  →  ≈ 8 billion causal pairs', X0, 1300, { size: 32, weight: 600, color: C.ink });
+    T('per attention head, per layer', X0, 1340, { size: 26, color: C.ink2 });
+  });
+  A(ap(t, cue(3, 'small')), () => {
+    box(X0, 1378, 30, 30, 6, C.terra); T('high relevance', X0 + 44, 1402, { size: 26, color: C.ink, weight: 600 });
+    box(X0 + 290, 1378, 30, 30, 6, heat(0.12)); T('low relevance', X0 + 334, 1402, { size: 26, color: C.ink2 });
+    T('illustrative weights', X1 - 10, 1402, { size: 22, color: C.mute, align: 'right' });
+  });
+}
+
+// ---------- Scene 3: introducing DSA (sentences 4–6) ----------
+function scene3(t) {
+  const t0 = SC[2].from;
+  title('DeepSeek Sparse Attention', t, t0 + 0.1);
+  A(ap(t, cue(4, 'introduced'), 0.5), () => pill('introduced in DeepSeek-V3.2', X0, 478, { size: 24, h: 42, fill: C.sand, color: C.ink2 }));
+  // morphing matrix: dense -> per-query sparse selection
+  const n = SM_N, cs = 15, g = 2, step = cs + g, mx = 300, my = 535;
+  const morph = eio(ss(t, cue(4, 'sparse'), cue(5, 'full') + 0.4));
+  for (let r = 0; r < n; r++) for (let c = 0; c <= r; c++) {
+    const sel = SMSEL[r].has(c);
+    const col = sel ? mix('#E7B49A', C.terra, morph) : mix('#E7B49A', '#EFE7DB', morph);
+    A(ap(t, t0 + 0.25 + r * 0.02, 0.4) * (sel ? 1 : lerp(1, 0.75, morph)), () => box(mx + c * step, my + r * step, cs, cs, 3, col));
+  }
+  A(ap(t, t0 + 0.4), () => {
+    T('dense', 690, 600, { size: 28, weight: 700, color: morph < 0.5 ? C.ink : C.mute });
+    T('every earlier key', 690, 634, { size: 24, color: C.mute });
+    A(morph, () => {
+      T('sparse', 690, 720, { size: 28, weight: 700, color: C.terra });
+      T('a few keys per query,', 690, 754, { size: 24, color: C.ink2 });
+      T('chosen per query', 690, 784, { size: 24, color: C.ink2 });
+    });
+    arrow(700, 650, 700, 690, { p: morph, color: C.mute, lw: 2, head: 10 });
+  });
+  // pipeline, introduced component by component
+  const nodes = [
+    ['Query', 'new token  q_t', S(5) - 0.1],
+    ['Lightning Indexer', 'scores earlier tokens', cue(5, 'lightweight')],
+    ['Top-K Selection', 'keep the best k', cue(5, 'lightning') + 0.45],
+    ['Sparse Attention', 'main attention on k tokens', cue(5, 'lightning') + 0.95],
+    ['Output', 'o_t', S(6) - 0.15],
+  ];
+  const nx = 250, nw = 580, nh = 76, gap = 28, ny0 = 885;
+  nodes.forEach(([a, b, tc], i) => {
+    const p = ap(t, tc, 0.55), y = ny0 + i * (nh + gap);
+    if (i > 0) arrow(CX, y - gap + 2, CX, y - 3, { p: ap(t, tc - 0.15, 0.4), color: C.mute, lw: 3, head: 11 });
+    A(p, () => {
+      const isIdx = i === 1, isOut = i === 4;
+      card(nx, y + (1 - p) * 14, nw, nh, { r: 20, stroke: isIdx ? C.terra : C.line, lw: isIdx ? 3 : 2, fill: isOut ? '#FBEFE8' : C.card });
+      T(a, nx + 30, y + nh / 2 + 3 + (1 - p) * 14, { size: 31, weight: 700, color: isIdx ? C.terra : C.ink, base: 'middle' });
+      if (b.includes('_')) M(b.replace('q_t', 'q_{t}').replace('o_t', 'o_{t}'), nx + nw - 30, y + nh / 2 + 11 + (1 - p) * 14, 28, { align: 'right', color: C.ink2 });
+      else T(b, nx + nw - 30, y + nh / 2 + 3 + (1 - p) * 14, { size: 24, color: C.ink2, align: 'right', base: 'middle' });
+    });
+  });
+  A(ap(t, cue(5, 'lightweight'), 0.5), () => pill('new · lightweight', nx + nw + 10, ny0 + (nh + gap) + nh / 2, { size: 20, h: 34, padX: 12, fill: C.terra, color: '#fff' }));
+}
+
+// ---------- Scene 4: the Lightning Indexer (sentences 7–11) ----------
+function scene4(t) {
+  const t0 = SC[3].from;
+  title('The Lightning Indexer', t, t0 + 0.1);
+  const n = IDX_TOK, cw = 58, gap = 13, tx0 = CX - (n * (cw + gap) - gap) / 2, ty = 505;
+  const kvA = ap(t, cue(7, 'key'), 0.5);
+  const scan = ss(t, cue(8, 'compares'), cueEnd(8, 'tokens') + 0.2);
+  const scoreP = eio(ss(t, cue(11, 'estimate'), E(11) + 0.2));
+  const dim = 1 - 0.65 * ss(t, S(9), S(9) + 0.6);
+  A(ap(t, S(7)), () => T('earlier tokens  (sample)', tx0, 492, { size: 22, weight: 600, color: C.mute, track: 1 }));
+  for (let i = 0; i < n; i++) {
+    const p = ap(t, S(7) + 0.25 + i * 0.09, 0.45); if (p <= 0) continue;
+    const x = tx0 + i * (cw + gap), y = ty + 12 + (1 - p) * 12;
+    const focus = i === IDX_FOCUS && t > cue(10, 'dot') - 0.3;
+    const scanned = scan > 0 && i < scan * n;
+    A(p, () => {
+      box(x, y, cw, 90, 12, C.card, focus ? C.terra : scanned && scan < 1 ? C.orange : C.line, focus ? 3 : 2);
+      A(kvA, () => {
+        box(x + 7, y + 8, cw - 14, 34, 7, C.terraL); T('k', x + cw / 2, y + 26, { size: 24, italic: true, font: SERIF, color: C.terra, align: 'center', base: 'middle' });
+        box(x + 7, y + 48, cw - 14, 34, 7, C.sageL); T('v', x + cw / 2, y + 66, { size: 24, italic: true, font: SERIF, color: C.sage, align: 'center', base: 'middle' });
+      });
+      // aggregated index score bar for every token (sentence 11)
+      if (scoreP > 0) {
+        const s = IDX_SCORES[i] / 1.2, bh = 46 * s * clamp(scoreP * n - i * 0.5, 0, 1);
+        box(x + 6, ty + 158 - bh, cw - 12, Math.max(bh, 2), 5, heat(clamp(s)));
+      }
+    });
+    if (focus) A(ap(t, cue(10, 'dot') - 0.3), () => T('s', x + cw / 2, y - 14, { size: 26, italic: true, font: SERIF, weight: 700, color: C.terra, align: 'center' }));
+  }
+  A(scoreP, () => M('index score I_{t,s} for every earlier token', tx0, ty + 186, 24, { color: C.ink2 }));
+  // query arrives, scans the history
+  const qp = ap(t, S(8), 0.7), qx = CX - 70, qy = 735 + (1 - qp) * 30;
+  if (scan > 0) A(0.55 * dim, () => {
+    for (let i = 0; i < n; i++) if (i < scan * n) line(CX, qy, tx0 + i * (cw + gap) + cw / 2, ty + 102, C.orange, 2);
+  });
+  A(qp, () => {
+    ctx.save(); ctx.shadowColor = 'rgba(217,122,58,.35)'; ctx.shadowBlur = 16;
+    box(qx, qy, 140, 66, 16, C.orange); ctx.restore();
+    M('q_{t}', CX, qy + 44, 36, { align: 'center', color: '#fff', weight: 700 });
+    T('new query', qx + 160, qy + 42, { size: 24, weight: 600, color: C.orange });
+  });
+  // indexer heads
+  const hy0 = 840, hh = 64, hg = 12;
+  const headA = ap(t, cue(9, 'multiple'), 0.6);
+  const dotP = eio(ss(t, cue(10, 'dot'), cue(10, 'dot') + 0.8));
+  const reluP = eio(ss(t, cue(10, 'relu'), cue(10, 'relu') + 0.8));
+  const wP = eio(ss(t, cue(10, 'weighted'), cue(10, 'weighted') + 0.8));
+  A(ap(t, cue(9, 'smaller')), () => {
+    T('Indexer heads', X0, 830, { size: 26, weight: 700, color: C.ink });
+    T('4 heads shown · small projections', X1, 830, { size: 22, color: C.ink2, align: 'right' });
+  });
+  HEADS.forEach((h, j) => {
+    const y = hy0 + 14 + j * (hh + hg);
+    const p = ap(t, cue(9, 'multiple') + j * 0.12, 0.55);
+    // a copy of the query flies into each head
+    const fly = eo(ss(t, cue(9, 'multiple') + j * 0.12, cue(9, 'multiple') + j * 0.12 + 0.6));
+    A(p, () => {
+      box(X0, y, X1 - X0, hh, 14, j % 2 ? '#FBF8F3' : C.card, C.line, 1.5);
+      T(`head ${j + 1}`, X0 + 18, y + hh / 2 + 2, { size: 23, weight: 600, color: C.ink2, base: 'middle' });
+      const qxj = lerp(CX - 50, 228, fly), qyj = lerp(qy + 10, y + 12, fly);
+      box(qxj, qyj, 92, 40, 9, C.orange);
+      M(`q_{t,${j + 1}}`, qxj + 46, qyj + 28, 25, { align: 'center', color: '#fff' });
+      T('·', 333, y + hh / 2 + 2, { size: 34, weight: 700, color: C.ink, align: 'center', base: 'middle' });
+      box(350, y + 12, 66, 40, 9, C.terraL); M('k_{s}', 383, y + 40, 25, { align: 'center', color: C.terra });
+    });
+    // dot-product bar (signed), centred at zero
+    const z = 478, sc = 58;
+    A(dotP * p, () => {
+      line(z, y + 10, z, y + hh - 10, C.mute, 1.5);
+      const v = lerp(h.dot * dotP, h.relu, reluP);
+      const bw = v * sc;
+      box(Math.min(z, z + bw), y + 22, Math.max(Math.abs(bw), 2), 20, 5, v < 0 ? '#9DB3A7' : C.orange);
+      T(v.toFixed(2), 628, y + hh / 2 + 2, { size: 22, weight: 600, color: v < 0 ? C.sage : C.ink, align: 'right', base: 'middle', font: MONO });
+    });
+    A(reluP * p, () => {
+      box(646, y + 13, 92, 38, 9, C.sand, C.line, 1.5);
+      T('ReLU', 692, y + hh / 2 + 2, { size: 22, weight: 700, color: C.ink, align: 'center', base: 'middle' });
+    });
+    A(wP * p, () => {
+      M(`× w_{t,${j + 1}}`, 752, y + 40, 25, { color: C.ink2 });
+      T(h.w.toFixed(2), 840, y + hh / 2 + 2, { size: 20, color: C.mute, base: 'middle', font: MONO });
+      const cwid = h.c * 110 * wP;
+      box(895, y + 22, Math.max(cwid, 2), 20, 5, C.terra);
+    });
+  });
+  // aggregation
+  const sumP = eio(ss(t, S(11), S(11) + 1.0));
+  const sy = hy0 + 14 + 4 * (hh + hg) + 4;
+  A(sumP, () => {
+    M('Σ_{j}', X0 + 16, sy + 42, 36, { color: C.ink });
+    T('over heads', X0 + 74, sy + 36, { size: 22, color: C.ink2 });
+    let x = 300; HEADS.forEach(h => { const w = h.c * 260 * sumP; box(x, sy + 16, Math.max(w, 0.01), 26, 0, C.terra); x += w + (w > 0 ? 3 : 0); });
+    M(`I_{t,s} = ${IDX_SUM.toFixed(2)}`, X1 - 10, sy + 40, 32, { align: 'right', color: C.terra, weight: 700 });
+  });
+  // formula
+  const fa = ap(t, cue(10, 'computes'), 0.7);
+  A(fa, () => {
+    card(X0, 1250, X1 - X0, 104, { r: 22 });
+    M('I_{t,s} = Σ_{j} w_{t,j} · `ReLU`( q_{t,j} · k_{s} )', CX, 1318, 42, { align: 'center' });
+  });
+  A(ap(t, cue(11, 'aggregated'), 0.5), () => T('illustrative values', X1 - 10, 1243, { size: 20, color: C.mute, align: 'right' }));
+  note('Lighter than main attention: small heads, FP8, ReLU instead of softmax', X0, 1392, cue(9, 'indexing') , t, { size: 23, color: C.ink2 });
+  note('…but it still scores every earlier token.', X0, 1428, cue(11, 'previous'), t, { size: 25, color: C.terra, weight: 700 });
+}
+
+// ---------- Scene 5: top-k selection (sentences 12–15) ----------
+function scene5(t) {
+  const t0 = SC[4].from;
+  title('Top-K Selection', t, t0 + 0.1);
+  const cols = 8, bs = 90, g = 16, gx = CX - (cols * (bs + g) - g) / 2, gy = 500;
+  const fill = eio(ss(t, S(12) + 0.3, S(12) + 1.4));
+  const pick = eio(ss(t, cue(13, 'top'), cue(13, 'highest') + 0.3));
+  const scat = ap(t, S(14), 0.8);
+  const recent = ap(t, S(15), 0.6), adj = ap(t, cue(15, 'adjacent') - 0.2, 0.6);
+  for (let i = 0; i < TK_N; i++) {
+    const c = i % cols, r = Math.floor(i / cols), x = gx + c * (bs + g), y = gy + r * (bs + g);
+    const p = ap(t, t0 + 0.2 + i * 0.012, 0.4), sel = TK_SEL.includes(i), s = TK_SCORE[i];
+    A(p * (sel ? 1 : lerp(1, 0.32, pick)), () => {
+      box(x, y - (sel ? pick * 6 : 0), bs, bs, 16, C.card, sel && pick > 0.3 ? C.terra : C.line, sel ? lerp(2, 4, pick) : 2);
+      const fh = (bs - 50) * s * fill;
+      box(x + 8, y + bs - 8 - fh - (sel ? pick * 6 : 0), bs - 16, Math.max(fh, 1), 10, heat(s));
+      T(s.toFixed(2), x + bs / 2, y + 30 - (sel ? pick * 6 : 0), { size: 21, weight: 600, color: s > 0.6 ? C.ink : C.ink2, align: 'center', font: MONO });
+    });
+  }
+  // "most recent" window bracket — selection is not a sliding window
+  A(recent, () => {
+    const y = gy + 5 * (bs + g) + bs + 12;
+    line(gx, y, gx + cols * (bs + g) - g, y, C.sage, 3);
+    line(gx, y - 10, gx, y, C.sage, 3); line(gx + cols * (bs + g) - g, y - 10, gx + cols * (bs + g) - g, y, C.sage, 3);
+    T('most recent tokens — only 2 of 8 selected', CX, y + 34, { size: 24, weight: 600, color: C.sage, align: 'center' });
+  });
+  A(1 - recent, () => A(ap(t, t0 + 0.5), () => {
+    T('← earlier context', gx, gy + 6 * (bs + g) + 22, { size: 23, color: C.mute });
+    T('newest →', gx + cols * (bs + g) - g, gy + 6 * (bs + g) + 22, { size: 23, color: C.mute, align: 'right' });
+  }));
+  // position strip over the whole context
+  A(scat, () => {
+    const y = 1215, x0 = gx, x1 = gx + cols * (bs + g) - g;
+    T('positions of selected tokens in the context', x0, y - 18, { size: 23, weight: 600, color: C.ink2 });
+    box(x0, y, x1 - x0, 26, 13, C.sand);
+    TK_SEL.forEach((i, k) => {
+      const pp = ap(t, S(14) + 0.2 + k * 0.08, 0.4), x = lerp(x0 + 8, x1 - 8, i / (TK_N - 1));
+      A(pp, () => box(x - 5, y + 2, 10, 22, 5, C.terra));
+    });
+    A(adj, () => T('scattered · non-adjacent · chosen per token, not fixed blocks', x0, y + 62, { size: 23, color: C.terra, weight: 600 }));
+  });
+  A(ap(t, cue(13, 'selects'), 0.5), () => {
+    pill('Top-K Selection', X0, 1342, { size: 27 });
+    pill('k = 2,048 in DeepSeek-V3.2', X0 + 262, 1342, { size: 27, fill: C.sand, color: C.ink });
+  });
+  A(ap(t, cue(13, 'two'), 0.5), () => {
+    T('Illustrative: 48 sample tokens, top 10 kept. The model keeps', X0, 1396, { size: 22, color: C.mute });
+    T('up to 2,048 tokens per query, out of up to 128K.', X0, 1424, { size: 22, color: C.mute });
+  });
+}
+
+// ---------- Scene 6: sparse attention computation (sentence 16) ----------
+function scene6(t) {
+  const t0 = SC[5].from;
+  title('Main attention on the selection', t, t0 + 0.1);
+  // MLA latent KV cache for the whole context; selected entries highlighted
+  const nC = 40, cw = 19, cg = 2.5, cx0 = CX - (nC * (cw + cg) - cg) / 2, cy = 520;
+  const ret = eio(ss(t, cue(16, 'operates'), cue(16, 'subset') + 0.5));
+  const scP = eio(ss(t, cue(16, 'computing') - 0.1, cue(16, 'computing') + 0.7));
+  const smP = eio(ss(t, cue(16, 'weights') - 0.1, cue(16, 'weights') + 0.7));
+  const agP = eio(ss(t, cue(16, 'aggregating') - 0.1, cue(16, 'aggregating') + 0.6));
+  const outP = eio(ss(t, cue(16, 'aggregating') + 0.5, cue(16, 'aggregating') + 1.1));
+  A(ap(t, t0 + 0.2), () => {
+    T('KV cache (MLA latent entries) — whole context', cx0, cy - 14, { size: 22, weight: 600, color: C.mute });
+    for (let i = 0; i < nC; i++) {
+      const sel = SA.some(a => a.pos === i);
+      box(cx0 + i * (cw + cg), cy, cw, 44, 5, sel ? mix(C.beige, C.terra, ap(t, t0 + 0.6, 0.5)) : C.beige);
+    }
+  });
+  // column headers
+  const ry0 = 655, rh = 56, rg = 14, colK = 130, colScore = 330, colSm = 560, colAg = 790;
+  A(ap(t, t0 + 0.4), () => {
+    T('1 · retrieve k, v', colK, 628, { size: 21, weight: 700, color: ret > 0 ? C.ink : C.mute });
+    T('2 · q·k scores', colScore, 628, { size: 21, weight: 700, color: scP > 0 ? C.ink : C.mute });
+    T('3 · softmax', colSm, 628, { size: 21, weight: 700, color: smP > 0 ? C.ink : C.mute });
+    T('4 · weight v', colAg, 628, { size: 21, weight: 700, color: agP > 0 ? C.ink : C.mute });
+  });
+  const maxS = Math.max(...SA.map(a => a.s));
+  SA.forEach((a, i) => {
+    const y = ry0 + i * (rh + rg);
+    const sx = cx0 + a.pos * (cw + cg), fy = lerp(cy, y, ret), fx = lerp(sx, colK, ret);
+    A(ret > 0 ? 1 : 0, () => {
+      box(fx, fy, lerp(cw, 74, ret), lerp(44, rh - 6, ret), 8, C.terraL, C.terra, 1.5);
+      A(ret, () => { M('k_{s}', fx + 37, fy + 34, 24, { align: 'center', color: C.terra }); });
+      A(ret, () => { box(lerp(sx, colK + 84, ret), fy, 74, rh - 6, 8, C.sageL, C.sage, 1.5); M('v_{s}', lerp(sx, colK + 84, ret) + 37, fy + 34, 24, { align: 'center', color: C.sage }); });
+    });
+    A(scP, () => {
+      const w = (a.s / maxS) * 150 * scP; box(colScore, y + 14, Math.max(w, 2), 22, 5, C.orange);
+      T(a.s.toFixed(1), colScore + 200, y + 31, { size: 20, color: C.ink2, font: MONO, align: 'right' });
+    });
+    A(smP, () => {
+      const w = a.p * 360 * smP; box(colSm, y + 14, Math.max(w, 2), 22, 5, C.terra);
+      T(a.p.toFixed(2), colSm + 205, y + 31, { size: 20, color: C.ink, font: MONO, align: 'right' });
+    });
+    A(agP, () => {
+      SA_VEC[i].forEach((v, k) => box(colAg + k * 30, y + 8, 24, 34, 5, mix('#F1ECE4', C.sage, v * (0.25 + 0.75 * a.p / Math.max(...SA.map(b => b.p))))));
+    });
+  });
+  A(smP, () => T('sums to 1 over the selected set', colSm, ry0 + 6 * (rh + rg) + 8, { size: 20, color: C.mute }));
+  // output
+  const oy = 1105;
+  A(outP, () => {
+    for (let i = 0; i < SA.length; i++) line(colAg + 72, ry0 + i * (rh + rg) + 42, 855, oy, mix(C.line, C.sage, 0.5), 1.5);
+    ctx.save(); ctx.shadowColor = 'rgba(201,100,66,.3)'; ctx.shadowBlur = 16;
+    box(740, oy, 230, 66, 16, C.terra); ctx.restore();
+    T('5 · output', 768, oy + 42, { size: 24, weight: 700, color: '#fff' });
+    M('o_{t}', 940, oy + 44, 30, { color: '#fff', align: 'right' });
+  });
+  A(ap(t, t0 + 0.5), () => {
+    box(X0, oy, 160, 66, 16, C.orange); M('q_{t}', X0 + 80, oy + 44, 32, { color: '#fff', align: 'center', weight: 700 });
+    T('all query heads', X0 + 176, oy + 42, { size: 22, color: C.ink2 });
+  });
+  A(ap(t, cue(16, 'computing'), 0.6), () => {
+    card(X0, 1198, X1 - X0, 112, { r: 20 });
+    M('o_{t} = Σ_{s ∈ S} p_{t,s} v_{s}', 140, 1250, 34);
+    M('p_{t,s} = `softmax`_{s ∈ S}( q_{t} · k_{s} )', 140, 1294, 30, { color: C.ink2 });
+    T('S = top-k set chosen for this query', X1 - 30, 1250, { size: 21, color: C.mute, align: 'right' });
+  });
+  A(ap(t, cue(16, 'information'), 0.5), () => {
+    pill('Indexer → chooses which tokens', X0, 1352, { size: 22, h: 40, fill: C.sageL, color: C.sage });
+    pill('Main attention → computes output', X0 + 380, 1352, { size: 22, h: 40 });
+    T('DSA is built on MLA (MQA mode): each selected latent entry is shared by all heads', X0, 1410, { size: 19.5, color: C.ink2 });
+  });
+}
+
+// ---------- Scene 7: dense vs sparse cost (sentences 17–19) ----------
+function miniMatrix(x, y, n, size, mode, t0, t) {
+  const step = size / n, cs = step - 2;
+  for (let r = 0; r < n; r++) for (let c = 0; c <= r; c++) {
+    const p = ap(t, t0 + r * 0.025, 0.35);
+    let col = '#E7B49A';
+    if (mode === 'sparse') {
+      // indexer touches every causal pair (sage); main attention only a few per row (terra)
+      const sel = MINISEL[r].has(c);
+      col = sel ? C.terra : C.sageL;
+    }
+    A(p, () => box(x + c * step, y + r * step, cs, cs, 2, col));
+  }
+}
+function scene7(t) {
+  const t0 = SC[6].from;
+  title('Where the savings come from', t, t0 + 0.1);
+  const dA = ap(t, t0 + 0.2, 0.6), sA = ap(t, S(19) - 0.3, 0.6);
+  // Dense card
+  A(dA, () => {
+    card(X0, 495, X1 - X0, 405);
+    T('Dense attention', X0 + 30, 548, { size: 32, weight: 700, color: C.ink });
+    miniMatrix(X0 + 30, 580, 16, 210, 'dense', S(18), t);
+    A(ap(t, cue(18, 'grows'), 0.6), () => {
+      T('main attention', 400, 610, { size: 24, weight: 600, color: C.ink2 });
+      M('O(N^{2})', 400, 690, 64, { color: C.terra });
+      T('every query × all earlier keys', 400, 735, { size: 24, color: C.ink2 });
+    });
+    A(ap(t, cue(18, 'full'), 0.7), () => {
+      T('keys per query at N = 128K', X0 + 30, 830, { size: 22, color: C.ink2 });
+      box(X0 + 30, 846, (X1 - X0 - 210) * ap(t, cue(18, 'full'), 0.9), 26, 8, C.terra);
+      T('128,000', X1 - 30, 868, { size: 26, weight: 700, color: C.ink, align: 'right', font: MONO });
+    });
+  });
+  // Sparse card
+  A(sA, () => {
+    card(X0, 930, X1 - X0, 490);
+    T('DeepSeek Sparse Attention', X0 + 30, 983, { size: 32, weight: 700, color: C.ink });
+    miniMatrix(X0 + 30, 1015, 16, 210, 'sparse', S(19), t);
+    A(ap(t, S(19) + 0.3, 0.6), () => {
+      box(400, 1022, 18, 18, 4, C.sageL); T('indexer scores all earlier tokens', 428, 1038, { size: 22, color: C.sage, weight: 600 });
+      box(400, 1054, 18, 18, 4, C.terra); T('main attention: selected k only', 428, 1070, { size: 22, color: C.terra, weight: 600 });
+    });
+    A(ap(t, cue(19, 'process'), 0.6), () => {
+      M('O(N·k)', 400, 1150, 60, { color: C.terra });
+      T('main attention, k fixed', 400, 1190, { size: 24, color: C.ink2 });
+    });
+    A(ap(t, cue(19, 'selected'), 0.7), () => {
+      T('keys per query in main attention', X0 + 30, 1262, { size: 22, color: C.ink2 });
+      box(X0 + 30, 1278, Math.max(4, (X1 - X0 - 210) * (2048 / 128000)), 26, 6, C.terra);
+      box(X0 + 30, 1278, X1 - X0 - 210, 26, 8, null, C.line, 1.5);
+      T('2,048', X1 - 30, 1300, { size: 26, weight: 700, color: C.ink, align: 'right', font: MONO });
+    });
+    A(ap(t, E(19) - 0.3, 0.6), () => {
+      T('These count main-attention work only — not end-to-end cost.', X0 + 30, 1352, { size: 21, color: C.ink2, weight: 600 });
+      T('The indexer is still O(N²), but far cheaper per pair.', X0 + 30, 1384, { size: 21, color: C.ink2 });
+    });
+  });
+}
+
+// ---------- Scene 8: the limitation (sentences 20–23) ----------
+function strip(x, y, w, h, n, colorOf) {
+  const step = w / n;
+  for (let i = 0; i < n; i++) box(x + i * step, y, step - 2, h, 3, colorOf(i));
+}
+function scene8(t) {
+  const t0 = SC[7].from;
+  title('The catch', t, t0 + 0.1);
+  const sx = X0 + 24, sw = X1 - X0 - 48;
+  // 1 · indexer scans the full context
+  const aA = ap(t, cue(20, 'important'), 0.6);
+  const beam = ss(t, cue(21, 'score'), E(21) - 0.4);
+  A(aA, () => {
+    card(X0, 495, X1 - X0, 215);
+    T('1 · Lightning Indexer', X0 + 24, 545, { size: 30, weight: 700, color: C.sage });
+    T('scores ALL preceding tokens', X1 - 24, 545, { size: 23, weight: 600, color: C.ink2, align: 'right' });
+    strip(sx, 575, sw, 70, 64, i => {
+      const seen = i / 64 < beam;
+      return seen ? mix(C.sageL, C.sage, STRIP_SCORE[i] * 0.9) : C.sand;
+    });
+    if (beam > 0 && beam < 1) { const bx = sx + sw * beam; box(bx - 4, 565, 8, 90, 4, C.sage); }
+    T('every earlier token gets a score', sx, 685, { size: 21, color: C.mute });
+  });
+  arrow(CX, 716, CX, 748, { p: ap(t, E(21) - 0.6, 0.4), color: C.mute });
+  // 2 · sparse attention on the selection
+  const bA = ap(t, E(21) - 0.5, 0.6);
+  A(bA, () => {
+    card(X0, 755, X1 - X0, 170);
+    T('2 · Sparse attention', X0 + 24, 805, { size: 30, weight: 700, color: C.terra });
+    T('processes only the selected tokens', X1 - 24, 805, { size: 23, weight: 600, color: C.ink2, align: 'right' });
+    strip(sx, 830, sw, 60, 64, i => STRIP_SEL.has(i) ? C.terra : '#F2ECE3');
+  });
+  // other real-world factors
+  A(ap(t, cue(22, 'eliminate'), 0.6), () => {
+    T('Real speed also depends on', X0, 980, { size: 25, weight: 700, color: C.ink });
+    let x = X0; ['indexer overhead', 'memory access', 'kernels & hardware'].forEach((s, k) => {
+      A(ap(t, cue(22, 'eliminate') + 0.25 * k, 0.5), () => { x += pill(s, x, 1028, { size: 23, h: 44, fill: C.sand, color: C.ink, padX: 18 }) + 12; });
+    });
+  });
+  // conceptual cost bars
+  const cA = ap(t, S(23) - 0.2, 0.6), fullW = 640, bx0 = X0 + 190;
+  A(cA, () => {
+    T('Conceptual cost per query (not measured)', X0, 1108, { size: 23, weight: 600, color: C.mute });
+    T('Dense', X0, 1162, { size: 27, weight: 700, color: C.ink });
+    box(bx0, 1138, fullW * ap(t, S(23) - 0.2, 0.9), 34, 8, C.terra);
+    T('full attention over N', bx0 + 14, 1162, { size: 21, weight: 600, color: '#fff' });
+    T('DSA', X0, 1236, { size: 27, weight: 700, color: C.ink });
+    const iw = 200 * ap(t, cue(23, 'cheaper'), 0.7), aw = 120 * ap(t, cue(23, 'followed'), 0.7);
+    box(bx0, 1212, Math.max(iw, 1), 34, 8, C.sage);
+    if (iw > 150) T('indexing', bx0 + 14, 1236, { size: 21, weight: 600, color: '#fff' });
+    box(bx0 + iw + 4, 1212, Math.max(aw, 1), 34, 8, C.orange);
+    A(ap(t, cue(23, 'followed') + 0.5), () => T('attention on k', bx0 + iw + aw + 18, 1236, { size: 21, weight: 600, color: C.orange }));
+    A(ap(t, cue(23, 'cheaper') + 0.4), () => T('never zero: grows with N', bx0, 1282, { size: 21, color: C.sage, weight: 600 }));
+  });
+  A(ap(t, cue(23, 'subset') - 0.2, 0.7), () => {
+    card(X0, 1325, X1 - X0, 88, { r: 20, fill: '#FBF5EE' });
+    T('full attention  →  cheap indexing  +  small attention', CX, 1379, { size: 29, weight: 700, color: C.ink, align: 'center' });
+  });
+}
+
+// ---------- Scene 9: final takeaway (sentences 24–27) ----------
+function scene9(t) {
+  const t0 = SC[8].from;
+  title('The key insight', t, t0 + 0.1);
+  const nodes = ['Full context', 'Lightweight scoring', 'Top 2,048', 'Main attention', 'Output'];
+  const subs = ['N tokens', 'Lightning Indexer', 'token-level selection', 'MLA on the subset', ''];
+  const nx = 190, nw = 700, nh = 82, gap = 30, ny0 = 495;
+  const flow = eio(ss(t, S(25), cue(26, 'efficient')));
+  nodes.forEach((s, i) => {
+    const y = ny0 + i * (nh + gap), p = ap(t, t0 + 0.3 + i * 0.18, 0.5);
+    const lit = clamp(flow * 5 - i, 0, 1);
+    if (i > 0) arrow(CX, y - gap + 2, CX, y - 4, { p, color: mix(C.mute, C.terra, lit), lw: 3, head: 11 });
+    A(p, () => {
+      card(nx, y, nw, nh, { r: 20, stroke: mix(C.line, C.terra, lit), lw: 2 + lit });
+      // mini glyph per stage
+      const gx = nx + 24, gy = y + 20, gw = 170, gh = 42;
+      if (i === 0) strip(gx, gy, gw, gh, 26, () => C.beige);
+      if (i === 1) for (let k = 0; k < 13; k++) { const h = gh * (0.2 + 0.8 * STRIP_SCORE[k * 3]); box(gx + k * 13, gy + gh - h, 10, h, 2, C.sage); }
+      if (i === 2) strip(gx, gy, gw, gh, 26, k => (k % 5 === 1 || k === 12 || k === 23) ? C.terra : '#F2ECE3');
+      if (i === 3) [0.2, 0.55, 0.15, 0.9, 0.35].forEach((v, k) => box(gx + k * 34, gy + gh - gh * v, 26, gh * v, 3, C.terra));
+      if (i === 4) box(gx, gy, 42, gh, 8, C.orange);
+      T(s, nx + 220, y + (subs[i] ? 38 : 50), { size: 30, weight: 700, color: C.ink });
+      if (subs[i]) T(subs[i], nx + 220, y + 66, { size: 22, color: C.ink2 });
+    });
+  });
+  // a pulse travelling down the pipeline
+  if (flow > 0 && flow < 1) {
+    const yy = lerp(ny0 + nh / 2, ny0 + 4 * (nh + gap) + nh / 2, flow);
+    ctx.save(); ctx.shadowColor = 'rgba(201,100,66,.5)'; ctx.shadowBlur = 20;
+    ctx.beginPath(); ctx.arc(nx + nw - 34, yy, 11, 0, Math.PI * 2); ctx.fillStyle = C.terra; ctx.fill(); ctx.restore();
+  }
+  const mA = ap(t, S(27) - 0.2, 1.0);
+  A(mA, () => {
+    card(X0, 1075, X1 - X0, 290, { r: 28, fill: '#FBF3EC', stroke: '#EBD3C4' });
+    mark(CX, 1135, 30, C.terra);
+    T('Spend expensive attention compute', CX, 1225, { size: 42, weight: 700, font: SERIF, color: C.ink, align: 'center' });
+    T('where it matters.', CX, 1290, { size: 46, weight: 700, font: SERIF, color: C.terra, align: 'center' });
+    T('DeepSeek Sparse Attention · DeepSeek-V3.2', CX, 1340, { size: 22, color: C.ink2, align: 'center' });
+  });
+  A(ap(t, S(25), 0.6) * (1 - ss(t, S(27) - 0.4, S(27) - 0.1)), () => T('Not every token needs the same compute.', CX, 1150, { size: 34, weight: 600, color: C.ink2, align: 'center', font: SERIF, italic: true }));
+}
+
+/* ---------------- scene table & transitions ---------------- */
+const SCENE_DEF = [
+  { a: 0, b: 1, f: scene1, name: 'Long context' },
+  { a: 2, b: 3, f: scene2, name: 'Dense cost' },
+  { a: 4, b: 6, f: scene3, name: 'Introducing DSA' },
+  { a: 7, b: 11, f: scene4, name: 'Lightning Indexer' },
+  { a: 12, b: 15, f: scene5, name: 'Top-K' },
+  { a: 16, b: 16, f: scene6, name: 'Sparse attention' },
+  { a: 17, b: 19, f: scene7, name: 'Cost' },
+  { a: 20, b: 23, f: scene8, name: 'The catch' },
+  { a: 24, b: 27, f: scene9, name: 'Takeaway' },
+];
+let SC = [];
+const TR = 0.36;                     // half-width of a crossfade, placed in the pause between sentences
+function buildScenes() {
+  SC = SCENE_DEF.map((d, k) => ({ ...d, from: k === 0 ? 0 : (E(SCENE_DEF[k - 1].b) + S(d.a)) / 2 }));
+  SC.forEach((s, k) => { s.to = k + 1 < SC.length ? SC[k + 1].from : TOTAL; });
+}
+
+/* ---------------- subtitles: one short phrase at a time, from aligned words ---------------- */
+let PHRASES = [];
+function buildPhrases() {
+  PHRASES = [];
+  SENT.forEach(s => {
+    const ws = s.words; let cur = [];
+    ws.forEach((w, i) => {
+      cur.push(w);
+      const left = ws.length - 1 - i;
+      const punct = /[,.?;:!]$/.test(w.w);
+      if ((punct && cur.length >= 2) || (cur.length >= 6 && left > 2) || left === 0) { PHRASES.push(cur); cur = []; }
+    });
+    if (cur.length) PHRASES.push(cur);
+  });
+  PHRASES = PHRASES.map((ws, i) => ({ words: ws, start: LEAD + ws[0].start - 0.08, end: LEAD + ws[ws.length - 1].end }));
+  PHRASES.forEach((p, i) => { const nx = PHRASES[i + 1]; p.end = Math.min(nx ? nx.start - 0.02 : Infinity, p.end + 0.55); });
+}
+function subtitles(t) {
+  const ph = PHRASES.find(p => t >= p.start && t < p.end); if (!ph) return;
+  const a = Math.min(ss(t, ph.start, ph.start + 0.12), 1 - ss(t, ph.end - 0.12, ph.end));
+  const size = 44, maxW = 840, lh = 56;
+  const o = { size, weight: 600 };
+  // wrap into at most 2 lines
+  const lines = [[]]; let lw = 0; const sp = tw(' ', o);
+  ph.words.forEach(w => { const ww = tw(w.w, o); if (lw + ww > maxW && lines[lines.length - 1].length) { lines.push([]); lw = 0; } lines[lines.length - 1].push(w); lw += ww + sp; });
+  const widths = lines.map(L => L.reduce((s, w) => s + tw(w.w, o), 0) + sp * (L.length - 1));
+  const bw = Math.max(...widths) + 56, bh = lines.length * lh + 30, by = 1530 - bh / 2;
+  A(a, () => {
+    box(CX - bw / 2, by, bw, bh, 24, 'rgba(255,253,249,0.94)', C.line, 2);
+    lines.forEach((L, li) => {
+      let x = CX - widths[li] / 2; const y = by + 15 + lh * li + lh / 2 + 2;
+      L.forEach(w => {
+        const said = t >= LEAD + w.start;
+        const now = said && t < LEAD + w.end + 0.05;
+        T(w.w, x, y, { ...o, color: now ? C.terra : said ? C.ink : C.mute, base: 'middle' });
+        x += tw(w.w, o) + sp;
+      });
+    });
+  });
+}
+
+/* ---------------- chrome: header, progress, disclosure ---------------- */
+function chrome(t) {
+  mark(124, 262, 20, C.terra);
+  T('DEEPSEEK SPARSE ATTENTION', 156, 272, { size: 23, weight: 700, color: C.ink2, track: 2.5 });
+  const k = Math.max(0, SC.findIndex(s => t >= s.from && t < s.to));
+  const idx = t >= TOTAL ? SC.length - 1 : k;
+  T(`${String(idx + 1).padStart(2, '0')} / ${String(SC.length).padStart(2, '0')}`, X1, 272, { size: 23, weight: 700, color: C.mute, align: 'right', font: SANS });
+  const gw = (X1 - X0 - 8 * 8) / 9;
+  SC.forEach((s, i) => {
+    const x = X0 + i * (gw + 8), p = ss(t, s.from, s.to);
+    box(x, 298, gw, 6, 3, C.line);
+    if (p > 0) box(x, 298, gw * p, 6, 3, C.terra);
+  });
+  T('Narration voice is AI-generated (OpenAI TTS) · visuals are illustrative', X0, 340, { size: 20, color: C.mute });
+}
+
+/* ---------------- the frame function ---------------- */
+function draw(t) {
+  t = clamp(t, 0, TOTAL);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.shadowColor = 'transparent'; ctx.setLineDash([]);
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  // faint corner decoration
+  A(0.06, () => mark(1010, 1800, 120, C.terra, 0.3));
+  for (let k = 0; k < SC.length; k++) {
+    const s = SC[k];
+    const inA = k === 0 ? 1 : eio(ss(t, s.from - TR, s.from + TR));
+    const outA = k === SC.length - 1 ? 1 : 1 - eio(ss(t, s.to - TR, s.to + TR));
+    const a = Math.min(inA, outA); if (a <= 0.001) continue;
+    ctx.save(); ctx.globalAlpha = a;
+    const dy = inA < 1 ? (1 - inA) * 26 : outA < 1 ? -(1 - outA) * 26 : 0;
+    ctx.translate(0, dy);
+    s.f(t);
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+  chrome(t);
+  subtitles(t);
+}
+
+/* ---------------- boot & live preview ---------------- */
+async function boot() {
+  let tm = window.TIMING;
+  if (!tm) { try { tm = await (await fetch('timings.json')).json(); } catch (e) { console.error('no timing data: run `node render.mjs --inject`'); return; } }
+  initTiming(tm); buildScenes(); buildPhrases();
+  await document.fonts.ready;
+  window.draw = draw; window.SCENES = SC.map(s => ({ name: s.name, from: s.from, to: s.to }));
+  draw(0);
+  if (window.__RENDERING) { document.body.classList.add('rendering'); return; }
+  preview();
+}
+function preview() {
+  const audio = document.getElementById('audio'), btn = document.getElementById('play'), seek = document.getElementById('seek');
+  const time = document.getElementById('time'), jump = document.getElementById('jump');
+  seek.max = TOTAL;
+  SC.forEach((s, i) => { const o = document.createElement('option'); o.value = s.from; o.textContent = `${i + 1}. ${s.name}`; jump.appendChild(o); });
+  let playing = false, clock0 = 0, t0 = 0, cur = 0, hasAudio = false;
+  audio.addEventListener('canplay', () => { hasAudio = true; }, { once: true });
+  audio.addEventListener('error', () => { hasAudio = false; });
+  const now = () => (playing ? (hasAudio ? audio.currentTime : t0 + (performance.now() - clock0) / 1000) : cur);
+  function setT(t) { cur = clamp(t, 0, TOTAL); t0 = cur; clock0 = performance.now(); if (hasAudio) audio.currentTime = cur; }
+  function frame() {
+    const t = now();
+    if (t >= TOTAL) { playing = false; btn.textContent = 'Play'; cur = TOTAL; audio.pause(); }
+    draw(t); seek.value = t; time.textContent = `${t.toFixed(2)} / ${TOTAL.toFixed(2)}`;
+    if (playing) requestAnimationFrame(frame);
+  }
+  btn.onclick = () => {
+    if (playing) { cur = now(); playing = false; audio.pause(); btn.textContent = 'Play'; frame(); return; }
+    if (cur >= TOTAL) setT(0);
+    setT(cur); playing = true; btn.textContent = 'Pause';
+    if (hasAudio) audio.play().catch(() => { hasAudio = false; clock0 = performance.now(); });
+    requestAnimationFrame(frame);
+  };
+  document.getElementById('back').onclick = () => { setT(now() - 5); if (!playing) frame(); };
+  seek.oninput = () => { setT(+seek.value); if (!playing) frame(); };
+  jump.onchange = () => { setT(+jump.value + 0.01); if (!playing) frame(); };
+  window.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); btn.click(); } if (e.code === 'ArrowLeft') { setT(now() - 2); if (!playing) frame(); } if (e.code === 'ArrowRight') { setT(now() + 2); if (!playing) frame(); } });
+  const q = new URLSearchParams(location.search).get('t'); if (q) setT(+q);
+  frame();
+}
+window.ready = boot();
+</script>
+</body>
+</html>

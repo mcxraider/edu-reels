@@ -1,0 +1,14 @@
+{
+  "name": "deepseek-sparse-attention-reel",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "audio": "python3 generate_audio.py && python3 align_audio.py",
+    "inject": "node render.mjs --inject",
+    "preview": "node render.mjs --inject && node render.mjs --audio && python3 -m http.server 8000",
+    "stills": "node render.mjs --stills",
+    "render": "node render.mjs"
+  },
+  "dependencies": { "puppeteer-core": "^23.11.1" }
+}

@@ -1,0 +1,6 @@
+.venv/
+node_modules/
+output/stills/
+output/video_silent.mp4
+output/whisper_words.json
+.env
