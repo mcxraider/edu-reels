@@ -1,0 +1,368 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#F5F1E9}canvas{display:block}</style>
+</head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+const W = 1080, H = 1920, TOTAL = 80;
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const C = {
+  bg: '#F5F1E9', ink: '#1F1E1D', muted: '#77736B', faint: '#B9B2A5', line: '#E2DCD0',
+  card: '#FFFDF8', accent: '#D97757', accentDk: '#B9573A', blue: '#5E7FA6', blueLt: '#C9D6E5',
+  sage: '#7C8F6A', fp16: '#C8BFB0'
+};
+const SERIF = 'Georgia, "Times New Roman", serif';
+const SANS = '"Helvetica Neue", Helvetica, Arial, sans-serif';
+
+// narration segment timing (seconds) — must match build_audio.sh
+const SEG = [
+  [1.0, 6.54], [8.2, 3.09], [12.0, 5.59], [18.3, 4.95], [24.0, 3.0],
+  [28.0, 4.28], [33.0, 3.87], [37.6, 4.93], [43.2, 4.72], [48.8, 3.96]
+];
+const CAPS = [
+  "You quantize a 70-billion-parameter model's weights to 4 bits and keep the activations in 16-bit.",
+  "The kernel unpacks each weight right before its matmul.",
+  "Generating tokens one at a time for a single user gets about three times faster.",
+  "Processing a long prompt—the prefill—is no faster and sometimes a little slower."
+];
+const OPTS = [
+  ['A', 'Decode is bound by memory reads, prefill by matmul throughput.'],
+  ['B', 'The server keeps a 61-bit copy of the weights for prefill.'],
+  ['C', 'Attention takes most of prefill time, and attention runs in 16-bit.'],
+  ['D', 'Decode skips the unpacking step, and prefill unpacks the weights per token.']
+];
+
+// ---------- helpers ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const eio = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const eout = k => 1 - Math.pow(1 - k, 3);
+const back = k => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+const P = (t, a, b, e = eio) => e(clamp((t - a) / (b - a)));
+const win = (t, a, b, f = .45) => clamp((t - a) / f) * clamp((b - t) / f);
+function hex(h) { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
+function mix(h1, h2, k) { const a = hex(h1), b = hex(h2); return `rgb(${a.map((v, i) => Math.round(lerp(v, b[i], k))).join(',')})`; }
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function text(s, x, y, size, color, opt = {}) {
+  ctx.font = `${opt.weight || 400} ${size}px ${opt.font || SANS}`;
+  ctx.fillStyle = color; ctx.textAlign = opt.align || 'center'; ctx.textBaseline = opt.base || 'alphabetic';
+  if (opt.ls) ctx.letterSpacing = opt.ls + 'px'; else ctx.letterSpacing = '0px';
+  ctx.fillText(s, x, y);
+}
+function wrap(s, maxW, size, font, weight = 400) {
+  ctx.font = `${weight} ${size}px ${font}`; ctx.letterSpacing = '0px';
+  const words = s.split(' '); const lines = []; let cur = '';
+  for (const w of words) { const tst = cur ? cur + ' ' + w : w; if (ctx.measureText(tst).width > maxW && cur) { lines.push(cur); cur = w; } else cur = tst; }
+  if (cur) lines.push(cur); return lines;
+}
+function spark(x, y, r, color, rot = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.strokeStyle = color; ctx.lineCap = 'round'; ctx.lineWidth = r * .28;
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, l = i % 2 ? r * .7 : r; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * .18, Math.sin(a) * r * .18); ctx.lineTo(Math.cos(a) * l, Math.sin(a) * l); ctx.stroke(); }
+  ctx.restore();
+}
+function arrowDown(x, y1, y2, color, a) {
+  ctx.save(); ctx.globalAlpha *= a; ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.setLineDash([2, 12]); ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y2 - 14); ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(x - 14, y2 - 18); ctx.lineTo(x, y2); ctx.lineTo(x + 14, y2 - 18); ctx.stroke(); ctx.restore();
+}
+function withAlpha(a, fn) { if (a <= 0.001) return; ctx.save(); ctx.globalAlpha = a; fn(); ctx.restore(); }
+function bits(x, y, w, h, n, color, r = 8) {
+  // block representing a weight with n bit-stripes
+  rr(x, y, w, h, r); ctx.fillStyle = color; ctx.fill();
+  ctx.save(); rr(x, y, w, h, r); ctx.clip(); ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2;
+  for (let i = 1; i < n; i++) { const xx = x + w * i / n; ctx.beginPath(); ctx.moveTo(xx, y + 6); ctx.lineTo(xx, y + h - 6); ctx.stroke(); }
+  ctx.restore();
+}
+function title(s, y, a, sub) {
+  withAlpha(a, () => {
+    const dy = (1 - a) * 18;
+    text(s, W / 2, y + dy, 68, C.ink, { font: SERIF });
+    if (sub) text(sub, W / 2, y + 62 + dy, 34, C.muted);
+  });
+}
+
+// ---------- persistent chrome ----------
+function chrome(t) {
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  // subtle paper dots
+  ctx.fillStyle = 'rgba(31,30,29,0.035)';
+  for (let y = 300; y < 1560; y += 48) for (let x = 36; x < W; x += 48) { ctx.beginPath(); ctx.arc(x, y, 2, 0, 7); ctx.fill(); }
+  spark(110, 186, 22, C.accent, t * 0.4);
+  text('CONTEXT QUESTION', 148, 198, 30, C.accent, { align: 'left', weight: 700, ls: 4 });
+  text('Quantization × inference speed', 148, 242, 30, C.muted, { align: 'left' });
+  // progress line
+  ctx.fillStyle = C.line; rr(80, 286, W - 160, 6, 3); ctx.fill();
+  ctx.fillStyle = C.accent; rr(80, 286, (W - 160) * clamp(t / TOTAL), 6, 3); ctx.fill();
+}
+
+function caption(t) {
+  for (let i = 0; i < CAPS.length; i++) {
+    const [s, d] = SEG[i]; const a = win(t, s - .15, s + d + .35, .25);
+    if (a <= 0) continue;
+    withAlpha(a, () => {
+      const lines = wrap(CAPS[i], 860, 40, SANS, 500);
+      const bh = lines.length * 54 + 44, by = 1440;
+      rr(70, by, W - 140, bh, 28); ctx.fillStyle = 'rgba(255,253,248,.92)'; ctx.fill();
+      ctx.strokeStyle = C.line; ctx.lineWidth = 2; ctx.stroke();
+      // karaoke-ish: highlight words spoken so far
+      const k = clamp((t - s) / d);
+      const totalChars = CAPS[i].length; let seen = 0;
+      lines.forEach((ln, j) => {
+        ctx.font = `500 40px ${SANS}`; ctx.letterSpacing = '0px'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        let x = W / 2 - ctx.measureText(ln).width / 2; const y = by + 62 + j * 54;
+        for (const w of ln.split(' ')) {
+          seen += w.length + 1;
+          ctx.fillStyle = seen / totalChars <= k + 0.04 ? C.ink : C.faint;
+          ctx.fillText(w, x, y); x += ctx.measureText(w + ' ').width;
+        }
+      });
+    });
+  }
+}
+
+// ---------- scene 1: quantize ----------
+function scene1(t) {
+  const a = win(t, 0.3, 8.0); if (a <= 0) return;
+  withAlpha(a, () => {
+    title('70 billion weights', 430, P(t, .3, 1.1));
+    const q = P(t, 2.9, 4.7);           // quantize progress
+    const rows = 6, cols = 6, h = 48, gap = 18;
+    const w = lerp(124, 34, q);
+    const totalW = cols * w + (cols - 1) * gap, x0 = W / 2 - totalW / 2, y0 = 540;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const idx = r * cols + c, ap = P(t, .5 + idx * .025, .9 + idx * .025, eout);
+      if (ap <= 0) continue;
+      const qi = clamp(q * 1.6 - (c + r) * .06);
+      withAlpha(ap, () => bits(x0 + c * (w + gap), y0 + r * (h + gap) + (1 - ap) * 20, w, h, Math.round(lerp(16, 4, qi)), mix(C.fp16, C.accent, qi), 8));
+    }
+    // memory bar
+    const by = y0 + rows * (h + gap) + 50;
+    withAlpha(P(t, 1.4, 2.2), () => {
+      ctx.fillStyle = C.line; rr(140, by, 800, 22, 11); ctx.fill();
+      ctx.fillStyle = mix(C.fp16, C.accent, q); rr(140, by, lerp(800, 200, q), 22, 11); ctx.fill();
+      const lab = q < .5 ? '16-bit weights  ·  ~140 GB' : '4-bit weights  ·  ~35 GB';
+      const la = Math.abs(q - .5) * 2;
+      withAlpha(la, () => text(lab, W / 2, by + 74, 40, q < .5 ? C.muted : C.accentDk, { weight: 600 }));
+    });
+    // activations
+    const ac = P(t, 5.0, 6.0, eout);
+    withAlpha(ac, () => {
+      const ay = by + 150 + (1 - ac) * 24;
+      text('activations', W / 2, ay, 34, C.muted, { weight: 500 });
+      const n = 6, aw = 110, ag = 16, ax = W / 2 - (n * aw + (n - 1) * ag) / 2;
+      for (let i = 0; i < n; i++) bits(ax + i * (aw + ag), ay + 28, aw, 44, 16, C.blue, 8);
+      withAlpha(P(t, 6.0, 6.6), () => text('stay 16-bit', W / 2, ay + 130, 36, C.blue, { weight: 600 }));
+    });
+  });
+}
+
+// ---------- scene 2: unpack before matmul ----------
+function scene2(t) {
+  const a = win(t, 8.0, 11.8); if (a <= 0) return;
+  withAlpha(a, () => {
+    title('Unpack, then multiply', 430, P(t, 8.0, 8.7), 'inside the kernel, every weight, every time');
+    const boxes = [
+      ['GPU memory', '4-bit packed', 600, C.accent],
+      ['unpack', '4-bit → 16-bit', 860, C.ink],
+      ['matmul', 'W · x  (16-bit)', 1120, C.blue]
+    ];
+    boxes.forEach(([n, s, y, col], i) => {
+      const ap = P(t, 8.3 + i * .25, 8.9 + i * .25, eout);
+      withAlpha(ap, () => {
+        rr(260, y - 70 + (1 - ap) * 20, 560, 140, 26); ctx.fillStyle = C.card; ctx.fill();
+        ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.stroke();
+        text(n, W / 2, y - 6 + (1 - ap) * 20, 44, C.ink, { font: SERIF });
+        text(s, W / 2, y + 40 + (1 - ap) * 20, 30, C.muted);
+      });
+    });
+    const ap = P(t, 9.0, 9.4);
+    arrowDown(W / 2, 680, 780, C.faint, ap); arrowDown(W / 2, 940, 1040, C.faint, ap);
+    // packets
+    for (let k = 0; k < 12; k++) {
+      const st = 9.0 + k * .32, pr = (t - st) / 1.5;
+      if (pr < 0 || pr > 1) continue;
+      const y = lerp(600, 1120, pr);
+      const u = clamp((y - 820) / 80);       // unpack expansion near the unpack box
+      const w = lerp(34, 120, u), x = 120 + (k % 2) * 0;
+      const side = k % 2 ? 870 : 210;     // travel on the two sides of the boxes
+      withAlpha(clamp(pr * 8) * clamp((1 - pr) * 8), () => bits(side - w / 2 + (k % 2 ? 0 : 0), y - 20, w, 40, Math.round(lerp(4, 16, u)), mix(C.accent, C.fp16, u), 7));
+    }
+    // matmul pulse
+    const pulse = Math.max(0, Math.sin((t - 9.0) * Math.PI * 2 / .64)) * P(t, 10.4, 10.6);
+    if (pulse > 0) withAlpha(pulse * .35, () => { rr(250, 1040, 580, 160, 30); ctx.strokeStyle = C.blue; ctx.lineWidth = 8; ctx.stroke(); });
+  });
+}
+
+// ---------- race lanes ----------
+function lane(y, label, sub, col, a) {
+  withAlpha(a, () => {
+    text(label, 120, y, 38, C.ink, { align: 'left', weight: 600 });
+    text(sub, 960, y, 30, C.muted, { align: 'right' });
+  });
+}
+
+// ---------- scene 3: decode ----------
+function scene3(t) {
+  const a = win(t, 11.8, 18.0); if (a <= 0) return;
+  withAlpha(a, () => {
+    title('Decode', 430, P(t, 11.8, 12.5), 'one new token at a time · one user');
+    // diagram: 1 token row × W
+    const ap = P(t, 12.1, 12.9, eout);
+    withAlpha(ap, () => {
+      const y = 560;
+      bits(170, y + 90, 230, 36, 8, C.blue, 8);
+      text('1 token', 285, y + 170, 30, C.blue, { weight: 600 });
+      text('×', 470, y + 122, 60, C.muted, { font: SERIF });
+      for (let r = 0; r < 6; r++) for (let c = 0; c < 6; c++) { rr(560 + c * 58, y + r * 38, 46, 28, 6); ctx.fillStyle = C.accent; ctx.globalAlpha = ap * (.55 + .45 * ((r + c) % 2)); ctx.fill(); }
+      ctx.globalAlpha = ap;
+      text('all 70B weights', 735, y + 270, 30, C.accentDk, { weight: 600 });
+    });
+    // token streams
+    const t0 = 13.2;
+    const lanes = [['16-bit weights', C.fp16, .62, 920], ['4-bit weights', C.accent, .62 / 3, 1150]];
+    lanes.forEach(([lab, col, per, y], i) => {
+      const la = P(t, 12.6 + i * .2, 13.1 + i * .2);
+      const n = Math.max(0, Math.floor((t - t0) / per) + 1);
+      lane(y, lab, la > 0 ? `${Math.min(n, 99)} tokens` : '', col, la);
+      withAlpha(la, () => {
+        ctx.fillStyle = C.line; rr(120, y + 30, 840, 4, 2); ctx.fill();
+        const max = Math.min(n, 52);
+        for (let j = 0; j < max; j++) {
+          const born = t0 + j * per, pop = back(clamp((t - born) / .25));
+          const cx = 120 + (j % 26) * 32.4 + 12, cy = y + 70 + Math.floor(j / 26) * 34;
+          ctx.save(); ctx.translate(cx, cy); ctx.scale(pop, pop); rr(-11, -11, 22, 22, 6); ctx.fillStyle = col; ctx.fill(); ctx.restore();
+        }
+      });
+    });
+    // badge
+    const b = P(t, 15.6, 16.1, back);
+    withAlpha(clamp(b), () => {
+      ctx.save(); ctx.translate(W / 2, 1335); ctx.scale(b, b);
+      rr(-170, -46, 340, 92, 46); ctx.fillStyle = C.accent; ctx.fill();
+      text('≈ 3× faster', 0, 14, 44, '#fff', { weight: 700 }); ctx.restore();
+    });
+  });
+}
+
+// ---------- scene 4: prefill ----------
+function scene4(t) {
+  const a = win(t, 18.0, 23.8); if (a <= 0) return;
+  withAlpha(a, () => {
+    title('Prefill', 430, P(t, 18.0, 18.7), 'the whole long prompt at once');
+    const ap = P(t, 18.3, 19.1, eout);
+    withAlpha(ap, () => {
+      const y = 540;
+      for (let r = 0; r < 9; r++) { const rp = P(t, 18.4 + r * .06, 18.8 + r * .06, eout); withAlpha(rp, () => bits(170, y + r * 30, 230, 22, 8, C.blue, 6)); }
+      text('2,048 tokens', 285, y + 310, 30, C.blue, { weight: 600 });
+      text('×', 470, y + 150, 60, C.muted, { font: SERIF });
+      for (let r = 0; r < 6; r++) for (let c = 0; c < 6; c++) { rr(560 + c * 58, y + 20 + r * 38, 46, 28, 6); ctx.fillStyle = C.accent; ctx.globalAlpha = ap * (.55 + .45 * ((r + c) % 2)); ctx.fill(); }
+      ctx.globalAlpha = ap;
+      text('same 70B weights', 735, y + 310, 30, C.accentDk, { weight: 600 });
+    });
+    // timing bars
+    const s0 = 19.4;
+    const bars = [['16-bit weights', C.fp16, 2.6, 960], ['4-bit weights', C.accent, 2.85, 1150]];
+    bars.forEach(([lab, col, dur, y], i) => {
+      const la = P(t, 19.0 + i * .2, 19.5 + i * .2);
+      const k = clamp((t - s0) / dur);
+      lane(y, lab, la > 0 ? (k >= 1 ? (i ? '1.1 s' : '1.0 s') : 'processing…') : '', col, la);
+      withAlpha(la, () => {
+        ctx.fillStyle = C.line; rr(120, y + 30, 840, 40, 20); ctx.fill();
+        if (k > 0) { ctx.fillStyle = col; rr(120, y + 30, Math.max(40, 840 * eio(k)), 40, 20); ctx.fill(); }
+      });
+    });
+    const b = P(t, 22.4, 22.9, back);
+    withAlpha(clamp(b), () => {
+      ctx.save(); ctx.translate(W / 2, 1335); ctx.scale(b, b);
+      rr(-250, -46, 500, 92, 46); ctx.fillStyle = C.ink; ctx.fill();
+      text('no faster · even slower', 0, 14, 40, '#fff', { weight: 700 }); ctx.restore();
+    });
+  });
+}
+
+// ---------- scene 5: the question ----------
+function scene5(t) {
+  const a = win(t, 23.7, 27.7); if (a <= 0) return;
+  withAlpha(a, () => {
+    const k1 = P(t, 23.8, 24.5, eout), k2 = P(t, 25.0, 25.7, eout);
+    withAlpha(k1, () => text('Why does decoding', W / 2, 760 + (1 - k1) * 20, 84, C.ink, { font: SERIF }));
+    withAlpha(k1, () => text('speed up…', W / 2, 860 + (1 - k1) * 20, 84, C.accent, { font: SERIF }));
+    withAlpha(k2, () => text('…when prefill doesn’t?', W / 2, 1000 + (1 - k2) * 20, 84, C.ink, { font: SERIF }));
+    const k3 = P(t, 25.8, 26.4, eout);
+    withAlpha(k3, () => {
+      const chips = [['Decode', '3×', C.accent, 330], ['Prefill', '1×', C.muted, 750]];
+      chips.forEach(([n, v, col, x]) => {
+        rr(x - 170, 1140, 340, 110, 55); ctx.fillStyle = C.card; ctx.fill(); ctx.strokeStyle = C.line; ctx.lineWidth = 2; ctx.stroke();
+        text(n, x - 40, 1208, 40, C.ink, { weight: 600 }); text(v, x + 90, 1210, 48, col, { weight: 700 });
+      });
+    });
+  });
+}
+
+// ---------- scene 6: options + think ----------
+function scene6(t) {
+  const a = win(t, 27.6, TOTAL + 1); if (a <= 0) return;
+  withAlpha(a, () => {
+    // heading
+    const h1 = win(t, 27.7, 48.7, .4), h2 = P(t, 48.7, 49.3);
+    withAlpha(h1, () => text('Which explanation is right?', W / 2, 420, 56, C.ink, { font: SERIF }));
+    withAlpha(h2, () => {
+      text('Which is it — and how would you', W / 2, 400, 52, C.ink, { font: SERIF });
+      text('confirm it on your own GPU?', W / 2, 466, 52, C.accent, { font: SERIF });
+    });
+    let y = 530;
+    OPTS.forEach(([L, s], i) => {
+      const [st, d] = SEG[5 + i];
+      const ap = P(t, st - .3, st + .3, eout);
+      const lines = wrap(s, 720, 38, SANS, 500);
+      const hgt = Math.max(150, lines.length * 50 + 70);
+      const active = t >= st - .2 && t <= st + d + .2 ? 1 : 0;
+      const act = win(t, st - .2, st + d + .2, .25);
+      const dim = t > 49.5 && t < 53 ? .9 : 1;
+      withAlpha(ap * dim, () => {
+        const yy = y + (1 - ap) * 30;
+        rr(80, yy, W - 160, hgt, 28); ctx.fillStyle = C.card; ctx.fill();
+        ctx.strokeStyle = mix('#E2DCD0', '#D97757', act); ctx.lineWidth = lerp(2, 5, act); ctx.stroke();
+        ctx.beginPath(); ctx.arc(160, yy + hgt / 2, 40, 0, 7); ctx.fillStyle = mix('#EFE9DD', '#D97757', act); ctx.fill();
+        text(L, 160, yy + hgt / 2 + 15, 42, act > .5 ? '#fff' : C.ink, { weight: 700, font: SERIF });
+        lines.forEach((ln, j) => text(ln, 230, yy + hgt / 2 - (lines.length - 1) * 25 + 14 + j * 50, 38, C.ink, { align: 'left', weight: 500 }));
+      });
+      y += hgt + 26;
+    });
+    // countdown
+    const cs = 53.3, ce = TOTAL - 1.5;
+    const ca = P(t, cs - .3, cs + .5, eout);
+    withAlpha(ca, () => {
+      const cy = y + 120, cx = 230, R = 74;
+      const k = clamp((t - cs) / (ce - cs));
+      ctx.lineWidth = 12; ctx.lineCap = 'round';
+      ctx.strokeStyle = C.line; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.stroke();
+      ctx.strokeStyle = C.accent; ctx.beginPath(); ctx.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - k)); ctx.stroke();
+      const secs = Math.ceil((ce - t));
+      text(t < ce ? String(Math.max(0, Math.min(25, secs))) : '✓', cx, cy + 20, 58, C.ink, { weight: 700 });
+      if (t < ce) {
+        text('Pause & think.', 350, cy - 8, 50, C.ink, { align: 'left', font: SERIF });
+        text('Pick A, B, C or D — then the test.', 350, cy + 46, 32, C.muted, { align: 'left' });
+      } else {
+        withAlpha(P(t, ce, ce + .5), () => {
+          text('Drop your answer', 350, cy - 8, 50, C.ink, { align: 'left', font: SERIF });
+          text('and your GPU experiment below ↓', 350, cy + 46, 32, C.accentDk, { align: 'left' });
+        });
+      }
+      // breathing spark
+      spark(940, cy, 30 + 4 * Math.sin(t * 2), C.accent, t * .5);
+    });
+  });
+}
+
+const ANCH=[[0, 0], [1.0, 1.0], [8.094, 7.54], [8.535, 8.2], [12.018, 11.29], [12.401, 12.0], [17.73, 17.59], [18.055, 18.3], [23.477, 23.25], [23.686, 24.0], [26.693, 27.0], [27.076, 28.0], [32.637, 32.28], [32.811, 33.0], [37.212, 36.87], [37.595, 37.6], [42.993, 42.53], [43.377, 43.2], [49.205, 47.92], [49.53, 48.8], [53.152, 52.76], [53.652, 53.3], [80, 80]];
+function warpT(t){for(let i=1;i<ANCH.length;i++){const[a,b]=ANCH[i-1],[c,d]=ANCH[i];if(t<=c)return b+(d-b)*(t-a)/(c-a);}return t;}
+function draw(rt) {
+  const t = warpT(rt);
+  chrome(t);
+  scene1(t); scene2(t); scene3(t); scene4(t); scene5(t); scene6(t);
+  caption(t);
+}
+window.draw = draw; window.TOTAL = TOTAL;
+if (!navigator.webdriver) { const t0 = performance.now(); (function loop() { draw(((performance.now() - t0) / 1000) % TOTAL); requestAnimationFrame(loop); })(); }
+</script></body></html>
