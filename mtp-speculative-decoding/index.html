@@ -62,9 +62,10 @@ const easeOutBack = k => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow
 const ep = (t, a, d = 0.5, f = easeInOutCubic) => f(prog(t, a, a + d));         // eased progress from a over d
 const win = (t, a, b, fi = 0.35, fo = 0.35) => Math.min(ep(t, a, fi), 1 - ep(t, b - fo, fo));
 const hash = i => { const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
-function hex(c) { const n = parseInt(c.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function hex(c) { if (c.startsWith('rgb')) return c.match(/\d+/g).slice(0, 3).map(Number);
+  const n = parseInt(c.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
 function mix(a, b, k) { if (k <= 0) return a; if (k >= 1) return b; const x = hex(a), y = hex(b);
-  return `rgb(${x.map((v, i) => Math.round(lerp(v, y[i], k))).join(',')})`; }
+  return '#' + x.map((v, i) => Math.round(lerp(v, y[i], k)).toString(16).padStart(2, '0')).join(''); }
 
 // ---------- time-warp: narration cues -> measured seconds ----------
 const T = window.TIMING;
@@ -274,7 +275,7 @@ function scene1(t) {
   let sweep = -1, passIdx = -1;
   steps.forEach((g, k) => { const p = prog(t, g, g + 1.0); if (p > 0 && p < 1) { sweep = p; passIdx = k; } });
   transformer(bx, by, bw, bh, { label: 'Large language model', sub: 'one full forward pass', layers: 4, sweep, alpha: ep(t, tIntro, 0.6) });
-  if (passIdx >= 0) text(`decoding step ${passIdx + 1}`, bx + bw - 26, by + 36, { size: 24, weight: 600, color: C.terra, align: 'right' });
+  if (passIdx >= 0) text(`decoding step ${passIdx + 1} running…`, CX, by + bh + 34, { size: 24, weight: 650, color: C.terra });
 
   // prompt tokens (inputs, under the model)
   PROMPT.forEach((l, i) => {
@@ -359,9 +360,9 @@ function scene2(t) {
     const on = ep(t, hd.t0, 0.45);
     const col = DEPTH[k];
     line(CX, hy - 22, hd.x, hy2 + 42, { color: on > 0 ? col : C.faint, lw: on > 0 ? 3 : 2, alpha: Math.max(ghost * 0.6, on), k: Math.max(ghost, on) });
-    rr(hd.x - 130, hy2 - 42, 260, 84, 18, { fill: on > 0 ? mix(C.card, col, 0.14 * on) : null, stroke: on > 0 ? col : C.faint, lw: 2.5,
+    rr(hd.x - 120, hy2 - 42, 240, 84, 18, { fill: on > 0 ? mix(C.card, col, 0.14 * on) : null, stroke: on > 0 ? col : C.faint, lw: 2.5,
       dash: on > 0 ? null : [7, 6], alpha: Math.max(ghost * 0.7, on), shadow: on > 0 ? 8 : 0 });
-    text(hd.name, hd.x, hy2 - 8, { size: 23, weight: 650, color: on > 0 ? C.ink : C.muted, alpha: Math.max(ghost * 0.7, on), maxW: 236 });
+    text(hd.name, hd.x, hy2 - 8, { size: 23, weight: 650, color: on > 0 ? C.ink : C.muted, alpha: Math.max(ghost * 0.7, on), maxW: 220 });
     text(k === 0 ? 'predicts t+1' : `predicts ${hd.depth}`, hd.x, hy2 + 22, { size: 21, color: on > 0 ? col : C.muted, alpha: Math.max(ghost * 0.7, on) });
     // outputs
     const oA = k === 0 ? ep(t, tMain + 0.4, 0.4) : ep(t, tFut + (k - 1) * 0.3, 0.4, easeOutBack);
@@ -376,8 +377,7 @@ function scene2(t) {
   text('speculative — not confirmed output', 680, 372, { size: 22, weight: 650, color: C.amberInk, alpha: tagA });
   // design variants (not all MTP implementations look alike)
   const vA = ep(t, tMod, 0.5);
-  [[250, 410], [540, 700]].forEach(([a, b]) => curveArrow([a + 132, hy2 + 8], [(a + b) / 2 + 40, hy2 + 60], [b - 132 + 0, hy2 + 14],
-    { color: C.ink2, lw: 2, dash: [5, 6], alpha: vA * 0.8, head: 9 }));
+  [250, 540].forEach(a => arrow(a + 122, hy2, a + 168, hy2, { color: C.ink2, lw: 2.5, dash: [5, 5], alpha: vA, head: 10 }));
   text('Designs vary:', 100, 1318, { size: 23, weight: 700, color: C.ink, align: 'left', alpha: vA });
   text('independent parallel heads (e.g. Medusa), or', 260, 1318, { size: 23, color: C.ink2, align: 'left', alpha: vA, maxW: 720 });
   text('sequential modules chained by the dashed links (e.g. DeepSeek-V3)', 100, 1354, { size: 23, color: C.ink2, align: 'left', alpha: vA, maxW: 880 });
@@ -434,7 +434,6 @@ function scene3(t) {
     text(b, x, 1318, { size: 22, color: C.ink2, alpha: pA });
     if (k < 2) arrow(x + 145, 1295, x + 182, 1295, { color: C.faint, lw: 3, head: 10, alpha: pA });
   });
-  text('speculative decoding', CX, 1222 - 12, { size: 1, alpha: 0 });
 }
 
 // ---------- Scene 4: one batched verification pass ----------
@@ -462,7 +461,7 @@ function scene4(t) {
     arrow(L.xs[i], by - 4, L.xs[i], by - 52, { color: C.terra, lw: 3, k: a, head: 10 });
     logits(L.xs[i], by - 62, 11 + k * 3, { alpha: a, k: a, w: 70, maxH: 60 });
   });
-  rich([['4 next-token distributions ', C.terra, 700], ['from 1 pass', C.ink, 700]], CX, 742, { size: 28, alpha: ep(t, outT + 0.6, 0.4) });
+  rich([['4 next-token distributions ', C.terra, 700], ['from 1 pass', C.ink, 700]], CX, 702, { size: 26, alpha: ep(t, outT + 0.6, 0.4) });
   // brackets under the row
   const bA = ep(t, tVer, 0.4);
   const brk = (x1, x2, y, label, col, a) => { line(x1, y, x2, y, { color: col, lw: 2.5, alpha: a }); line(x1, y - 10, x1, y, { color: col, lw: 2.5, alpha: a }); line(x2, y - 10, x2, y, { color: col, lw: 2.5, alpha: a });
@@ -582,7 +581,7 @@ function scene6(t) {
   text('input position', cols.pos, hy, { size: 22, weight: 700, color: C.muted, alpha: a0 });
   text('draft', cols.draft, hy, { size: 22, weight: 700, color: C.amberInk, alpha: ep(t, tCmp, 0.4) });
   text('target prediction', cols.tgt, hy, { size: 22, weight: 700, color: C.ink, alpha: ep(t, tTgt, 0.4) });
-  chip('greedy: target = argmax', cols.tgt, 335 + 0, { size: 21, h: 40, padX: 16, color: C.ink2, alpha: ep(t, tGreedy, 0.4) * (1 - ep(t, tSamp, 0.3)) });
+  chip('greedy: target = argmax', cols.tgt, 352, { size: 20, h: 34, padX: 16, color: C.ink2, alpha: ep(t, tGreedy, 0.4) * (1 - ep(t, tSamp, 0.3)) });
   const after = ['after "is"', 'after "Paris"', 'after "."'];
   const accK = ep(t, tAcc, 0.5), rejK = ep(t, tRej, 0.4);
   const L = rowLayout([...PROMPT, ...TARGET], CX, { size: 30 });
@@ -654,7 +653,7 @@ function scene7(t) {
   });
   const c1 = ep(t, tWo + 3.6, 0.4);
   text('3', 860, 455, { size: 64, weight: 800, color: C.terra, alpha: c1 });
-  text('sequential steps', 860, 505, { size: 22, weight: 600, color: C.ink2, alpha: c1 });
+  text('sequential steps', 860, 522, { size: 22, weight: 600, color: C.ink2, alpha: c1 });
   // bottom timeline: speculative decoding
   text('Speculative decoding', X0, 650, { size: 28, weight: 750, align: 'left', alpha: ep(t, tW - 0.3, 0.4) });
   const bA = ep(t, tW - 0.3, 0.4), dP = prog(t, tW, tW + 0.6), vP = prog(t, tW + 0.65, tW + 1.9);
@@ -668,7 +667,7 @@ function scene7(t) {
   TARGET.forEach((l, k) => token(l, X0 + 140 + k * 88, 822, { st: k < 2 ? TS.accepted : TS.target, size: 24, w: 80, scale: em }));
   const c2 = ep(t, tAcc + 0.3, 0.4);
   text('1', 860, 713, { size: 64, weight: 800, color: C.green, alpha: c2 });
-  text('verification pass', 860, 763, { size: 22, weight: 600, color: C.ink2, alpha: c2 });
+  text('verification pass', 860, 780, { size: 22, weight: 600, color: C.ink2, alpha: c2 });
   arrow(X0, 880, 800, 880, { color: C.faint, lw: 2.5, alpha: a0, head: 11 });
   text('time →   (illustrative, not to scale)', X0, 905, { size: 20, color: C.muted, align: 'left', alpha: a0 });
   // metric
@@ -689,7 +688,7 @@ function scene7(t) {
   text('drafting + verifying 4 positions = extra work', X0 + 520, 1178, { size: 21, color: C.amberInk, align: 'left', alpha: eA, maxW: 340 });
   const qA = ep(t, tSeq, 0.45);
   rich([['But serial steps: ', C.ink, 650], ['3 → 1', C.terra, 800]], X0 + 520, 1128, { size: 26, align: 'left', alpha: qA });
-  if (qA > 0) { ring(860, 480, 62, qA, { color: C.terra, lw: 4, alpha: qA * 0.8 }); ring(860, 738, 62, qA, { color: C.green, lw: 4, alpha: qA * 0.8 }); }
+  if (qA > 0) { ring(860, 457, 42, qA, { color: C.terra, lw: 4, alpha: qA * 0.8 }); ring(860, 715, 42, qA, { color: C.green, lw: 4, alpha: qA * 0.8 }); }
   // GPUs
   const gA = ep(t, tGpu, 0.45);
   rr(90, 1232, 900, 140, 22, { fill: mix(C.card, C.terraLight, 0.4), stroke: C.border, alpha: gA });
