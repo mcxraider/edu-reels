@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How SpecInfer works — Canvas reel</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #E9E4DB; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  #c { width: auto; height: calc(100vh - 70px); aspect-ratio: 9 / 16; box-shadow: 0 8px 40px rgba(60, 40, 20, .18); border-radius: 6px; background: #F8F6F2; }
+  #ui { display: flex; gap: 12px; align-items: center; width: min(92vw, 640px); color: #2B2724; font-size: 14px; }
+  #ui button { border: 1px solid #C76B4B; background: #FFFDF9; color: #C76B4B; border-radius: 18px; padding: 6px 16px; font-weight: 600; cursor: pointer; }
+  #ui input[type=range] { flex: 1; accent-color: #C76B4B; }
+  #ui .tc { font-variant-numeric: tabular-nums; min-width: 120px; text-align: right; }
+  body.rendering { display: block; background: #F8F6F2; }
+  body.rendering #ui { display: none; }
+  body.rendering #c { width: 1080px; height: 1920px; box-shadow: none; border-radius: 0; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<div id="ui">
+  <button id="play">▶ Play</button>
+  <input id="scrub" type="range" min="0" max="1000" step="1" value="0">
+  <span class="tc" id="tc">0.00 / 0.00 s</span>
+</div>
+<audio id="audio" src="assets/voiceover.wav" preload="auto"></audio>
+
+<!-- DATA:BEGIN (injected by `node render.mjs --inject` from timings.json) -->
+<script id="data">window.TIMING = {"duration":158,"fps":30,"scenes":[{"id":"s1_bottleneck","first_segment":"seg00","speech_start":1.01,"speech_end":18.35,"start":0,"end":19.075},{"id":"s2_speculative","first_segment":"seg03","speech_start":19.8,"speech_end":29.96,"start":19.075,"end":30.62},{"id":"s3_tree","first_segment":"seg06","speech_start":31.28,"speech_end":53.38,"start":30.62,"end":54.035},{"id":"s4_mask","first_segment":"seg10","speech_start":54.69,"speech_end":79.13,"start":54.035,"end":79.81},{"id":"s5_verify","first_segment":"seg16","speech_start":80.49,"speech_end":92.45,"start":79.81,"end":93.205},{"id":"s6_accept","first_segment":"seg18","speech_start":93.96,"speech_end":106.93,"start":93.205,"end":107.625},{"id":"s7_speed","first_segment":"seg20","speech_start":108.32,"speech_end":139,"start":107.625,"end":139.555},{"id":"s8_takeaway","first_segment":"seg25","speech_start":140.11,"speech_end":152.79,"start":139.555,"end":158}],"segments":[{"id":"seg00","scene":"s1_bottleneck","text":"Imagine you're generating text using a massive language model.","start":1.01,"end":4.52,"words":[{"w":"Imagine","start":1.01,"end":1.58},{"w":"you're","start":1.58,"end":2},{"w":"generating","start":2,"end":2.36},{"w":"text","start":2.36,"end":2.82},{"w":"using","start":2.82,"end":3.24},{"w":"a","start":3.24,"end":3.86},{"w":"massive","start":3.86,"end":3.86},{"w":"language","start":3.86,"end":4.26},{"w":"model.","start":4.26,"end":4.5}]},{"id":"seg01","scene":"s1_bottleneck","text":"Normally, the model predicts one token, then another, then another. Every new token requires another forward pass.","start":6.12,"end":12.47,"words":[{"w":"Normally,","start":6.12,"end":5.72},{"w":"the","start":6.1,"end":6.5},{"w":"model","start":6.5,"end":6.5},{"w":"predicts","start":6.5,"end":6.96},{"w":"one","start":6.96,"end":7.22},{"w":"token,","start":7.22,"end":7.4},{"w":"then","start":7.92,"end":8.08},{"w":"another,","start":8.08,"end":8.32},{"w":"then","start":8.68,"end":8.9},{"w":"another.","start":8.9,"end":9.16},{"w":"Every","start":9.96,"end":10.26},{"w":"new","start":10.26,"end":10.78},{"w":"token","start":10.78,"end":10.78},{"w":"requires","start":10.78,"end":11.3},{"w":"another","start":11.3,"end":11.7},{"w":"forward","start":11.7,"end":12.08},{"w":"pass.","start":12.08,"end":12.44}]},{"id":"seg02","scene":"s1_bottleneck","text":"And when your model has billions of parameters, repeatedly loading those weights becomes expensive.","start":13.08,"end":18.35,"words":[{"w":"And","start":13.08,"end":13.22},{"w":"when","start":13.22,"end":13.3},{"w":"your","start":13.3,"end":13.56},{"w":"model","start":13.56,"end":13.68},{"w":"has","start":13.68,"end":14},{"w":"billions","start":14,"end":14.28},{"w":"of","start":14.28,"end":15.08},{"w":"parameters,","start":15.08,"end":15.08},{"w":"repeatedly","start":15.72,"end":16.08},{"w":"loading","start":16.08,"end":16.38},{"w":"those","start":16.38,"end":17.04},{"w":"weights","start":17.04,"end":17.04},{"w":"becomes","start":17.04,"end":17.72},{"w":"expensive.","start":17.72,"end":18.36}]},{"id":"seg03","scene":"s2_speculative","text":"But what if we could predict several tokens ahead, and verify them together?","start":19.8,"end":23.6,"words":[{"w":"But","start":19.8,"end":20.02},{"w":"what","start":20.02,"end":20.14},{"w":"if","start":20.14,"end":20.26},{"w":"we","start":20.26,"end":20.38},{"w":"could","start":20.38,"end":20.62},{"w":"predict","start":20.62,"end":20.82},{"w":"several","start":20.82,"end":21.28},{"w":"tokens","start":21.28,"end":21.6},{"w":"ahead,","start":21.6,"end":22.02},{"w":"and","start":22.02,"end":22.6},{"w":"verify","start":22.6,"end":22.92},{"w":"them","start":22.92,"end":23.2},{"w":"together?","start":23.2,"end":23.56}]},{"id":"seg04","scene":"s2_speculative","text":"That's the idea behind speculative decoding.","start":24.36,"end":26.73,"words":[{"w":"That's","start":24.36,"end":24.64},{"w":"the","start":24.64,"end":24.88},{"w":"idea","start":24.88,"end":25.16},{"w":"behind","start":25.16,"end":25.56},{"w":"speculative","start":25.56,"end":26.16},{"w":"decoding.","start":26.16,"end":26.66}]},{"id":"seg05","scene":"s2_speculative","text":"And SpecInfer takes this a step further.","start":27.59,"end":29.96,"words":[{"w":"And","start":27.64,"end":28},{"w":"SpecInfer","start":28,"end":28.4},{"w":"takes","start":28.4,"end":29},{"w":"this","start":29,"end":29.2},{"w":"a","start":29.2,"end":29.38},{"w":"step","start":29.38,"end":29.58},{"w":"further.","start":29.58,"end":29.92}]},{"id":"seg06","scene":"s3_tree","text":"First, we introduce a smaller, faster draft model.","start":31.28,"end":34.42,"words":[{"w":"First,","start":31.3,"end":31.68},{"w":"we","start":31.92,"end":32.18},{"w":"introduce","start":32.18,"end":32.48},{"w":"a","start":32.48,"end":32.72},{"w":"smaller,","start":32.72,"end":33.08},{"w":"faster","start":33.74,"end":33.74},{"w":"draft","start":33.74,"end":34.1},{"w":"model.","start":34.1,"end":34.38}]},{"id":"seg07","scene":"s3_tree","text":"Instead of asking our expensive target model to generate every token, the draft model proposes several possible continuations.","start":35.15,"end":41.87,"words":[{"w":"Instead","start":35.32,"end":35.4},{"w":"of","start":35.4,"end":35.86},{"w":"asking","start":35.86,"end":35.86},{"w":"our","start":35.86,"end":36.08},{"w":"expensive","start":36.08,"end":36.58},{"w":"target","start":36.58,"end":36.92},{"w":"model","start":36.92,"end":37.2},{"w":"to","start":37.2,"end":37.5},{"w":"generate","start":37.5,"end":37.72},{"w":"every","start":37.72,"end":38.14},{"w":"token,","start":38.14,"end":38.4},{"w":"the","start":39,"end":39.16},{"w":"draft","start":39.16,"end":39.4},{"w":"model","start":39.4,"end":39.72},{"w":"proposes","start":39.72,"end":40.14},{"w":"several","start":40.14,"end":40.58},{"w":"possible","start":40.58,"end":41.08},{"w":"continuations.","start":41.08,"end":42.38}]},{"id":"seg08","scene":"s3_tree","text":"But rather than committing to just one sequence, SpecInfer organizes these predictions into a branching token tree.","start":42.81,"end":49.27,"words":[{"w":"But","start":42.81,"end":43.02},{"w":"rather","start":43.02,"end":43.2},{"w":"than","start":43.2,"end":43.5},{"w":"committing","start":43.5,"end":43.7},{"w":"to","start":43.7,"end":43.9},{"w":"just","start":43.9,"end":44.2},{"w":"one","start":44.2,"end":44.48},{"w":"sequence,","start":44.48,"end":44.88},{"w":"SpecInfer","start":45.165,"end":45.965},{"w":"organizes","start":45.965,"end":46.785},{"w":"these","start":46.785,"end":47.065},{"w":"predictions","start":47.065,"end":47.445},{"w":"into","start":47.445,"end":48.025},{"w":"a","start":48.025,"end":48.265},{"w":"branching","start":48.265,"end":48.685},{"w":"token","start":48.685,"end":48.965},{"w":"tree.","start":48.965,"end":49.265}]},{"id":"seg09","scene":"s3_tree","text":"Each path represents a different possible continuation of the sentence.","start":50.07,"end":53.38,"words":[{"w":"Each","start":50.225,"end":50.325},{"w":"path","start":50.325,"end":50.625},{"w":"represents","start":50.625,"end":51.105},{"w":"a","start":51.105,"end":51.305},{"w":"different","start":51.305,"end":51.645},{"w":"possible","start":51.645,"end":52.065},{"w":"continuation","start":52.065,"end":52.625},{"w":"of","start":52.625,"end":52.845},{"w":"the","start":52.845,"end":53.365},{"w":"sentence.","start":53.365,"end":53.365}]},{"id":"seg10","scene":"s4_mask","text":"Now comes the interesting part.","start":54.69,"end":56.1,"words":[{"w":"Now","start":54.805,"end":55.005},{"w":"comes","start":55.005,"end":55.285},{"w":"the","start":55.285,"end":55.525},{"w":"interesting","start":55.525,"end":55.845},{"w":"part.","start":55.845,"end":56.125}]},{"id":"seg11","scene":"s4_mask","text":"How can the large model verify all these different paths at once, without mixing their information?","start":56.89,"end":61.94,"words":[{"w":"How","start":56.985,"end":57.045},{"w":"can","start":57.045,"end":57.225},{"w":"the","start":57.225,"end":57.405},{"w":"large","start":57.405,"end":57.705},{"w":"model","start":57.705,"end":57.905},{"w":"verify","start":57.905,"end":58.385},{"w":"all","start":58.385,"end":58.785},{"w":"these","start":58.785,"end":59.025},{"w":"different","start":59.025,"end":59.365},{"w":"paths","start":59.365,"end":59.545},{"w":"at","start":59.545,"end":59.985},{"w":"once,","start":59.985,"end":60.065},{"w":"without","start":60.785,"end":60.845},{"w":"mixing","start":60.845,"end":61.125},{"w":"their","start":61.125,"end":61.445},{"w":"information?","start":61.445,"end":61.865}]},{"id":"seg12","scene":"s4_mask","text":"SpecInfer uses tree-based attention.","start":62.85,"end":64.98,"words":[{"w":"SpecInfer","start":62.885,"end":63.485},{"w":"uses","start":63.485,"end":63.885},{"w":"tree-based","start":63.885,"end":64.465},{"w":"attention.","start":64.465,"end":64.885}]},{"id":"seg13","scene":"s4_mask","text":"We pack the candidate tokens into a single verification structure and construct a special attention mask.","start":65.66,"end":71.11,"words":[{"w":"We","start":65.66,"end":65.82},{"w":"pack","start":65.82,"end":66.06},{"w":"the","start":66.06,"end":66.58},{"w":"candidate","start":66.58,"end":66.58},{"w":"tokens","start":66.58,"end":66.88},{"w":"into","start":66.88,"end":67.24},{"w":"a","start":67.24,"end":67.48},{"w":"single","start":67.48,"end":67.74},{"w":"verification","start":67.74,"end":68.34},{"w":"structure","start":68.34,"end":68.78},{"w":"and","start":68.78,"end":69.52},{"w":"construct","start":69.52,"end":69.86},{"w":"a","start":69.86,"end":70.14},{"w":"special","start":70.14,"end":70.42},{"w":"attention","start":70.42,"end":70.8},{"w":"mask.","start":70.8,"end":71.18}]},{"id":"seg14","scene":"s4_mask","text":"Each token can attend to the original prompt and its own ancestors in the tree.","start":72.02,"end":75.98,"words":[{"w":"Each","start":72.12,"end":72.3},{"w":"token","start":72.3,"end":72.52},{"w":"can","start":72.52,"end":72.82},{"w":"attend","start":72.82,"end":73.04},{"w":"to","start":73.04,"end":73.24},{"w":"the","start":73.24,"end":73.38},{"w":"original","start":73.38,"end":73.7},{"w":"prompt","start":73.7,"end":74.02},{"w":"and","start":74.02,"end":74.58},{"w":"its","start":74.58,"end":74.74},{"w":"own","start":74.74,"end":75.02},{"w":"ancestors","start":75.02,"end":75.36},{"w":"in","start":75.36,"end":75.62},{"w":"the","start":75.62,"end":75.94},{"w":"tree.","start":75.94,"end":75.94}]},{"id":"seg15","scene":"s4_mask","text":"But it cannot see tokens from unrelated branches.","start":76.75,"end":79.13,"words":[{"w":"But","start":76.75,"end":76.84},{"w":"it","start":76.84,"end":77.02},{"w":"cannot","start":77.02,"end":77.24},{"w":"see","start":77.24,"end":77.56},{"w":"tokens","start":77.56,"end":77.82},{"w":"from","start":77.82,"end":78.16},{"w":"unrelated","start":78.16,"end":78.6},{"w":"branches.","start":78.6,"end":79.06}]},{"id":"seg16","scene":"s5_verify","text":"This lets the target model evaluate multiple candidate continuations in parallel, using a single forward pass.","start":80.49,"end":86.45,"words":[{"w":"This","start":80.49,"end":80.72},{"w":"lets","start":80.72,"end":80.88},{"w":"the","start":80.88,"end":81.14},{"w":"target","start":81.14,"end":81.38},{"w":"model","start":81.38,"end":81.72},{"w":"evaluate","start":81.72,"end":82.2},{"w":"multiple","start":82.2,"end":82.76},{"w":"candidate","start":82.76,"end":83.16},{"w":"continuations","start":83.16,"end":83.86},{"w":"in","start":83.86,"end":84.18},{"w":"parallel,","start":84.18,"end":84.44},{"w":"using","start":84.44,"end":85.22},{"w":"a","start":85.22,"end":85.46},{"w":"single","start":85.46,"end":85.7},{"w":"forward","start":85.7,"end":86.08},{"w":"pass.","start":86.08,"end":86.44}]},{"id":"seg17","scene":"s5_verify","text":"For greedy decoding, the verifier checks which proposed tokens agree with the target model's predictions.","start":87.23,"end":92.45,"words":[{"w":"For","start":87.23,"end":87.42},{"w":"greedy","start":87.42,"end":87.7},{"w":"decoding,","start":87.7,"end":88.14},{"w":"the","start":88.7,"end":88.86},{"w":"verifier","start":88.86,"end":89.24},{"w":"checks","start":89.24,"end":89.56},{"w":"which","start":89.56,"end":89.86},{"w":"proposed","start":89.86,"end":90.32},{"w":"tokens","start":90.32,"end":90.64},{"w":"agree","start":90.64,"end":90.92},{"w":"with","start":90.92,"end":91.14},{"w":"the","start":91.14,"end":91.4},{"w":"target","start":91.4,"end":91.54},{"w":"model's","start":91.54,"end":91.86},{"w":"predictions.","start":91.8,"end":92.44}]},{"id":"seg18","scene":"s6_accept","text":"Matching tokens along the selected path are accepted. When a prediction disagrees, the target model supplies the correct next token, and the remaining speculative continuation is discarded.","start":93.96,"end":104.25,"words":[{"w":"Matching","start":94.24,"end":94.72},{"w":"tokens","start":94.72,"end":94.72},{"w":"along","start":94.72,"end":94.98},{"w":"the","start":94.98,"end":95.2},{"w":"selected","start":95.2,"end":95.5},{"w":"path","start":95.5,"end":95.82},{"w":"are","start":95.82,"end":96.08},{"w":"accepted.","start":96.08,"end":96.4},{"w":"When","start":97.26,"end":97.34},{"w":"a","start":97.34,"end":97.82},{"w":"prediction","start":97.82,"end":97.82},{"w":"disagrees,","start":97.82,"end":98.42},{"w":"the","start":99.02,"end":99.18},{"w":"target","start":99.18,"end":99.42},{"w":"model","start":99.42,"end":99.72},{"w":"supplies","start":99.72,"end":100.08},{"w":"the","start":100.08,"end":100.32},{"w":"correct","start":100.32,"end":100.54},{"w":"next","start":100.54,"end":100.9},{"w":"token,","start":100.9,"end":101.1},{"w":"and","start":101.68,"end":101.78},{"w":"the","start":101.78,"end":102.02},{"w":"remaining","start":102.02,"end":102.3},{"w":"speculative","start":102.3,"end":102.82},{"w":"continuation","start":102.82,"end":103.42},{"w":"is","start":103.42,"end":103.82},{"w":"discarded.","start":103.54,"end":104.18}]},{"id":"seg19","scene":"s6_accept","text":"Then the process repeats.","start":105.38,"end":106.93,"words":[{"w":"Then","start":105.38,"end":105.72},{"w":"the","start":105.9,"end":106.42},{"w":"process","start":106.42,"end":106.42},{"w":"repeats.","start":106.42,"end":106.84}]},{"id":"seg20","scene":"s7_speed","text":"Here's why this is powerful.","start":108.32,"end":109.45,"words":[{"w":"Here's","start":108.32,"end":108.545},{"w":"why","start":108.545,"end":108.685},{"w":"this","start":108.685,"end":108.845},{"w":"is","start":108.845,"end":109.085},{"w":"powerful.","start":109.085,"end":109.405}]},{"id":"seg21","scene":"s7_speed","text":"Instead of spending an expensive target-model pass generating just one token, we can potentially advance several tokens at once.","start":109.92,"end":116.37,"words":[{"w":"Instead","start":110.165,"end":110.165},{"w":"of","start":110.165,"end":110.605},{"w":"spending","start":110.605,"end":110.605},{"w":"an","start":110.605,"end":110.805},{"w":"expensive","start":110.805,"end":111.285},{"w":"target-model","start":111.285,"end":111.865},{"w":"pass","start":111.865,"end":112.245},{"w":"generating","start":112.245,"end":112.605},{"w":"just","start":112.605,"end":113.025},{"w":"one","start":113.025,"end":113.225},{"w":"token,","start":113.225,"end":113.445},{"w":"we","start":114.025,"end":114.185},{"w":"can","start":114.185,"end":114.345},{"w":"potentially","start":114.345,"end":114.825},{"w":"advance","start":114.825,"end":115.205},{"w":"several","start":115.205,"end":115.565},{"w":"tokens","start":115.565,"end":115.865},{"w":"at","start":115.865,"end":116.285},{"w":"once.","start":116.285,"end":116.345}]},{"id":"seg22","scene":"s7_speed","text":"And unlike simply trusting the smaller model, the verification process preserves the target model's intended output.","start":117.14,"end":123.03,"words":[{"w":"And","start":117.14,"end":117.425},{"w":"unlike","start":117.425,"end":117.605},{"w":"simply","start":117.605,"end":118.045},{"w":"trusting","start":118.045,"end":118.365},{"w":"the","start":118.365,"end":118.605},{"w":"smaller","start":118.605,"end":118.905},{"w":"model,","start":118.905,"end":119.125},{"w":"the","start":119.705,"end":119.825},{"w":"verification","start":119.825,"end":120.305},{"w":"process","start":120.305,"end":120.905},{"w":"preserves","start":120.905,"end":121.285},{"w":"the","start":121.285,"end":121.545},{"w":"target","start":121.545,"end":121.805},{"w":"model's","start":121.805,"end":122.325},{"w":"intended","start":122.325,"end":122.645},{"w":"output.","start":122.645,"end":123.045}]},{"id":"seg23","scene":"s7_speed","text":"Of course, larger trees aren't automatically better. More branches create additional verification work, and poor draft predictions reduce the benefit.","start":123.93,"end":131.66,"words":[{"w":"Of","start":123.93,"end":124.365},{"w":"course,","start":124.365,"end":124.365},{"w":"larger","start":124.985,"end":125.045},{"w":"trees","start":125.045,"end":125.365},{"w":"aren't","start":125.365,"end":125.645},{"w":"automatically","start":125.645,"end":126.185},{"w":"better.","start":126.185,"end":126.525},{"w":"More","start":127.085,"end":127.205},{"w":"branches","start":127.205,"end":127.605},{"w":"create","start":127.605,"end":127.885},{"w":"additional","start":127.885,"end":128.325},{"w":"verification","start":128.325,"end":128.845},{"w":"work,","start":128.845,"end":129.205},{"w":"and","start":129.205,"end":129.36},{"w":"poor","start":129.36,"end":129.98},{"w":"draft","start":129.98,"end":130.28},{"w":"predictions","start":130.28,"end":130.76},{"w":"reduce","start":130.76,"end":131.22},{"w":"the","start":131.22,"end":131.42},{"w":"benefit.","start":131.42,"end":131.7}]},{"id":"seg24","scene":"s7_speed","text":"But when the draft model is accurate and verification is efficient, SpecInfer can significantly reduce generation latency.","start":132.56,"end":139,"words":[{"w":"But","start":132.62,"end":132.68},{"w":"when","start":132.68,"end":132.78},{"w":"the","start":132.78,"end":133.2},{"w":"draft","start":133.2,"end":133.2},{"w":"model","start":133.2,"end":133.44},{"w":"is","start":133.44,"end":133.72},{"w":"accurate","start":133.72,"end":133.98},{"w":"and","start":133.98,"end":134.54},{"w":"verification","start":134.54,"end":135},{"w":"is","start":135,"end":135.32},{"w":"efficient,","start":135.32,"end":135.64},{"w":"SpecInfer","start":136.4,"end":136.64},{"w":"can","start":136.64,"end":136.96},{"w":"significantly","start":136.96,"end":137.54},{"w":"reduce","start":137.54,"end":137.96},{"w":"generation","start":137.96,"end":138.54},{"w":"latency.","start":138.54,"end":138.9}]},{"id":"seg25","scene":"s8_takeaway","text":"The key insight is simple.","start":140.11,"end":141.27,"words":[{"w":"The","start":140.11,"end":140.24},{"w":"key","start":140.24,"end":140.46},{"w":"insight","start":140.46,"end":140.8},{"w":"is","start":140.8,"end":140.96},{"w":"simple.","start":140.96,"end":141.24}]},{"id":"seg26","scene":"s8_takeaway","text":"Don't make your largest model discover every token sequentially.","start":141.83,"end":144.7,"words":[{"w":"Don't","start":142.06,"end":142.06},{"w":"make","start":142.06,"end":142.26},{"w":"your","start":142.26,"end":142.4},{"w":"largest","start":142.4,"end":142.76},{"w":"model","start":142.76,"end":143},{"w":"discover","start":143,"end":143.44},{"w":"every","start":143.44,"end":143.86},{"w":"token","start":143.86,"end":144.1},{"w":"sequentially.","start":144.1,"end":144.62}]},{"id":"seg27","scene":"s8_takeaway","text":"Let smaller models speculate, then let the large model verify many possibilities together.","start":145.32,"end":150.25,"words":[{"w":"Let","start":145.48,"end":145.52},{"w":"smaller","start":145.52,"end":145.88},{"w":"models","start":145.88,"end":146.16},{"w":"speculate,","start":146.16,"end":146.6},{"w":"then","start":147.02,"end":147.28},{"w":"let","start":147.28,"end":147.42},{"w":"the","start":147.42,"end":147.62},{"w":"large","start":147.62,"end":147.94},{"w":"model","start":147.94,"end":148.2},{"w":"verify","start":148.2,"end":148.76},{"w":"many","start":148.76,"end":149.14},{"w":"possibilities","start":149.14,"end":149.76},{"w":"together.","start":149.76,"end":150.24}]},{"id":"seg28","scene":"s8_takeaway","text":"That's the intuition behind SpecInfer.","start":151,"end":152.79,"words":[{"w":"That's","start":151,"end":151.285},{"w":"the","start":151.285,"end":151.485},{"w":"intuition","start":151.485,"end":151.805},{"w":"behind","start":151.805,"end":152.225},{"w":"SpecInfer.","start":152.225,"end":152.685}]}]};</script>
+<!-- DATA:END -->
+
+<script>
+'use strict';
+// =====================================================================================
+//  How SpecInfer works — deterministic Canvas 2D animation (1080 x 1920, 30 fps).
+//  draw(t) renders the exact frame for global time t (seconds). Nothing is accumulated
+//  between frames: every element is a pure function of t and the MEASURED narration
+//  timings in window.TIMING (timings.json, produced by generate_audio.py).
+//  Time-warp: keyframes are written as narration cues — cue(8, 'branching') is "the moment
+//  the narrator says 'branching' in sentence 8" — so motion follows the voice even if the
+//  narration is regenerated at a different pace.
+// =====================================================================================
+const W = 1080, H = 1920;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const SANS = '-apple-system, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
+const MONO = '"SF Mono", "JetBrains Mono", Menlo, Consolas, monospace';
+const C = {
+  bg: '#F8F6F2', ink: '#2B2724', ink2: '#5A534D', muted: '#A39B92', faint: '#D9D1C5', beige: '#ECE6DC',
+  card: '#FFFDF9', border: '#DDD4C7', terra: '#C76B4B', terraLight: '#F4DFD5', terraMid: '#E3A68D',
+  amber: '#D39B57', amberFill: '#F8E9D3', amberInk: '#83561F',
+  green: '#7E9F86', greenLight: '#DDEADF', greenInk: '#3F6249',
+  red: '#C27A72', redLight: '#F3DDDA', mask: '#E4DDD2', dark: '#34302C',
+  brA: '#7E8CA8', brB: '#C76B4B', brC: '#A07E96',          // branch tints: ran / sat / jumped
+};
+
+// ---------- easing / interpolation ----------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeInOutCubic = k => k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const easeOutCubic = k => 1 - Math.pow(1 - k, 3);
+const easeOutBack = k => { const c1 = 1.4, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+const ep = (t, a, d = 0.5, f = easeInOutCubic) => f(prog(t, a, a + d));     // eased progress from a over d
+const win = (t, a, b, fi = 0.35, fo = 0.35) => Math.min(ep(t, a, fi), 1 - ep(t, b - fo, fo));
+function hex(c) { const n = parseInt(c.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function mix(a, b, k) { if (k <= 0) return a; if (k >= 1) return b; const x = hex(a), y = hex(b);
+  return '#' + x.map((v, i) => Math.round(lerp(v, y[i], k)).toString(16).padStart(2, '0')).join(''); }
+
+// ---------- time-warp: narration cues -> measured seconds ----------
+const T = window.TIMING;
+const SEG = T.segments;
+const SC = Object.fromEntries(T.scenes.map(s => [s.id, s]));
+window.TOTAL = T.duration;
+window.CUE_MISSES = [];
+const norm = w => w.toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]/g, '');
+// cue(8, 'tree')   -> start of the 1st word in sentence 8 whose normalised form is exactly "tree"
+// cue(1, 'another#2') -> 2nd occurrence;  'spec*' -> prefix match;  cue(8) -> sentence start;  cue(8, null, 'end')
+function cue(i, word = null, edge = 'start') {
+  const s = SEG[i];
+  if (word === null) return edge === 'end' ? s.end : s.start;
+  let [w, nth] = String(word).split('#'); nth = +(nth || 1);
+  const pre = w.endsWith('*'), n = norm(w);
+  const hits = s.words.filter(x => pre ? norm(x.w).startsWith(n) : norm(x.w) === n);
+  if (hits.length < nth) { window.CUE_MISSES.push(`${i}:${word}`); return s.start; }
+  return hits[nth - 1][edge];
+}
+const sEnd = i => SEG[i].end;
+
+// ---------- drawing primitives ----------
+let A = 1;  // global alpha multiplier (scene fade)
+function rr(x, y, w, h, r, { fill = null, stroke = null, lw = 2, alpha = 1, shadow = 0, dash = null } = {}) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+  if (fill) {
+    if (shadow) { ctx.shadowColor = 'rgba(70,45,25,0.12)'; ctx.shadowBlur = shadow; ctx.shadowOffsetY = shadow * 0.35; }
+    ctx.fillStyle = fill; ctx.fill(); ctx.shadowColor = 'transparent';
+  }
+  if (stroke) { ctx.lineWidth = lw; ctx.strokeStyle = stroke; if (dash) ctx.setLineDash(dash); ctx.stroke(); }
+  ctx.restore();
+}
+function font(size, weight = 500, f = SANS, italic = false) { return `${italic ? 'italic ' : ''}${weight} ${size}px ${f}`; }
+function measure(s, size, weight = 500, f = SANS) { ctx.save(); ctx.font = font(size, weight, f); const w = ctx.measureText(s).width; ctx.restore(); return w; }
+function text(s, x, y, { size = 34, weight = 500, color = C.ink, align = 'center', base = 'middle', alpha = 1, f = SANS, maxW = 0, italic = false, rot = 0 } = {}) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = A * alpha; let sz = size; ctx.font = font(sz, weight, f, italic);
+  if (maxW) { const w = ctx.measureText(s).width; if (w > maxW) { sz = size * maxW / w; ctx.font = font(sz, weight, f, italic); } }
+  ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = base;
+  if (rot) { ctx.translate(x, y); ctx.rotate(rot); ctx.fillText(s, 0, 0); } else ctx.fillText(s, x, y);
+  ctx.restore();
+}
+// mixed-style single line: parts = [[str, color, weight], ...]
+function rich(parts, x, y, { size = 30, alpha = 1, align = 'center', f = SANS, maxW = 0 } = {}) {
+  if (alpha <= 0) return;
+  let total = parts.reduce((s, [str, , wt = 500]) => s + measure(str, size, wt, f), 0);
+  let sz = size; if (maxW && total > maxW) { sz = size * maxW / total; total = maxW; }
+  let cx = align === 'center' ? x - total / 2 : x;
+  for (const [str, col, wt = 500] of parts) { text(str, cx, y, { size: sz, weight: wt, color: col, align: 'left', alpha, f }); cx += measure(str, sz, wt, f); }
+}
+function line(x1, y1, x2, y2, { color = C.faint, lw = 2, alpha = 1, dash = null, k = 1, off = 0 } = {}) {
+  if (alpha <= 0 || k <= 0) return;
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round';
+  if (dash) { ctx.setLineDash(dash); ctx.lineDashOffset = off; }
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(lerp(x1, x2, k), lerp(y1, y2, k)); ctx.stroke(); ctx.restore();
+}
+function head(x, y, a, size, color, alpha) {
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.fillStyle = color; ctx.beginPath();
+  ctx.moveTo(x, y); ctx.lineTo(x - Math.cos(a - 0.45) * size, y - Math.sin(a - 0.45) * size);
+  ctx.lineTo(x - Math.cos(a + 0.45) * size, y - Math.sin(a + 0.45) * size); ctx.closePath(); ctx.fill(); ctx.restore();
+}
+function arrow(x1, y1, x2, y2, { color = C.ink2, lw = 3, alpha = 1, size = 13, dash = null, k = 1, off = 0 } = {}) {
+  if (alpha <= 0 || k <= 0) return;
+  const ex = lerp(x1, x2, k), ey = lerp(y1, y2, k), a = Math.atan2(y2 - y1, x2 - x1);
+  line(x1, y1, ex - Math.cos(a) * size * 0.6, ey - Math.sin(a) * size * 0.6, { color, lw, alpha, dash, off });
+  head(ex, ey, a, size, color, alpha);
+}
+const cbez = (p0, p1, p2, p3, k) => { const u = 1 - k;
+  return [0, 1].map(i => u * u * u * p0[i] + 3 * u * u * k * p1[i] + 3 * u * k * k * p2[i] + k * k * k * p3[i]); };
+// smooth vertical S-curve between two points (used for tree connectors)
+function sCurve(x1, y1, x2, y2, { color = C.faint, lw = 3, alpha = 1, k = 1, dash = null, arrowHead = false } = {}) {
+  if (alpha <= 0 || k <= 0) return;
+  const my = (y1 + y2) / 2, P = [[x1, y1], [x1, my], [x2, my], [x2, y2]];
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round';
+  if (dash) ctx.setLineDash(dash);
+  ctx.beginPath(); ctx.moveTo(x1, y1);
+  if (k >= 1) ctx.bezierCurveTo(x1, my, x2, my, x2, y2);
+  else { const N = 30; for (let i = 1; i <= N * k; i++) ctx.lineTo(...cbez(...P, i / N)); }
+  ctx.stroke(); ctx.restore();
+  if (arrowHead && k >= 1) head(x2, y2, Math.PI / 2, 12, color, alpha);
+}
+function dot(x, y, r, { fill = C.terra, alpha = 1, stroke = null, lw = 2 } = {}) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); } ctx.restore();
+}
+// Claude-inspired asterisk motif (an original geometric mark drawn with lines, not a logo)
+function asterisk(cx, cy, r, rot = 0, { color = C.terra, alpha = 1 } = {}) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.translate(cx, cy); ctx.rotate(rot); ctx.strokeStyle = color; ctx.lineCap = 'round';
+  for (let i = 0; i < 12; i++) {
+    const a = i * Math.PI / 6, len = r * (i % 2 ? 0.74 : 1);
+    ctx.lineWidth = r * 0.19; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * 0.17, Math.sin(a) * r * 0.17);
+    ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len); ctx.stroke();
+  }
+  ctx.restore();
+}
+function check(x, y, r, { alpha = 1, scale = 1 } = {}) {
+  if (alpha <= 0 || scale <= 0) return; r *= scale;
+  dot(x, y, r, { fill: C.green, alpha });
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.strokeStyle = '#fff'; ctx.lineWidth = r * 0.22; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(x - r * 0.45, y + r * 0.02); ctx.lineTo(x - r * 0.1, y + r * 0.36); ctx.lineTo(x + r * 0.48, y - r * 0.34); ctx.stroke(); ctx.restore();
+}
+function cross(x, y, r, { alpha = 1, scale = 1, fill = C.red } = {}) {
+  if (alpha <= 0 || scale <= 0) return; r *= scale;
+  dot(x, y, r, { fill, alpha });
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.strokeStyle = '#fff'; ctx.lineWidth = r * 0.22; ctx.lineCap = 'round';
+  const d = r * 0.38; ctx.beginPath(); ctx.moveTo(x - d, y - d); ctx.lineTo(x + d, y + d); ctx.moveTo(x + d, y - d); ctx.lineTo(x - d, y + d); ctx.stroke(); ctx.restore();
+}
+function chip(label, cx, cy, { size = 28, weight = 600, fill = C.card, color = C.ink, stroke = C.border, alpha = 1, h = 54, padX = 22, f = SANS, maxW = 940 } = {}) {
+  const w = Math.min(maxW, measure(label, size, weight, f) + padX * 2);
+  rr(cx - w / 2, cy - h / 2, w, h, h / 2, { fill, stroke, lw: 2, alpha, shadow: fill ? 6 : 0 });
+  text(label, cx, cy + 1, { size, weight, color, alpha, f, maxW: w - padX * 2 + 2 });
+  return w;
+}
+
+// ---------- tokens ----------
+const TS = {
+  context:  { fill: C.card, stroke: C.border, ink: C.ink },
+  gen:      { fill: C.terraLight, stroke: C.terra, ink: C.ink },
+  draft:    { fill: C.amberFill, stroke: C.amber, ink: C.amberInk, dash: [9, 6] },
+  accepted: { fill: C.green, stroke: C.green, ink: '#FFFFFF' },
+  rejected: { fill: C.redLight, stroke: C.red, ink: '#9A4C45' },
+  target:   { fill: C.dark, stroke: C.dark, ink: '#FBF7F1' },
+  ghost:    { fill: null, stroke: C.faint, ink: C.muted, dash: [7, 6] },
+};
+function mixStyle(a, b, k) {
+  if (k <= 0) return a; if (k >= 1) return b;
+  return { fill: mix(a.fill || C.bg, b.fill || C.bg, k), stroke: mix(a.stroke, b.stroke, k), ink: mix(a.ink, b.ink, k), dash: k < 0.5 ? a.dash : b.dash };
+}
+const tokW = (label, size) => Math.max(62 * size / 30, measure(label, size, 600, MONO) + 32 * size / 30);
+const tokH = size => size * 2.05;
+function token(label, cx, cy, { st = TS.context, size = 30, alpha = 1, scale = 1, w = null, ring = null, ringA = 1 } = {}) {
+  if (alpha <= 0 || scale <= 0) return;
+  const tw = (w || tokW(label, size)) * scale, th = tokH(size) * scale;
+  if (ring && ringA > 0) rr(cx - tw / 2 - 7, cy - th / 2 - 7, tw + 14, th + 14, 16 * scale, { stroke: ring, lw: 3.5, alpha: alpha * ringA });
+  rr(cx - tw / 2, cy - th / 2, tw, th, 12 * scale, { fill: st.fill, stroke: st.stroke, lw: 2.5, alpha, shadow: st.fill ? 7 : 0, dash: st.dash });
+  text(label, cx, cy + 1, { size: size * scale, weight: 600, color: st.ink, f: MONO, alpha, maxW: tw - 10 });
+}
+function rowLayout(labels, cx, { size = 30, gap = 10, maxW = 900 } = {}) {
+  let sz = size, ws, total;
+  for (let i = 0; i < 30; i++) {
+    ws = labels.map(l => tokW(l, sz)); total = ws.reduce((a, b) => a + b, 0) + gap * (labels.length - 1);
+    if (total <= maxW) break; sz *= 0.96;
+  }
+  const xs = []; let x = cx - total / 2;
+  ws.forEach(w => { xs.push(x + w / 2); x += w + gap; });
+  return { xs, ws, size: sz, total };
+}
+// model block: rounded card with stacked layer bars; `sweep` in 0..1 lights layers bottom -> top
+function modelBlock(x, y, w, h, { label = '', sub = '', layers = 4, sweep = -1, alpha = 1, accent = C.terra, labelSize = 32, dim = 0 } = {}) {
+  if (alpha <= 0) return;
+  const active = sweep >= 0 && sweep <= 1;
+  rr(x, y, w, h, 24, { fill: C.card, stroke: active ? accent : C.border, lw: active ? 3.5 : 2, alpha, shadow: 16 });
+  const top = label ? 66 : 22, pad = 22, lh = (h - top - pad) / layers - 8;
+  if (label) text(label, x + w / 2, y + 38, { size: labelSize, weight: 700, color: mix(C.ink, C.muted, dim), alpha, maxW: w - 40 });
+  for (let i = 0; i < layers; i++) {
+    const ly = y + h - pad - (i + 1) * (lh + 8) + 8;
+    const lit = active ? clamp(sweep * (layers + 1) - i) * (1 - clamp(sweep * (layers + 1) - i - 1.6)) : 0;
+    rr(x + pad, ly, w - pad * 2, lh, 10, { fill: mix(mix(C.beige, accent, 0.16 + 0.64 * lit), C.beige, dim), alpha });
+    if (i === 0 && sub) text(sub, x + w / 2, ly + lh / 2 + 1, { size: 22, weight: 500, color: C.ink2, alpha, maxW: w - 70 });
+  }
+}
+const loopSweep = (t, a, b, period = 0.8) => (t >= a && t < b) ? ((t - a) % period) / period : -1;
+
+// =====================================================================================
+//  The running example — identical in narration, tree, mask, verification and output.
+//  prompt "The animal"; draft tree (DFS order):
+//    ran -> through -> the      sat -> on -> the -> floor      jumped -> over -> a
+//  target greedy next-token prediction at each node (PRED): root->"sat", sat->"on",
+//  on->"the", the->"mat".  Accept sat, on, the; reject "floor" (target says "mat");
+//  "mat" is the target's correction token.  Output: "The animal sat on the mat".
+// =====================================================================================
+const TREE = [
+  { id: 0, label: 'The animal', parent: -1, col: 0, d: 0, br: 'root' },
+  { id: 1, label: 'ran', parent: 0, col: -1, d: 1, br: 'A' }, { id: 2, label: 'through', parent: 1, col: -1, d: 2, br: 'A' },
+  { id: 3, label: 'the', parent: 2, col: -1, d: 3, br: 'A' },
+  { id: 4, label: 'sat', parent: 0, col: 0, d: 1, br: 'B' }, { id: 5, label: 'on', parent: 4, col: 0, d: 2, br: 'B' },
+  { id: 6, label: 'the', parent: 5, col: 0, d: 3, br: 'B' }, { id: 7, label: 'floor', parent: 6, col: 0, d: 4, br: 'B' },
+  { id: 8, label: 'jumped', parent: 0, col: 1, d: 1, br: 'C' }, { id: 9, label: 'over', parent: 8, col: 1, d: 2, br: 'C' },
+  { id: 10, label: 'a', parent: 9, col: 1, d: 3, br: 'C' },
+];
+const BRC = { A: C.brA, B: C.brB, C: C.brC, root: C.ink2 };
+const PRED = ['sat', 'away', 'the', 'woods', 'on', 'the', 'mat', '.', 'over', 'the', 'fence'];   // target prediction AT node i
+const anc = id => { const out = []; let p = TREE[id].parent; while (p > 0) { out.push(p); p = TREE[p].parent; } return out; };
+const PACK = ['The', 'animal', ...TREE.slice(1).map(n => n.label)];        // packed position p: node id = p - 1 (p >= 2)
+const PACK_BR = ['root', 'root', ...TREE.slice(1).map(n => n.br)];
+// tree attention mask: query node r may see key position p iff p is the prompt, r itself, or an ancestor of r
+const allowed = (r, p) => p < 2 || p - 1 === r || anc(r).includes(p - 1);
+const ACCEPT = [4, 5, 6];        // sat, on, the
+const CX = 540;
+
+// tree layout L = {cx, y0, dx, dy, size}
+const nodeXY = (n, L) => [L.cx + n.col * L.dx, L.y0 + n.d * L.dy];
+const lerpL = (a, b, k) => Object.fromEntries(Object.keys(a).map(key => [key, lerp(a[key], b[key], k)]));
+const nodeW = (n, L) => tokW(n.label, L.size);
+// f(node) -> { st, alpha, scale, ring, ringA, e: { k, color, lw, alpha, dash } }  (e styles the edge INTO the node)
+function drawTree(L, f) {
+  const S = TREE.map(f);
+  TREE.forEach((n, i) => {
+    if (n.parent < 0) return; const s = S[i], e = s.e || {};
+    const [px, py] = nodeXY(TREE[n.parent], L), [x, y] = nodeXY(n, L), hh = tokH(L.size) / 2;
+    sCurve(px, py + hh + 2, x, y - hh - 2, { color: e.color || C.faint, lw: e.lw || 3, alpha: (e.alpha ?? 1) * (s.alpha ?? 1), k: e.k ?? 1, dash: e.dash });
+  });
+  TREE.forEach((n, i) => { const s = S[i], [x, y] = nodeXY(n, L);
+    token(n.label, x, y, { st: s.st || TS.draft, size: L.size, alpha: s.alpha ?? 1, scale: s.scale ?? 1, ring: s.ring, ringA: s.ringA ?? 1 }); });
+}
+
+// ---------- Scene 1: the autoregressive bottleneck ----------
+function scene1(t) {
+  const tM = cue(0, 'massive') - 0.3;
+  const tc = 1 - ep(t, tM, 0.6);
+  if (tc > 0) {   // title card
+    asterisk(CX, 640, 64, t * 0.25, { alpha: tc });
+    text('How SpecInfer works', CX, 800, { size: 80, weight: 760, alpha: tc });
+    text('Tree-based speculative decoding for LLMs', CX, 880, { size: 36, weight: 500, color: C.ink2, alpha: tc });
+    line(440, 950, 640, 950, { color: C.terra, lw: 4, alpha: tc });
+  }
+  const a = ep(t, tM + 0.2, 0.7);
+  if (a <= 0) return;
+  const P = [cue(1, 'predicts'), cue(1, 'another'), cue(1, 'another#2'), cue(1, 'every'), cue(1, 'forward')];
+  const act = P.findIndex(p => t >= p && t < p + 0.8);
+  const sweep = act >= 0 ? prog(t, P[act], P[act] + 0.8) : -1;
+  // weights in GPU memory -> model
+  const am = ep(t, cue(2, 'billions') - 0.2, 0.6);
+  rr(84, 520, 200, 190, 20, { fill: C.beige, stroke: C.border, alpha: a * am });
+  text('GPU memory', 184, 556, { size: 23, weight: 700, color: C.ink2, alpha: a * am });
+  for (let i = 0; i < 3; i++) rr(108, 586 + i * 36, 152, 24, 7, { fill: C.terraMid, alpha: a * am * 0.8 });
+  text('weights', 184, 690, { size: 20, weight: 600, color: C.ink2, alpha: a * am });
+  const flowing = (t > cue(2, 'billions')) || act >= 0;
+  arrow(290, 615, 336, 615, { color: C.terra, lw: 4, alpha: a * Math.max(am, act >= 0 ? 1 : 0) * (flowing ? 1 : 0.4) });
+  for (let i = 0; i < 4; i++) {          // weight packets streaming in while loading
+    const ph = ((t * 1.6 + i / 4) % 1);
+    if (flowing && t > tM + 0.5) dot(lerp(150, 330, ph), 615 + Math.sin(i * 2.1) * 6, 6, { fill: C.terra, alpha: a * am * Math.sin(ph * Math.PI) });
+  }
+  modelBlock(346, 470, 650, 300, { label: 'Target LLM', sub: 'billions of parameters', sweep, alpha: a, layers: 4 });
+  // output tokens: "The" + 5 generated tokens, one per forward pass
+  const labels = ['The', 'cat', 'sat', 'on', 'the', 'mat'];
+  const L = rowLayout(labels, CX, { size: 32, gap: 12, maxW: 900 });
+  text('output', 100, 845, { size: 22, weight: 600, color: C.muted, align: 'left', alpha: a });
+  labels.forEach((lb, i) => {
+    if (i === 0) { token(lb, L.xs[0], 900, { size: L.size, alpha: a }); return; }
+    const t0 = P[i - 1] + 0.5, k = ep(t, t0, 0.45, easeOutCubic); if (k <= 0) return;
+    const fresh = 1 - ep(t, t0 + 1.0, 0.6);
+    token(lb, L.xs[i], lerp(800, 900, k), { st: mixStyle(TS.context, TS.gen, fresh), size: L.size, alpha: a * k });
+  });
+  if (act >= 0) arrow(L.xs[act + 1], 772, L.xs[act + 1], 846, { color: C.terra, lw: 3, alpha: a * win(t, P[act], P[act] + 0.8, 0.15, 0.2), k: ep(t, P[act] + 0.1, 0.4) });
+  // timeline of sequential passes
+  const ta = ep(t, P[0] - 0.3, 0.5);
+  text('Autoregressive decoding · one token per forward pass', CX, 1010, { size: 28, weight: 700, color: C.ink, alpha: a * ta, maxW: 900 });
+  line(110, 1160, 960, 1160, { color: C.faint, lw: 3, alpha: a * ta });
+  arrow(930, 1160, 975, 1160, { color: C.muted, lw: 3, alpha: a * ta });
+  text('time', 975, 1195, { size: 21, weight: 600, color: C.muted, align: 'right', alpha: a * ta });
+  P.forEach((p, i) => {
+    const k = ep(t, p, 0.7); if (k <= 0) return;
+    const x = 116 + i * 164, w = 150 * k, on = act === i;
+    rr(x, 1060, w, 82, 14, { fill: on ? C.terra : C.terraLight, stroke: C.terra, lw: 2, alpha: a });
+    text(`pass ${i + 1}`, x + 75, 1088, { size: 22, weight: 700, color: on ? '#fff' : C.terra, alpha: a * k });
+    text(`→ "${labels[i + 1]}"`, x + 75, 1118, { size: 20, weight: 600, color: on ? '#fff' : C.ink2, f: MONO, alpha: a * k });
+  });
+  const ac = ep(t, cue(1, 'pass') + 0.2, 0.5);
+  rich([['5 tokens = ', C.ink2, 600], ['5 sequential target passes', C.terra, 750]], CX, 1240, { size: 30, alpha: a * ac });
+  const ae = ep(t, cue(2, 'expensive') - 0.2, 0.5);
+  chip('every pass re-reads all the weights from memory', CX, 1310, { size: 26, fill: C.terraLight, stroke: C.terra, color: C.ink, alpha: a * ae });
+}
+
+// ---------- Scene 2: speculative decoding ----------
+function scene2(t) {
+  const t0 = SC.s2_speculative.start;
+  const step = cue(5, 'specinfer') - 0.1;
+  // lane A: traditional (fades out at "a step further")
+  const aA = ep(t, t0 + 0.1, 0.5) * (1 - ep(t, step - 0.4, 0.5));
+  if (aA > 0) {
+    rr(70, 395, 940, 400, 28, { fill: C.card, stroke: C.border, alpha: aA * 0.7 });
+    text('Traditional decoding', 110, 440, { size: 30, weight: 750, align: 'left', alpha: aA });
+    text('one token per target pass', 970, 440, { size: 22, weight: 600, color: C.muted, align: 'right', alpha: aA });
+    const PA = [t0 + 0.6, t0 + 2.2, t0 + 3.8, t0 + 5.4, t0 + 7.0];
+    const act = PA.findIndex(p => t >= p && t < p + 0.9);
+    modelBlock(110, 485, 250, 270, { label: 'Target', layers: 3, sweep: act >= 0 ? prog(t, PA[act], PA[act] + 0.9) : -1, alpha: aA, labelSize: 28 });
+    const lb = ['sat', 'on', 'the', 'mat', '…'];
+    lb.forEach((l, i) => { const k = ep(t, PA[i] + 0.7, 0.4); token(l, 450 + i * 120, 620, { st: TS.context, size: 28, alpha: aA * k }); });
+    text(`target passes: ${PA.filter(p => t >= p + 0.7).length}`, 450, 720, { size: 22, weight: 650, color: C.ink2, align: 'left', alpha: aA, f: MONO });
+  }
+  // lane B: speculative decoding
+  const aB = ep(t, t0 + 0.3, 0.5);
+  const yB = lerp(840, 520, ep(t, step - 0.3, 0.8));
+  const hl = ep(t, cue(4, 'speculative') - 0.2, 0.5);
+  rr(70, yB - 25, 940, 470, 28, { fill: C.card, stroke: mix(C.border, C.terra, hl), lw: 2 + hl, alpha: aB * 0.85 });
+  text('Speculative decoding', 110, yB + 20, { size: 30, weight: 750, align: 'left', alpha: aB, color: mix(C.ink, C.terra, hl) });
+  const tS = cue(3, 'several'), tV = cue(3, 'verify');
+  const ds = loopSweep(t, tS - 0.2, tS + 0.8, 0.33);
+  modelBlock(110, yB + 60, 180, 150, { label: 'Draft', layers: 2, sweep: ds, alpha: aB, labelSize: 24, accent: C.amber });
+  text('small · fast', 200, yB + 236, { size: 20, weight: 600, color: C.muted, alpha: aB });
+  const dl = ['sat', 'on', 'a'], xs = [440, 580, 720];
+  arrow(300, yB + 135, 368, yB + 135, { color: C.amber, lw: 3, alpha: aB * ep(t, tS - 0.3, 0.3) });
+  const vk = ep(t, tV + 0.6, 0.5);
+  dl.forEach((l, i) => {
+    const k = ep(t, tS + i * 0.22, 0.25, easeOutBack); if (k <= 0) return;
+    const ok = i < 2, st = mixStyle(TS.draft, ok ? TS.accepted : TS.rejected, ep(t, tV + 0.7 + i * 0.25, 0.35));
+    token(l, xs[i], yB + 135, { st, size: 30, alpha: aB * clamp(k), scale: lerp(0.6, 1, k) });
+  });
+  // target verifies the whole draft in one pass
+  const av = ep(t, tV - 0.35, 0.4);
+  const vs = (t >= tV && t < tV + 0.9) ? prog(t, tV, tV + 0.9) : -1;
+  modelBlock(370, yB + 210, 420, 150, { label: 'Target · verifies all 3 at once', layers: 2, sweep: vs, alpha: aB * av, labelSize: 22 });
+  xs.forEach(x => line(x, yB + 166, x, yB + 205, { color: C.terra, lw: 2.5, alpha: aB * av, dash: [5, 5] }));
+  // correction token from the target
+  const kc = ep(t, tV + 1.5, 0.4, easeOutBack);
+  token('the', 870, yB + 135, { st: TS.target, size: 30, alpha: aB * clamp(kc), scale: lerp(0.6, 1, clamp(kc)) });
+  text('target\'s token', 870, yB + 190, { size: 19, weight: 600, color: C.ink2, alpha: aB * clamp(kc) });
+  // legend
+  const lg = ep(t, cue(4) - 0.2, 0.5);
+  [[TS.draft, 'unverified draft'], [TS.accepted, 'verified'], [TS.rejected, 'rejected'], [TS.target, 'from target']].forEach(([st, s], i) => {
+    const x = 120 + i * 228;
+    rr(x, yB + 392, 30, 26, 7, { fill: st.fill, stroke: st.stroke, dash: st.dash, alpha: aB * lg });
+    text(s, x + 40, yB + 406, { size: 20, weight: 600, color: C.ink2, align: 'left', alpha: aB * lg });
+  });
+  // "a step further": a linear draft chain vs a tree of candidates
+  const ak = ep(t, step + 0.1, 0.6);
+  if (ak > 0) {
+    const y = 1080;
+    text('Linear speculation', 280, y, { size: 26, weight: 700, color: C.ink2, alpha: ak });
+    ['sat', 'on', 'the'].forEach((l, i) => { const yy = y + 70 + i * 62; token(l, 280, yy, { size: 24, alpha: ak });
+      if (i) line(280, yy - 46, 280, yy - 22, { color: C.faint, lw: 3, alpha: ak }); });
+    text('one guessed sequence', 280, y + 260, { size: 20, weight: 600, color: C.muted, alpha: ak });
+    arrow(450, y + 130, 610, y + 130, { color: C.terra, lw: 4, alpha: ak, k: ep(t, step + 0.4, 0.5) });
+    const at = ep(t, step + 0.7, 0.6);
+    text('SpecInfer', 800, y, { size: 26, weight: 750, color: C.terra, alpha: at });
+    const tL = { cx: 800, y0: y + 60, dx: 95, dy: 66, size: 20 };
+    drawTree(tL, n => ({ st: n.id ? TS.draft : TS.context, alpha: at * (n.d <= 2 ? 1 : 0), e: { k: ep(t, step + 0.7 + n.d * 0.15, 0.4) } }));
+    text('a tree of candidate paths', 800, y + 260, { size: 20, weight: 600, color: C.muted, alpha: at });
+  }
+}
+
+// ---------- shared big tree layout (scenes 3 & 4) ----------
+const BIG = { cx: CX, y0: 690, dx: 300, dy: 132, size: 30 };
+const MINI = { cx: CX, y0: 395, dx: 230, dy: 48, size: 19 };
+const PATHS = { A: [1, 2, 3], B: [4, 5, 6, 7], C: [8, 9, 10] };
+const pathText = br => 'The animal ' + PATHS[br].map(i => TREE[i].label).join(' ') + ' …';
+// when each draft node appears (scene 3): the "sat" chain first ("just one sequence"), then the branches
+function appearT(n) {
+  if (n.id === 0) return cue(7, 'proposes');
+  if (n.br === 'B') return cue(8, 'just') + (n.d - 1) * 0.28;
+  return cue(8, 'branching') + (n.d - 1) * 0.3 + (n.br === 'C' ? 0.12 : 0);
+}
+function pathWindows() {
+  return { A: [cue(9, 'each'), cue(9, 'different')], B: [cue(9, 'different'), cue(9, 'continuation')], C: [cue(9, 'continuation'), sEnd(9) + 0.25] };
+}
+
+// ---------- Scene 3: draft model + token tree ----------
+function scene3(t) {
+  const t0 = SC.s3_tree.start, tEnd = SC.s3_tree.end;
+  const am = ep(t, t0 + 0.1, 0.6) * (1 - ep(t, tEnd - 0.9, 0.6));
+  const aD = ep(t, cue(6, 'draft') - 0.4, 0.6);
+  const idle = ep(t, cue(7, 'instead'), 0.5);
+  const tP = cue(7, 'proposes');
+  modelBlock(80, 400, 300, 200, { label: 'Draft model', sub: 'small · fast', layers: 3, alpha: am * aD, accent: C.amber, labelSize: 28,
+    sweep: loopSweep(t, tP, sEnd(8), 0.7) });
+  modelBlock(430, 390, 570, 220, { label: 'Target model', sub: 'large · expensive', layers: 3, alpha: am, labelSize: 30, dim: 0.55 * idle });
+  chip('waits — will verify later', 715, 640, { size: 22, fill: C.beige, stroke: C.border, color: C.ink2, alpha: am * idle * (1 - ep(t, cue(8) , 0.5)), h: 44 });
+  const pa = ep(t, tP - 0.2, 0.5) * am;
+  text('proposes continuations', 230, 640, { size: 22, weight: 650, color: C.amberInk, alpha: pa });
+  arrow(230, 660, 430, 668, { color: C.amber, lw: 3, alpha: pa, dash: [8, 6] });
+  // the token tree
+  const PW = pathWindows();
+  drawTree(BIG, n => {
+    const ta = appearT(n), k = ep(t, ta, 0.4, easeOutBack);
+    let ring = null, ringA = 0;
+    for (const br of ['A', 'B', 'C']) if (n.br === br || n.id === 0) {
+      const w = win(t, PW[br][0], PW[br][1], 0.25, 0.25); if (w > ringA) { ring = BRC[br]; ringA = w; }
+    }
+    const brOn = n.br !== 'root' ? win(t, PW[n.br][0], PW[n.br][1], 0.25, 0.25) : 0;
+    return { st: n.id ? TS.draft : TS.context, alpha: clamp(k * 1.2), scale: lerp(0.7, 1, clamp(k)), ring, ringA,
+      e: { k: ep(t, ta - 0.3, 0.4), color: mix(C.faint, BRC[n.br] || C.faint, brOn), lw: 3 + 2 * brOn } };
+  });
+  const tl = ep(t, cue(8, 'token') - 0.2, 0.5);
+  chip('Token Tree', 860, 690, { size: 26, weight: 750, fill: C.terraLight, stroke: C.terra, color: C.terra, alpha: tl * (1 - ep(t, tEnd - 0.6, 0.5)), h: 48 });
+  const one = win(t, cue(8, 'just'), cue(8, 'branching'), 0.3, 0.3);
+  text('one sequence?', 700, 830, { size: 22, weight: 650, color: C.muted, align: 'left', alpha: one, italic: true });
+  // path sentences (sentence 9)
+  for (const br of ['A', 'B', 'C']) {
+    const w = win(t, PW[br][0], PW[br][1], 0.25, 0.25); if (w <= 0) continue;
+    rich([['path: ', C.muted, 600], [pathText(br), BRC[br], 700]], CX, 1305, { size: 30, alpha: w, maxW: 920 });
+  }
+  const ea = ep(t, cue(9) - 0.2, 0.4) * (1 - ep(t, PW.A[0], 0.25)) + ep(t, PW.C[1], 0.4) * (1 - ep(t, tEnd - 0.6, 0.5));
+  text('each root-to-leaf path = one candidate continuation', CX, 1305, { size: 26, weight: 650, color: C.ink2, alpha: ea, maxW: 920 });
+}
+
+// ---------- Scene 4: packing + tree attention mask ----------
+const MX = { x0: 330, y0: 830, cell: 50 };
+function scene4(t) {
+  const tPack = cue(13, 'pack'), tCand = cue(13, 'candidate'), tCons = cue(13, 'construct');
+  const shrink = ep(t, tPack - 0.3, 0.9);
+  const L = lerpL(BIG, MINI, shrink);
+  const tAll = cue(11, 'all'), tMix = cue(11, 'mixing');
+  const qA = win(t, tAll - 0.2, tPack, 0.4, 0.4);
+  const focusK = ep(t, cue(14, 'each') - 0.2, 0.5), denyK = ep(t, cue(15, 'cannot') - 0.1, 0.5);
+  const fullK = ep(t, cue(15, 'branches'), 0.6);
+  // tree (with branch colouring for the question, focus path during the mask explanation)
+  drawTree(L, n => {
+    const inFocus = n.id === 0 || n.id === 4 || n.id === 5;
+    const unrelated = n.br === 'A' || n.br === 'C';
+    let ring = null, ringA = 0;
+    if (n.br !== 'root') { ring = BRC[n.br]; ringA = qA; }
+    if (inFocus && focusK > 0) { ring = C.terra; ringA = focusK; }
+    const st = n.id === 5 ? mixStyle(TS.draft, TS.gen, focusK) : (n.id ? TS.draft : TS.context);
+    return { st, ring, ringA, alpha: unrelated ? 1 - 0.6 * denyK : 1,
+      e: { color: mix(mix(C.faint, BRC[n.br] || C.faint, qA), C.terra, (n.id === 4 || n.id === 5) ? focusK : 0), lw: 3 + 1.5 * qA } };
+  });
+  // question: how to verify all paths without mixing their information
+  const wq = ep(t, tMix - 0.1, 0.5) * (1 - ep(t, tPack - 0.4, 0.4));
+  if (wq > 0) {
+    const [x1, y1] = nodeXY(TREE[1], L), [x2] = nodeXY(TREE[4], L);
+    ctx.save(); ctx.globalAlpha = A * wq; ctx.strokeStyle = C.red; ctx.lineWidth = 3; ctx.setLineDash([8, 7]);
+    ctx.beginPath(); ctx.moveTo(x1 + 50, y1 - 30); ctx.quadraticCurveTo((x1 + x2) / 2, y1 - 110, x2 - 50, y1 - 30); ctx.stroke(); ctx.restore();
+    cross((x1 + x2) / 2, y1 - 72, 20, { alpha: wq });
+    chip('no information may leak between branches', CX, 1305, { size: 26, fill: C.redLight, stroke: C.red, color: '#8D433C', alpha: wq });
+  }
+  const wa = ep(t, cue(12, 'treebased') - 0.2, 0.5) * (1 - ep(t, tPack - 0.4, 0.4));
+  chip('Tree-based attention', CX, 1220, { size: 34, weight: 760, fill: C.terraLight, stroke: C.terra, color: C.terra, alpha: wa, h: 66 });
+  const wq2 = win(t, tAll - 0.2, tMix - 0.1, 0.4, 0.3);
+  text('verify all three paths at once?', CX, 1305, { size: 30, weight: 700, color: C.ink, alpha: wq2 });
+
+  // packed sequence: nodes fly from the tree into one row
+  const PL = rowLayout(PACK, CX, { size: 22, gap: 8, maxW: 940 }), PY = 662;
+  const pl = ep(t, tCand - 0.2, 0.5);
+  text('packed verification sequence', 70, PY - 52, { size: 21, weight: 700, color: C.muted, align: 'left', alpha: pl });
+  PACK.forEach((lb, p) => {
+    const nid = p < 2 ? 0 : p - 1;
+    const k = ep(t, tCand + p * 0.11, 0.65); if (k <= 0) return;
+    const [nx, ny] = nodeXY(TREE[nid], L);
+    const x = lerp(nx, PL.xs[p], k), y = lerp(ny, PY, k) - Math.sin(k * Math.PI) * 50;
+    const br = PACK_BR[p];
+    const base = p < 2 ? TS.context : { fill: C.card, stroke: BRC[br], ink: C.ink };
+    const lit = (p === 6 ? focusK : 0);
+    token(lb, x, y, { st: mixStyle(base, TS.gen, lit), size: lerp(L.size, PL.size, k), w: lerp(tokW(lb, L.size), PL.ws[p], k) });
+    text(String(p), PL.xs[p], PY + 34, { size: 15, weight: 600, color: C.muted, alpha: k, f: MONO });
+  });
+  // attention mask matrix: rows = tree tokens (queries), columns = prompt + tree tokens (keys)
+  const gA = ep(t, tCons - 0.2, 0.5);
+  if (gA <= 0) return;
+  const { x0, y0, cell } = MX, nC = PACK.length, nR = TREE.length - 1;
+  text('Tree attention mask', 70, 732, { size: 28, weight: 760, color: C.ink, align: 'left', alpha: gA });
+  text('rows = queries', 70, 768, { size: 20, weight: 600, color: C.muted, align: 'left', alpha: gA });
+  text('columns = keys', 70, 796, { size: 20, weight: 600, color: C.muted, align: 'left', alpha: gA });
+  PACK.forEach((lb, p) => {   // rotated column headers
+    const x = x0 + p * cell + cell / 2;
+    text(lb, x + 6, y0 - 12, { size: 17, weight: 650, f: MONO, color: p < 2 ? C.ink2 : BRC[PACK_BR[p]], align: 'left', rot: -Math.PI / 2, alpha: gA });
+  });
+  rr(x0 + 3, y0 - 4, cell * 2 - 6, 3, 1, { fill: C.ink2, alpha: gA });
+  TREE.slice(1).forEach(n => {
+    const ri = n.id - 1, y = y0 + ri * cell;
+    const rk = ep(t, tCons + ri * 0.06, 0.4);
+    const isF = n.id === 5;
+    text(n.label, x0 - 14, y + cell / 2 + 1, { size: 21, weight: isF ? 800 : 650, f: MONO, color: isF ? mix(BRC[n.br], C.terra, focusK) : BRC[n.br], align: 'right', alpha: gA * rk });
+    for (let p = 0; p < nC; p++) {
+      const ok = allowed(n.id, p), x = x0 + p * cell;
+      let fill = C.card;
+      if (ok) fill = mix(C.card, C.terraMid, fullK); else fill = mix(C.card, C.mask, fullK);
+      let mark = null;
+      if (isF) {
+        const jid = p - 1;
+        if (p < 2) fill = mix(fill, C.terra, ep(t, cue(14, 'prompt'), 0.4));
+        else if (jid === 5) fill = mix(fill, C.terra, ep(t, cue(14, 'own'), 0.4));
+        else if (jid === 4) fill = mix(fill, C.terra, ep(t, cue(14, 'ancestors'), 0.4));
+        else if (n.id === 5 && (TREE[jid].br === 'A' || TREE[jid].br === 'C')) { fill = mix(fill, C.redLight, denyK); if (jid === 1 || jid === 8) mark = 'x'; }
+        else fill = mix(fill, C.mask, denyK);
+      }
+      rr(x + 2, y + 2, cell - 4, cell - 4, 7, { fill, stroke: C.border, lw: 1.5, alpha: gA * rk });
+      if (mark && denyK > 0) cross(x + cell / 2, y + cell / 2, 11, { alpha: gA * denyK, scale: ep(t, cue(15, 'cannot') + (p > 5 ? 0.35 : 0), 0.3, easeOutBack) });
+    }
+    if (isF) rr(x0 - 2, y - 2, nC * cell + 4, cell + 4, 10, { stroke: C.terra, lw: 3, alpha: gA * focusK });
+  });
+  // why this is not an ordinary causal mask
+  const leak = ep(t, cue(15, 'cannot') + 0.5, 0.5);
+  const lgIn = ep(t, cue(15, 'branches') + 0.3, 0.5);
+  rich([['An ordinary causal mask', C.red, 750], [' would let "on" see ', C.ink2, 600], ['ran · through · the', C.red, 700, ]], CX, 1355,
+    { size: 22, alpha: leak * (1 - lgIn), f: SANS, maxW: 940 });
+  // legend
+  const lg = ep(t, cue(15, 'branches') + 0.3, 0.5);
+  rr(150, 1342, 26, 26, 6, { fill: C.terraMid, stroke: C.border, alpha: lg });
+  text('can attend', 186, 1355, { size: 21, weight: 600, color: C.ink2, align: 'left', alpha: lg });
+  rr(340, 1342, 26, 26, 6, { fill: C.mask, stroke: C.border, alpha: lg });
+  text('masked', 376, 1355, { size: 21, weight: 600, color: C.ink2, align: 'left', alpha: lg });
+  text('each branch = its own causal block', 930, 1355, { size: 21, weight: 700, color: C.terra, align: 'right', alpha: lg });
+}
+
+// ---------- Scene 5: one target-model verification pass ----------
+function scene5(t) {
+  const t0 = SC.s5_verify.start, tTree = cue(17) - 0.35;
+  const out = 1 - ep(t, tTree, 0.5);
+  if (out > 0) {
+    const a = ep(t, t0 + 0.1, 0.5) * out;
+    const PL = rowLayout(PACK, CX, { size: 22, gap: 8, maxW: 940 }), PY = 1010;
+    const tE = cue(16, 'evaluate'), tP = cue(16, 'parallel'), tS = cue(16, 'single');
+    const inK = ep(t, tE - 0.3, 0.5);
+    PACK.forEach((lb, p) => {
+      const base = p < 2 ? TS.context : { fill: C.card, stroke: BRC[PACK_BR[p]], ink: C.ink };
+      token(lb, PL.xs[p], PY, { st: base, size: PL.size, w: PL.ws[p], alpha: a });
+      arrow(PL.xs[p], PY - 26, PL.xs[p], 905, { color: C.terra, lw: 2.5, size: 9, alpha: a * inK, k: inK });
+    });
+    // mask thumbnail
+    const mx = 490, my = 1062, mc = 8;
+    TREE.slice(1).forEach(n => { for (let p = 0; p < PACK.length; p++)
+      rr(mx + p * mc, my + (n.id - 1) * mc, mc - 1.5, mc - 1.5, 1.5, { fill: allowed(n.id, p) ? C.terra : C.mask, alpha: a }); });
+    text('packed tokens', mx - 24, my + 40, { size: 21, weight: 650, color: C.ink2, align: 'right', alpha: a });
+    text('+ tree mask', mx + 12 * mc + 22, my + 40, { size: 21, weight: 650, color: C.terra, align: 'left', alpha: a });
+    // the model: every position is processed in the same forward pass
+    const sw = (t >= tP && t < tP + 1.4) ? prog(t, tP, tP + 1.4) : -1;
+    modelBlock(110, 560, 860, 340, { label: 'Target model · one forward pass', layers: 4, sweep: sw, alpha: a, labelSize: 30 });
+    const lit = ep(t, tP, 0.4) * (1 - ep(t, tP + 1.6, 0.6));
+    PACK.forEach((_, p) => rr(PL.xs[p] - 8, 628, 16, 250, 8, { fill: C.terra, alpha: a * lit * 0.55 }));
+    // one prediction emerges above every position — all at once
+    const pk = ep(t, tP + 1.0, 0.5, easeOutCubic);
+    text('the target\'s next-token prediction at every position', CX, 435, { size: 24, weight: 650, color: C.ink2, alpha: a * pk, maxW: 940 });
+    PACK.forEach((_, p) => {
+      if (p === 0) return;
+      const pr = PRED[p - 1];
+      line(PL.xs[p], 556, PL.xs[p], 512, { color: C.dark, lw: 2, alpha: a * pk, k: pk });
+      token(pr, PL.xs[p], lerp(530, 488, pk), { st: TS.target, size: 18, w: Math.max(PL.ws[p] - 4, 36), alpha: a * pk });
+    });
+    const n1 = ep(t, tS - 0.2, 0.5);
+    rich([['1', C.terra, 800], [' target pass  ·  ', C.ink, 650], ['11', C.terra, 800], [' positions checked in parallel', C.ink, 650]], CX, 1225, { size: 30, alpha: a * n1, maxW: 940 });
+    const n2 = ep(t, tS + 0.6, 0.5);
+    text('not one pass per branch — and not generating new tokens:', CX, 1280, { size: 22, weight: 600, color: C.ink2, alpha: a * n2, maxW: 940 });
+    text('all candidate tokens are already known, so they are scored together', CX, 1312, { size: 22, weight: 600, color: C.ink2, alpha: a * n2, maxW: 940 });
+  }
+  treeView(t, ep(t, tTree + 0.25, 0.5));
+}
+
+// ---------- tree view with target predictions (end of scene 5 + scene 6) ----------
+const TV = { cx: CX, y0: 480, dx: 300, dy: 128, size: 28 };
+function verifyTimes() {
+  return { root: cue(18, 'matching'), rej: cue(18, 'along'), on: cue(18, 'selected'), the: cue(18, 'path'), acc: cue(18, 'accepted'),
+    dis: cue(18, 'disagrees'), sup: cue(18, 'supplies'), cor: cue(18, 'correct'), drop: cue(18, 'discarded'), rep: cue(19, 'repeats') };
+}
+function treeView(t, a) {
+  if (a <= 0) return;
+  A *= a;
+  const V = verifyTimes(), tChip = cue(17, 'verifier');
+  const acceptAt = { 4: V.root, 5: V.on, 6: V.the };
+  const rejectAt = id => (TREE[id].br === 'A' || TREE[id].br === 'C') ? V.rej + (TREE[id].d - 1) * 0.15 : (id === 7 ? V.dis : 1e9);
+  const dropK = ep(t, V.drop, 0.6);
+  // the node whose prediction is currently being compared
+  const cmp = t < V.root - 0.1 ? -1 : t < V.on ? 0 : t < V.the ? 4 : t < V.dis ? 5 : t < V.drop ? 6 : -1;
+  drawTree(TV, n => {
+    const ak = acceptAt[n.id] ? ep(t, acceptAt[n.id], 0.4) : 0, rk = ep(t, rejectAt(n.id), 0.4);
+    let st = n.id ? TS.draft : TS.context;
+    if (ak > 0) st = mixStyle(TS.draft, TS.accepted, ak);
+    if (rk > 0) st = mixStyle(TS.draft, TS.rejected, rk);
+    const onPath = acceptAt[n.id] ? ak : 0;
+    return { st, alpha: rk > 0 ? 1 - 0.6 * dropK : 1, ring: cmp === n.id ? C.terra : null, ringA: 1,
+      e: { color: onPath > 0 ? mix(C.faint, C.green, onPath) : (rk > 0 ? mix(C.faint, C.red, rk) : C.faint), lw: 3 + 2.5 * onPath, dash: rk > 0.5 ? [7, 7] : null } };
+  });
+  // prediction chips: what the target predicted AT each node (from the single verification pass)
+  TREE.forEach(n => {
+    const k = ep(t, tChip + n.id * 0.06, 0.4); if (k <= 0) return;
+    const [x, y] = nodeXY(n, TV), w = nodeW(n, TV);
+    const rk = ep(t, rejectAt(n.id), 0.4);
+    const used = [0, 4, 5, 6].includes(n.id);
+    const ca = k * (used ? 1 : 1 - 0.75 * rk) * (n.id === 7 ? 1 - rk : 1);
+    const cx = x + w / 2 + 16 + tokW(PRED[n.id], 19) / 2;
+    line(x + w / 2 + 2, y, cx - tokW(PRED[n.id], 19) / 2, y, { color: C.dark, lw: 2, alpha: ca, dash: [3, 4] });
+    const hot = cmp === n.id ? 1 : 0;
+    token(PRED[n.id], cx, y, { st: TS.target, size: 19, alpha: ca, ring: hot ? C.terra : null });
+  });
+  const la = ep(t, tChip - 0.3, 0.5);
+  rr(150, 400, 30, 26, 7, { fill: C.dark, alpha: la });
+  text('= target\'s prediction for the next token at that node', 192, 413, { size: 21, weight: 600, color: C.ink2, align: 'left', alpha: la, maxW: 800 });
+  // compare markers
+  const marks = [[4, V.root, true], [1, V.rej, false], [8, V.rej, false], [5, V.on, true], [6, V.the, true], [7, V.dis, false]];
+  for (const [id, tm, ok] of marks) {
+    const [x, y] = nodeXY(TREE[id], TV), w = nodeW(TREE[id], TV), s = ep(t, tm, 0.35, easeOutBack);
+    const fade = ok ? 1 : 1 - 0.6 * dropK;
+    if (ok) check(x - w / 2 - 6, y - 26, 15, { scale: s }); else cross(x - w / 2 - 6, y - 26, 15, { scale: s, alpha: fade });
+  }
+  // the greedy rule
+  const ru = win(t, tChip, V.acc + 0.5, 0.4, 0.4);
+  rich([['Greedy rule: ', C.terra, 800], ['keep a draft token only if it equals', C.ink, 600]], CX, 1180, { size: 27, alpha: ru, maxW: 940 });
+  text('the target\'s prediction at its parent', CX, 1222, { size: 27, weight: 600, alpha: ru });
+  // "floor" disagrees: the target's own token "mat" replaces it
+  const [fx, fy] = nodeXY(TREE[7], TV);
+  const ne = ep(t, V.dis + 0.2, 0.4);
+  text('≠ mat', fx + 72, fy, { size: 24, weight: 800, color: C.red, align: 'left', f: MONO, alpha: ne * (1 - ep(t, V.sup, 0.3)) });
+  const [ex, ey] = nodeXY(TREE[6], TV), cw = nodeW(TREE[6], TV);
+  const ck = ep(t, V.sup, 0.7);
+  if (ck > 0) {
+    const sx = ex + cw / 2 + 16 + tokW('mat', 19) / 2, tx = fx + 150;
+    token('mat', lerp(sx, tx, ck), lerp(ey, fy, ck), { st: TS.target, size: lerp(19, 28, ck) });
+    text('correction from target', tx, fy + 50, { size: 19, weight: 650, color: C.ink2, alpha: ep(t, V.sup + 0.6, 0.4) });
+  }
+  // output sequence
+  const oa = ep(t, V.acc - 0.3, 0.5);
+  if (oa > 0) {
+    const labels = ['The', 'animal', 'sat', 'on', 'the', 'mat'];
+    const OL = rowLayout(labels, CX, { size: 30, gap: 12, maxW: 900 }), OY = 1175;
+    text('output', 70, OY - 58, { size: 22, weight: 650, color: C.muted, align: 'left', alpha: oa });
+    labels.forEach((lb, i) => {
+      let k = 1, st = TS.context;
+      if (i >= 2 && i <= 4) { k = ep(t, V.acc + (i - 2) * 0.2, 0.4, easeOutCubic); st = TS.accepted; }
+      if (i === 5) { k = ep(t, V.cor + 0.3, 0.45, easeOutCubic); st = TS.target; }
+      token(lb, OL.xs[i], OY + (1 - k) * 30, { st, size: OL.size, alpha: oa * k });
+    });
+    const lg = ep(t, V.cor + 0.6, 0.5);
+    rr(120, 1238, 28, 26, 7, { fill: C.green, alpha: lg });
+    text('3 accepted draft tokens', 158, 1251, { size: 21, weight: 650, color: C.ink2, align: 'left', alpha: lg });
+    rr(520, 1238, 28, 26, 7, { fill: C.dark, alpha: lg });
+    text('1 token from the target', 558, 1251, { size: 21, weight: 650, color: C.ink2, align: 'left', alpha: lg });
+    const sm = ep(t, V.drop + 0.2, 0.5) * (1 - ep(t, V.rep - 0.4, 0.4));
+    rich([['4 new tokens', C.terra, 800], [' from ', C.ink, 600], ['1', C.terra, 800], [' target pass', C.ink, 600]], CX, 1310, { size: 30, alpha: sm });
+    const rp = ep(t, V.rep - 0.3, 0.5);
+    if (rp > 0) {
+      ctx.save(); ctx.globalAlpha = A * rp; ctx.strokeStyle = C.terra; ctx.lineWidth = 4; ctx.lineCap = 'round';
+      const r0 = (t * 2.2) % (Math.PI * 2);
+      ctx.beginPath(); ctx.arc(180, 1310, 22, r0, r0 + Math.PI * 1.5); ctx.stroke(); ctx.restore();
+      head(180 + 22 * Math.cos(r0 + Math.PI * 1.5), 1310 + 22 * Math.sin(r0 + Math.PI * 1.5), r0 + Math.PI * 2, 12, C.terra, rp);
+      text('repeat: draft a new tree from the new prefix', 222, 1310, { size: 26, weight: 650, color: C.ink, align: 'left', alpha: rp, maxW: 780 });
+    }
+  }
+  A /= a;
+}
+
+function scene6(t) { treeView(t, 1); }
+
+// ---------- Scene 7: why this is faster (illustrative timeline) ----------
+function scene7(t) {
+  const t0 = SC.s7_speed.start, a = ep(t, t0 + 0.1, 0.5);
+  const X0 = 150, PASS = 120, YT = 540, YS = 820;
+  const tTr = cue(21, 'spending'), tSp = cue(21, 'potentially');
+  text('illustrative timeline — not a benchmark', 1010, 420, { size: 20, weight: 600, color: C.muted, align: 'right', italic: true, alpha: a * ep(t, tTr - 0.3, 0.5) });
+  // traditional lane
+  const la = ep(t, tTr - 0.3, 0.5);
+  text('Traditional: 4 sequential target passes', 70, YT - 60, { size: 26, weight: 700, color: C.ink, align: 'left', alpha: a * la });
+  const trT = ['sat', 'on', 'the', 'mat'];
+  trT.forEach((lb, i) => {
+    const k = ep(t, tTr + i * 0.35, 0.4); if (k <= 0) return;
+    rr(X0 + i * PASS, YT - 32, (PASS - 6) * k, 64, 12, { fill: C.terraLight, stroke: C.terra, lw: 2, alpha: a });
+    text('target', X0 + i * PASS + (PASS - 6) / 2, YT, { size: 19, weight: 700, color: C.terra, alpha: a * k });
+    token(lb, X0 + i * PASS + (PASS - 6) / 2, YT + 70, { st: TS.target, size: 20, alpha: a * k });
+  });
+  // SpecInfer lane: scenario morph (good -> bigger tree -> poor draft -> good)
+  const big = ep(t, cue(23, 'more'), 0.8) * (1 - ep(t, cue(23, 'poor'), 0.6));
+  const poor = ep(t, cue(23, 'poor'), 0.9) * (1 - ep(t, cue(24, 'when'), 0.9));
+  const D = lerp(20, 32, big), V = lerp(140, 245, big), R = 3 * D + 8 + V + 6;
+  const sa = ep(t, tSp - 0.3, 0.5);
+  text('SpecInfer: draft a tree, then 1 verification pass', 70, YS - 60, { size: 26, weight: 700, color: C.ink, align: 'left', alpha: a * sa, maxW: 940 });
+  const sk = ep(t, tSp, 0.9);
+  let x = X0;
+  for (let r = 0; r < 4; r++) {
+    const ra = r === 0 ? 1 : poor; if (ra <= 0.001) break;
+    const rk = r === 0 ? sk : 1;
+    for (let d = 0; d < 3; d++) rr(x + d * D, YS - 18, (D - 4) * rk, 36, 6, { fill: C.amberFill, stroke: C.amber, lw: 2, dash: [5, 4], alpha: a * ra * sa });
+    const vx = x + 3 * D + 8;
+    rr(vx, YS - 32, (V - 6) * clamp(rk * 1.6 - 0.6), 64, 12, { fill: C.terra, alpha: a * ra * sa });
+    text('verify', vx + V / 2 - 3, YS, { size: 19, weight: 750, color: '#fff', alpha: a * ra * sa * ep(t, tSp + 0.6, 0.3), maxW: V - 16 });
+    // tokens produced by this round
+    const toks = r === 0 ? (poor > 0.5 ? [['sat', TS.target]] : [['sat', TS.accepted], ['on', TS.accepted], ['the', TS.accepted], ['mat', TS.target]])
+      : [[trT[r], TS.target]];
+    const tk = ep(t, tSp + 0.9, 0.4) * ra * (r === 0 && poor > 0.35 && poor < 0.65 ? Math.abs(poor - 0.5) * 6.6 : 1);
+    toks.forEach(([lb, st], i) => token(lb, vx + 30 + i * 62, YS + 70, { st, size: 18, w: 56, alpha: a * clamp(tk) }));
+    x += R * ra;
+  }
+  // finish markers
+  const tradEnd = X0 + 4 * PASS - 6, specEnd = x - 6;
+  const fm = ep(t, tSp + 1.0, 0.5);
+  line(110, 1000, 990, 1000, { color: C.faint, lw: 3, alpha: a * fm });
+  text('time →', 990, 1030, { size: 20, weight: 600, color: C.muted, align: 'right', alpha: a * fm });
+  line(tradEnd, YT - 50, tradEnd, 1000, { color: C.terra, lw: 2, dash: [6, 6], alpha: a * fm * 0.8 });
+  line(specEnd, YS - 50, specEnd, 1000, { color: specEnd < tradEnd ? C.green : C.red, lw: 2.5, dash: [6, 6], alpha: a * fm });
+  const faster = specEnd < tradEnd - 10;
+  if (faster) {
+    rr(specEnd, 994, tradEnd - specEnd, 12, 6, { fill: C.green, alpha: a * fm * 0.6 });
+    text('time saved', (specEnd + tradEnd) / 2, 1030, { size: 19, weight: 750, color: C.greenInk, alpha: a * fm });
+  } else if (specEnd > tradEnd + 10) text('slower than baseline', Math.min(specEnd, 980), 1060, { size: 19, weight: 750, color: C.red, align: 'right', alpha: a * fm });
+  // same output
+  const so = ep(t, cue(22, 'preserves') - 0.2, 0.5);
+  check(95, 1100, 17, { alpha: a * so, scale: so });
+  rich([['Same output ', C.ink, 750], ['as the target model alone (greedy)', C.ink2, 600]], 125, 1100, { size: 26, alpha: a * so, align: 'left', maxW: 880 });
+  text('draft tokens are kept only when the target agrees', 125, 1140, { size: 22, weight: 600, color: C.muted, align: 'left', alpha: a * so });
+  // trade-offs
+  const c1 = ep(t, cue(23, 'more') - 0.2, 0.5) * (1 - ep(t, cue(24, 'when') - 0.3, 0.4));
+  const c2 = ep(t, cue(23, 'poor') - 0.2, 0.5) * (1 - ep(t, cue(24, 'when') - 0.3, 0.4));
+  chip('more branches → more verification work', CX, 1220, { size: 25, fill: C.amberFill, stroke: C.amber, color: C.amberInk, alpha: a * c1, h: 50 });
+  chip('poor drafts → fewer accepted tokens', CX, 1290, { size: 25, fill: C.redLight, stroke: C.red, color: '#8D433C', alpha: a * c2, h: 50 });
+  const g = ep(t, cue(24, 'specinfer') - 0.3, 0.5);
+  chip('accurate draft + efficient verification → lower latency', CX, 1255, { size: 25, fill: C.greenLight, stroke: C.green, color: C.greenInk, alpha: a * g, h: 52 });
+  text('worth it only when saved target passes outweigh the overhead', CX, 1320, { size: 21, weight: 600, color: C.ink2, alpha: a * g, maxW: 940 });
+}
+
+// ---------- Scene 8: takeaway + end card ----------
+function scene8(t) {
+  const tFin = cue(28) - 0.3, fa = ep(t, tFin, 0.8), pa = 1 - fa;
+  if (pa > 0) {
+    A *= pa;
+    const cards = [['Draft', 'small model speculates', cue(25, 'key')], ['Tree', 'many candidate paths', cue(25, 'insight')], ['Verify', 'one target pass', cue(25, 'simple')]];
+    const hlS = win(t, cue(27, 'speculate') - 0.2, cue(27, 'verify') - 0.1, 0.3, 0.3), hlV = ep(t, cue(27, 'verify') - 0.2, 0.4);
+    cards.forEach(([h, s, tm], i) => {
+      const k = ep(t, tm - 0.15, 0.45, easeOutBack); if (k <= 0) return;
+      const x = 70 + i * 330, y = 480, hl = i === 0 ? hlS : i === 2 ? hlV : 0;
+      rr(x, y + (1 - clamp(k)) * 30, 280, 170, 26, { fill: hl > 0 ? mix(C.card, C.terraLight, hl) : C.card, stroke: mix(C.border, C.terra, hl), lw: 2 + hl * 2, alpha: clamp(k), shadow: 14 });
+      text(h, x + 140, y + 66, { size: 44, weight: 780, color: i === 2 ? C.terra : C.ink, alpha: clamp(k) });
+      text(s, x + 140, y + 122, { size: 21, weight: 600, color: C.ink2, alpha: clamp(k), maxW: 250 });
+      if (i < 2) arrow(x + 286, y + 85, x + 324, y + 85, { color: C.terra, lw: 3, size: 11, alpha: ep(t, cards[i + 1][2] - 0.2, 0.3) });
+    });
+    // don't discover every token sequentially
+    const tD = cue(26, 'discover'), tS = cue(26, 'sequentially');
+    text('not this:', 70, 760, { size: 22, weight: 650, color: C.muted, align: 'left', alpha: ep(t, tD - 0.3, 0.4) });
+    for (let i = 0; i < 5; i++) {
+      const k = ep(t, tD + i * 0.14, 0.3);
+      rr(70 + i * 190, 790, 160, 70, 14, { fill: C.terraLight, stroke: C.terra, lw: 2, alpha: k });
+      text('target pass', 150 + i * 190, 825, { size: 19, weight: 700, color: C.terra, alpha: k });
+      if (i < 4) arrow(232 + i * 190, 825, 258 + i * 190, 825, { color: C.terra, lw: 2.5, size: 9, alpha: k });
+    }
+    line(60, 825, 1020, 825, { color: C.red, lw: 5, alpha: ep(t, tS, 0.3), k: ep(t, tS, 0.6) });
+    text('one token at a time', CX, 900, { size: 22, weight: 650, color: C.red, alpha: ep(t, tS + 0.3, 0.4) });
+    const tg = ep(t, cue(27, 'verify') - 0.1, 0.6);
+    text('More verified tokens', CX, 1060, { size: 52, weight: 780, alpha: tg });
+    text('per expensive model pass.', CX, 1130, { size: 52, weight: 780, color: C.terra, alpha: tg });
+    line(380, 1185, 700, 1185, { color: C.terra, lw: 4, alpha: tg, k: ep(t, cue(27, 'verify') + 0.3, 0.7) });
+    A /= pa;
+  }
+  if (fa > 0) {   // final title card, held to the end
+    asterisk(CX, 640, 58, t * 0.2, { alpha: fa });
+    text('SpecInfer', CX, 800, { size: 128, weight: 790, alpha: fa });
+    text('Tree-based speculative inference and verification', CX, 890, { size: 36, weight: 500, color: C.ink2, italic: true, alpha: fa, maxW: 960 });
+    line(440, 950, 640, 950, { color: C.terra, lw: 4, alpha: fa, k: ep(t, tFin + 0.4, 0.8) });
+    const ar = ep(t, tFin + 0.8, 0.6);
+    ['Draft', 'Tree', 'Verify'].forEach((s, i) => {
+      chip(s, 340 + i * 200, 1040, { size: 28, weight: 700, fill: i === 2 ? C.terraLight : C.card, stroke: i === 2 ? C.terra : C.border, color: i === 2 ? C.terra : C.ink, alpha: ar });
+      if (i < 2) arrow(400 + i * 200, 1040, 470 + i * 200, 1040, { color: C.terra, lw: 3, size: 10, alpha: ar });
+    });
+    const rf = ep(t, tFin + 1.3, 0.6);
+    text('Based on Miao et al., "SpecInfer" (2023) · arXiv:2305.09781', CX, 1150, { size: 22, weight: 600, color: C.muted, alpha: rf, maxW: 940 });
+    text('Narration: AI-generated voice (OpenAI TTS)', CX, 1190, { size: 20, weight: 600, color: C.muted, alpha: rf });
+  }
+}
+
+// ---------- scenes (boundaries are measured from narration) ----------
+// join: scene i flows into scene i+1 without a fade (the shared visual is drawn identically on both sides)
+const SCENES = [
+  ['s1_bottleneck', scene1, '01', 'The autoregressive bottleneck', false],
+  ['s2_speculative', scene2, '02', 'Speculative decoding', false],
+  ['s3_tree', scene3, '03', 'Draft model → token tree', true],
+  ['s4_mask', scene4, '04', 'Packing + tree attention mask', false],
+  ['s5_verify', scene5, '05', 'One verification pass', true],
+  ['s6_accept', scene6, '06', 'Accept, reject, correct', false],
+  ['s7_speed', scene7, '07', 'Why this is faster', false],
+  ['s8_takeaway', scene8, '08', 'The takeaway', false],
+];
+function sceneAlpha(t, i) {
+  const sc = SC[SCENES[i][0]];
+  if (t < sc.start || t >= sc.end) return 0;
+  const joinedIn = i > 0 && SCENES[i - 1][4], joinOut = SCENES[i][4];
+  const ain = i === 0 || joinedIn ? 1 : ep(t, sc.start, 0.5);
+  const aout = i === SCENES.length - 1 || joinOut ? 1 : 1 - ep(t, sc.end - 0.45, 0.45);
+  return Math.min(ain, aout);
+}
+
+// ---------- header (kept below Instagram's top UI) ----------
+function header(t) {
+  A = 1;
+  asterisk(98, 248, 19, t * 0.15);
+  text('SpecInfer · tree speculative decoding', 130, 249, { size: 26, weight: 680, color: C.ink, align: 'left' });
+  rr(764, 229, 222, 40, 20, { fill: C.beige });
+  text('AI-generated narration', 875, 250, { size: 19, weight: 600, color: C.ink2 });
+  const hide = ep(t, cue(28) - 0.3, 0.6);
+  SCENES.forEach(([id, , num, title], i) => {
+    const sc = SC[id]; if (t < sc.start || t >= sc.end) return;
+    const a = Math.min(ep(t, sc.start + 0.05, 0.45), i === SCENES.length - 1 ? 1 : 1 - ep(t, sc.end - 0.3, 0.3)) * (1 - hide);
+    A = a; text(num, 80, 312, { size: 28, weight: 800, color: C.terra, align: 'left' });
+    text(title, 128, 312, { size: 38, weight: 760, color: C.ink, align: 'left', maxW: 860 }); A = 1;
+  });
+  SCENES.forEach(([id], i) => {
+    const sc = SC[id], x = 80 + i * 117, k = prog(t, sc.start, sc.end);
+    rr(x, 348, 105, 6, 3, { fill: C.beige });
+    if (k > 0) rr(x, 348, 105 * k, 6, 3, { fill: C.terra });
+  });
+}
+
+// ---------- subtitles: short caption groups built from the measured word timings ----------
+const TERMS = [['single', 'forward', 'pass'], ['tree', 'attention'], ['treebased', 'attention'], ['attention', 'mask'], ['draft', 'model'],
+  ['token', 'tree'], ['target', 'model'], ['targetmodel'], ['targetmodels'], ['forward', 'pass'], ['speculative', 'decoding'], ['greedy', 'decoding'],
+  ['unrelated', 'branches'], ['in', 'parallel'], ['accepted'], ['verify'], ['verification'], ['verifier'], ['ancestors'], ['specinfer']];
+const CAP_SIZE = 44, CAP_W = 880, CAP_LH = 58, CAP_Y = 1460;
+const CHUNKS = (() => {
+  const out = [];
+  SEG.forEach((s, si) => {
+    const ws = s.words.map(w => ({ ...w, n: norm(w.w), key: false, term: -1 }));
+    for (let i = 0; i < ws.length; i++) for (const [ti, term] of TERMS.entries()) {
+      if (term.every((p, k) => ws[i + k] && ws[i + k].n === p)) { term.forEach((_, k) => { ws[i + k].key = true; ws[i + k].term = i * 100 + ti; }); i += term.length - 1; break; }
+    }
+    let cur = [];
+    const flush = () => { if (cur.length) out.push({ si, words: cur }); cur = []; };
+    ws.forEach((w, i) => {
+      cur.push(w);
+      const rem = ws.length - 1 - i, nx = ws[i + 1];
+      if (rem === 0) return flush();
+      if (nx && w.term >= 0 && nx.term === w.term) return;          // never split a key term
+      const end = /[.?!]$/.test(w.w), soft = /[,;:]$/.test(w.w);
+      if ((end && cur.length >= 2 && rem >= 2) || (soft && cur.length >= 3 && rem >= 3) || (cur.length >= 6 && rem >= 3)) flush();
+    });
+    flush();
+  });
+  out.forEach((c, i) => {
+    const n = out[i + 1], s = SEG[c.si];
+    c.t0 = c.words[0].start - 0.12;
+    c.t1 = n && n.si === c.si ? n.words[0].start - 0.12 : Math.min(c.words.at(-1).end + 0.6, n ? SEG[n.si].start - 0.15 : s.end + 0.8);
+    // wrap into at most two lines
+    const ls = [[]]; let wsum = 0;
+    for (const x of c.words) { const xw = measure(x.w + ' ', CAP_SIZE, 650); if (wsum + xw > CAP_W && ls.at(-1).length) { ls.push([]); wsum = 0; } ls.at(-1).push(x); wsum += xw; }
+    c.lines = ls;
+  });
+  return out;
+})();
+function captions(t) {
+  A = 1;
+  const c = CHUNKS.find(c => t >= c.t0 && t < c.t1); if (!c) return;
+  const a = Math.min(ep(t, c.t0, 0.12), 1 - ep(t, c.t1 - 0.12, 0.12));
+  const n = c.lines.length, boxH = n * CAP_LH + 40, top = CAP_Y - boxH / 2;
+  const widths = c.lines.map(ln => ln.reduce((s, w) => s + measure(w.w + ' ', CAP_SIZE, 700), 0) - measure(' ', CAP_SIZE, 700));
+  const bw = Math.min(960, Math.max(...widths) + 80);
+  rr(CX - bw / 2, top, bw, boxH, 28, { fill: 'rgba(255,253,249,0.95)', stroke: C.beige, lw: 2, alpha: a, shadow: 14 });
+  c.lines.forEach((ln, li) => {
+    let x = CX - widths[li] / 2; const y = top + 20 + CAP_LH * li + CAP_LH / 2;
+    ln.forEach(w => {
+      const said = t >= w.start - 0.05, wt = w.key ? 800 : 650;
+      const col = w.key ? (said ? C.terra : '#DDB3A2') : (said ? C.ink : '#B4ACA2');
+      text(w.w, x, y, { size: CAP_SIZE, weight: wt, color: col, align: 'left', alpha: a });
+      x += measure(w.w + ' ', CAP_SIZE, 700);
+    });
+  });
+}
+
+// ---------- the single deterministic entry point ----------
+function draw(t) {
+  t = clamp(t, 0, window.TOTAL);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.setLineDash([]);
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  const g = ctx.createRadialGradient(W / 2, H * 0.42, 200, W / 2, H * 0.42, 1250);
+  g.addColorStop(0, 'rgba(255,255,255,0.35)'); g.addColorStop(1, 'rgba(214,200,180,0.16)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  header(t);
+  SCENES.forEach(([id, fn], i) => {
+    const a = sceneAlpha(t, i); if (a <= 0) return;
+    ctx.save(); A = a; ctx.translate(0, (1 - a) * 18); fn(t); ctx.restore();
+  });
+  A = 1;
+  captions(t);
+}
+window.draw = draw;
+window.ready = document.fonts.ready.then(() => { draw(0); return true; });
+
+// ---------- live browser preview (synchronised to the narration audio) ----------
+if (window.__RENDERING) document.body.classList.add('rendering');
+else {
+  const audio = document.getElementById('audio'), btn = document.getElementById('play'), scrub = document.getElementById('scrub'), tc = document.getElementById('tc');
+  const q = new URLSearchParams(location.search); let tNow = +(q.get('t') || 0), playing = false, wall0 = 0, t0 = 0;
+  const show = t => { draw(t); tc.textContent = `${t.toFixed(2)} / ${window.TOTAL.toFixed(2)} s`; scrub.value = Math.round(t / window.TOTAL * 1000); };
+  // the clock follows the audio when it plays; falls back to wall time if audio is unavailable
+  const now = () => (!audio.paused && audio.readyState >= 2) ? audio.currentTime : t0 + (performance.now() - wall0) / 1000;
+  const loop = () => { if (!playing) return; tNow = Math.min(now(), window.TOTAL); show(tNow);
+    if (tNow >= window.TOTAL) { playing = false; btn.textContent = '▶ Play'; return; } requestAnimationFrame(loop); };
+  btn.onclick = () => {
+    if (!playing) { if (tNow >= window.TOTAL) tNow = 0; playing = true; t0 = tNow; wall0 = performance.now(); audio.currentTime = tNow; audio.play().catch(() => {}); btn.textContent = '❚❚ Pause'; requestAnimationFrame(loop); }
+    else { playing = false; audio.pause(); btn.textContent = '▶ Play'; }
+  };
+  scrub.oninput = () => { tNow = scrub.value / 1000 * window.TOTAL; audio.currentTime = tNow; t0 = tNow; wall0 = performance.now(); show(tNow); };
+  document.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); btn.click(); }
+    if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') { tNow = clamp(tNow + (e.code === 'ArrowRight' ? 1 : -1), 0, window.TOTAL); audio.currentTime = tNow; t0 = tNow; wall0 = performance.now(); show(tNow); } });
+  window.ready.then(() => show(tNow));
+}
+</script>
+</body>
+</html>

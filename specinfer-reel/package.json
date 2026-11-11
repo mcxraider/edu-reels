@@ -1,0 +1,16 @@
+{
+  "name": "specinfer-reel",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "audio": ".venv/bin/python generate_audio.py --speed 0.93",
+    "align": ".venv/bin/python generate_audio.py --align-only",
+    "inject": "node render.mjs --inject",
+    "preview": "node render.mjs --inject && open index.html",
+    "stills": "node render.mjs --stills",
+    "qa": "node render.mjs --qa",
+    "render": "node render.mjs"
+  },
+  "dependencies": { "puppeteer-core": "^23.11.1" }
+}

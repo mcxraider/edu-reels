@@ -1,0 +1,57 @@
+Imagine you're generating text using a massive language model.
+
+Normally, the model predicts one token, then another, then another. Every new token requires another forward pass.
+
+And when your model has billions of parameters, repeatedly loading those weights becomes expensive.
+
+But what if we could predict several tokens ahead, and verify them together?
+
+That's the idea behind speculative decoding.
+
+And SpecInfer takes this a step further.
+
+First, we introduce a smaller, faster draft model.
+
+Instead of asking our expensive target model to generate every token, the draft model proposes several possible continuations.
+
+But rather than committing to just one sequence, SpecInfer organizes these predictions into a branching token tree.
+
+Each path represents a different possible continuation of the sentence.
+
+Now comes the interesting part.
+
+How can the large model verify all these different paths at once, without mixing their information?
+
+SpecInfer uses tree-based attention.
+
+We pack the candidate tokens into a single verification structure and construct a special attention mask.
+
+Each token can attend to the original prompt and its own ancestors in the tree.
+
+But it cannot see tokens from unrelated branches.
+
+This lets the target model evaluate multiple candidate continuations in parallel, using a single forward pass.
+
+For greedy decoding, the verifier checks which proposed tokens agree with the target model's predictions.
+
+Matching tokens along the selected path are accepted. When a prediction disagrees, the target model supplies the correct next token, and the remaining speculative continuation is discarded.
+
+Then the process repeats.
+
+Here's why this is powerful.
+
+Instead of spending an expensive target-model pass generating just one token, we can potentially advance several tokens at once.
+
+And unlike simply trusting the smaller model, the verification process preserves the target model's intended output.
+
+Of course, larger trees aren't automatically better. More branches create additional verification work, and poor draft predictions reduce the benefit.
+
+But when the draft model is accurate and verification is efficient, SpecInfer can significantly reduce generation latency.
+
+The key insight is simple.
+
+Don't make your largest model discover every token sequentially.
+
+Let smaller models speculate, then let the large model verify many possibilities together.
+
+That's the intuition behind SpecInfer.

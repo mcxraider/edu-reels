@@ -1,0 +1,2870 @@
+{
+ "source": "assets/voiceover.wav",
+ "duration": 158.0,
+ "fps": 30,
+ "end_hold_s": 5.21,
+ "method": "whisper-1 word anchors + Needleman-Wunsch alignment to narration.txt + RMS pause snapping",
+ "tts": {
+  "model": "gpt-4o-mini-tts",
+  "voice": "cedar",
+  "speed": 0.93,
+  "instructions": "Voice: an experienced machine learning engineer explaining a challenging idea to fellow engineers. Tone: calm, engaging, technically confident and conversational - never theatrical or salesy. Pacing: about 145 to 150 words per minute, with brief natural pauses after key concepts and between paragraphs. Pronounce 'SpecInfer' as 'Spec-Infer' (spek IN-fur). Read the text exactly as written.",
+  "requests": 1,
+  "sample_rate": 24000,
+  "raw_duration_s": 148.54,
+  "words": 354,
+  "raw_wpm": 143.0,
+  "lead_in_s": 1.0,
+  "section_pause_s": 0.5,
+  "section_cuts_raw_s": [
+   17.8,
+   28.87,
+   51.775,
+   77.055,
+   89.945,
+   103.875,
+   135.28
+  ],
+  "end_hold_s": 5.0,
+  "measured_input_lufs": "-23.50",
+  "target_lufs": -16,
+  "peak_dbfs": -1.51,
+  "final_duration_s": 158.0
+ },
+ "qa": {
+  "script_words": 354,
+  "matched_words": 352,
+  "match_rate": 0.9944,
+  "unmatched_script_words": [
+   "branches",
+   "and"
+  ],
+  "repaired_windows": [],
+  "recognised_text": "Imagine you're generating text using a massive language model. Normally, the model predicts one token, then another, then another. Every new token requires another forward pass. And when your model has billions of parameters, repeatedly loading those weights becomes expensive. But what if we could predict several tokens ahead and verify them together? That's the idea behind speculative decoding. And SpecInfer takes this a step further. First, we introduce a smaller, faster draft model. Instead of asking our expensive target model to generate every token, the draft model proposes several possible continuations. But rather than committing to just one sequence, SpecInfer organizes these predictions into a branching token tree. Each path represents a different possible continuation of the sentence. Now comes the interesting part. How can the large model verify all these different paths at once, without mixing their information? SpecInfer uses tree-based attention. We pack the candidate tokens into a single verification structure and construct a special attention mask. Each token can attend to the original prompt and its own ancestors in the tree, but it cannot see tokens from unrelated branches. This lets the target model evaluate multiple candidate continuations in parallel using a single forward pass. For greedy decoding, the verifier checks which proposed tokens agree with the target model's predictions. Matching tokens along the selected path are accepted. When a prediction disagrees, the target model supplies the correct next token, and the remaining speculative continuation is discarded. Then, the process repeats. Here's why this is powerful. Instead of spending an expensive target model pass generating just one token, we can potentially advance several tokens at once. And unlike simply trusting the smaller model, the verification process preserves the target model's intended output. Of course, larger trees aren't automatically better. More bredges create additional verification work. Poor draft predictions reduce the benefit. But when the draft model is accurate and verification is efficient, SPECInfer can significantly reduce generation latency. The key insight is simple. Don't make your largest model discover every token sequentially. Let smaller models speculate. Then let the large model verify many possibilities together. That's the intuition behind Specinfer.",
+  "speech_wpm": 139.9
+ },
+ "scenes": [
+  {
+   "id": "s1_bottleneck",
+   "first_segment": "seg00",
+   "speech_start": 1.01,
+   "speech_end": 18.35,
+   "start": 0.0,
+   "end": 19.075
+  },
+  {
+   "id": "s2_speculative",
+   "first_segment": "seg03",
+   "speech_start": 19.8,
+   "speech_end": 29.96,
+   "start": 19.075,
+   "end": 30.62
+  },
+  {
+   "id": "s3_tree",
+   "first_segment": "seg06",
+   "speech_start": 31.28,
+   "speech_end": 53.38,
+   "start": 30.62,
+   "end": 54.035
+  },
+  {
+   "id": "s4_mask",
+   "first_segment": "seg10",
+   "speech_start": 54.69,
+   "speech_end": 79.13,
+   "start": 54.035,
+   "end": 79.81
+  },
+  {
+   "id": "s5_verify",
+   "first_segment": "seg16",
+   "speech_start": 80.49,
+   "speech_end": 92.45,
+   "start": 79.81,
+   "end": 93.205
+  },
+  {
+   "id": "s6_accept",
+   "first_segment": "seg18",
+   "speech_start": 93.96,
+   "speech_end": 106.93,
+   "start": 93.205,
+   "end": 107.625
+  },
+  {
+   "id": "s7_speed",
+   "first_segment": "seg20",
+   "speech_start": 108.32,
+   "speech_end": 139.0,
+   "start": 107.625,
+   "end": 139.555
+  },
+  {
+   "id": "s8_takeaway",
+   "first_segment": "seg25",
+   "speech_start": 140.11,
+   "speech_end": 152.79,
+   "start": 139.555,
+   "end": 158.0
+  }
+ ],
+ "pauses": [
+  [
+   0.0,
+   1.01
+  ],
+  [
+   4.52,
+   5.26
+  ],
+  [
+   5.8,
+   6.12
+  ],
+  [
+   7.59,
+   7.87
+  ],
+  [
+   8.45,
+   8.7
+  ],
+  [
+   9.2,
+   9.96
+  ],
+  [
+   12.47,
+   13.08
+  ],
+  [
+   15.07,
+   15.52
+  ],
+  [
+   17.05,
+   17.39
+  ],
+  [
+   18.35,
+   19.8
+  ],
+  [
+   22.0,
+   22.39
+  ],
+  [
+   23.6,
+   24.36
+  ],
+  [
+   26.73,
+   27.59
+  ],
+  [
+   28.51,
+   28.77
+  ],
+  [
+   29.96,
+   31.28
+  ],
+  [
+   31.66,
+   31.97
+  ],
+  [
+   33.11,
+   33.31
+  ],
+  [
+   34.42,
+   35.15
+  ],
+  [
+   38.51,
+   39.0
+  ],
+  [
+   41.87,
+   42.81
+  ],
+  [
+   44.93,
+   45.4
+  ],
+  [
+   47.54,
+   47.84
+  ],
+  [
+   49.27,
+   50.07
+  ],
+  [
+   53.38,
+   54.69
+  ],
+  [
+   56.1,
+   56.89
+  ],
+  [
+   60.1,
+   60.53
+  ],
+  [
+   61.94,
+   62.85
+  ],
+  [
+   64.98,
+   65.66
+  ],
+  [
+   68.88,
+   69.39
+  ],
+  [
+   71.11,
+   72.02
+  ],
+  [
+   74.06,
+   74.48
+  ],
+  [
+   75.98,
+   76.75
+  ],
+  [
+   79.13,
+   80.49
+  ],
+  [
+   84.54,
+   85.01
+  ],
+  [
+   86.45,
+   87.23
+  ],
+  [
+   88.25,
+   88.67
+  ],
+  [
+   92.45,
+   93.96
+  ],
+  [
+   96.47,
+   97.23
+  ],
+  [
+   98.54,
+   98.98
+  ],
+  [
+   101.21,
+   101.68
+  ],
+  [
+   104.25,
+   105.38
+  ],
+  [
+   105.73,
+   105.89
+  ],
+  [
+   106.93,
+   108.32
+  ],
+  [
+   109.45,
+   109.92
+  ],
+  [
+   113.56,
+   114.08
+  ],
+  [
+   116.37,
+   117.14
+  ],
+  [
+   119.2,
+   119.69
+  ],
+  [
+   123.03,
+   123.93
+  ],
+  [
+   124.4,
+   124.71
+  ],
+  [
+   126.53,
+   126.96
+  ],
+  [
+   129.12,
+   129.6
+  ],
+  [
+   131.66,
+   132.56
+  ],
+  [
+   134.0,
+   134.34
+  ],
+  [
+   135.65,
+   136.11
+  ],
+  [
+   139.0,
+   140.11
+  ],
+  [
+   141.27,
+   141.83
+  ],
+  [
+   144.7,
+   145.32
+  ],
+  [
+   146.64,
+   147.09
+  ],
+  [
+   150.25,
+   151.0
+  ],
+  [
+   152.79,
+   158.0
+  ]
+ ],
+ "segments": [
+  {
+   "id": "seg00",
+   "index": 0,
+   "scene": "s1_bottleneck",
+   "text": "Imagine you're generating text using a massive language model.",
+   "start": 1.01,
+   "end": 4.52,
+   "events": [
+    "title card fades out",
+    "large target model block appears",
+    "prompt 'The cat' appears"
+   ],
+   "words": [
+    {
+     "w": "Imagine",
+     "start": 1.01,
+     "end": 1.58,
+     "matched": true
+    },
+    {
+     "w": "you're",
+     "start": 1.58,
+     "end": 2.0,
+     "matched": true
+    },
+    {
+     "w": "generating",
+     "start": 2.0,
+     "end": 2.36,
+     "matched": true
+    },
+    {
+     "w": "text",
+     "start": 2.36,
+     "end": 2.82,
+     "matched": true
+    },
+    {
+     "w": "using",
+     "start": 2.82,
+     "end": 3.24,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 3.24,
+     "end": 3.86,
+     "matched": true
+    },
+    {
+     "w": "massive",
+     "start": 3.86,
+     "end": 3.86,
+     "matched": true
+    },
+    {
+     "w": "language",
+     "start": 3.86,
+     "end": 4.26,
+     "matched": true
+    },
+    {
+     "w": "model.",
+     "start": 4.26,
+     "end": 4.5,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg01",
+   "index": 1,
+   "scene": "s1_bottleneck",
+   "text": "Normally, the model predicts one token, then another, then another. Every new token requires another forward pass.",
+   "start": 6.12,
+   "end": 12.47,
+   "events": [
+    "pass 1..3 light the target block; 'sat' 'on' 'the' appear one per pass on cue words 'one'/'another'",
+    "timeline of sequential passes grows; 'forward pass' highlights pass counter"
+   ],
+   "words": [
+    {
+     "w": "Normally,",
+     "start": 6.12,
+     "end": 5.72,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 6.1,
+     "end": 6.5,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 6.5,
+     "end": 6.5,
+     "matched": true
+    },
+    {
+     "w": "predicts",
+     "start": 6.5,
+     "end": 6.96,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 6.96,
+     "end": 7.22,
+     "matched": true
+    },
+    {
+     "w": "token,",
+     "start": 7.22,
+     "end": 7.4,
+     "matched": true
+    },
+    {
+     "w": "then",
+     "start": 7.92,
+     "end": 8.08,
+     "matched": true
+    },
+    {
+     "w": "another,",
+     "start": 8.08,
+     "end": 8.32,
+     "matched": true
+    },
+    {
+     "w": "then",
+     "start": 8.68,
+     "end": 8.9,
+     "matched": true
+    },
+    {
+     "w": "another.",
+     "start": 8.9,
+     "end": 9.16,
+     "matched": true
+    },
+    {
+     "w": "Every",
+     "start": 9.96,
+     "end": 10.26,
+     "matched": true
+    },
+    {
+     "w": "new",
+     "start": 10.26,
+     "end": 10.78,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 10.78,
+     "end": 10.78,
+     "matched": true
+    },
+    {
+     "w": "requires",
+     "start": 10.78,
+     "end": 11.3,
+     "matched": true
+    },
+    {
+     "w": "another",
+     "start": 11.3,
+     "end": 11.7,
+     "matched": true
+    },
+    {
+     "w": "forward",
+     "start": 11.7,
+     "end": 12.08,
+     "matched": true
+    },
+    {
+     "w": "pass.",
+     "start": 12.08,
+     "end": 12.44,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg02",
+   "index": 2,
+   "scene": "s1_bottleneck",
+   "text": "And when your model has billions of parameters, repeatedly loading those weights becomes expensive.",
+   "start": 13.08,
+   "end": 18.35,
+   "events": [
+    "weights stream from memory into the block each pass ('loading')",
+    "'expensive' tags the per-pass cost"
+   ],
+   "words": [
+    {
+     "w": "And",
+     "start": 13.08,
+     "end": 13.22,
+     "matched": true
+    },
+    {
+     "w": "when",
+     "start": 13.22,
+     "end": 13.3,
+     "matched": true
+    },
+    {
+     "w": "your",
+     "start": 13.3,
+     "end": 13.56,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 13.56,
+     "end": 13.68,
+     "matched": true
+    },
+    {
+     "w": "has",
+     "start": 13.68,
+     "end": 14.0,
+     "matched": true
+    },
+    {
+     "w": "billions",
+     "start": 14.0,
+     "end": 14.28,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 14.28,
+     "end": 15.08,
+     "matched": true
+    },
+    {
+     "w": "parameters,",
+     "start": 15.08,
+     "end": 15.08,
+     "matched": true
+    },
+    {
+     "w": "repeatedly",
+     "start": 15.72,
+     "end": 16.08,
+     "matched": true
+    },
+    {
+     "w": "loading",
+     "start": 16.08,
+     "end": 16.38,
+     "matched": true
+    },
+    {
+     "w": "those",
+     "start": 16.38,
+     "end": 17.04,
+     "matched": true
+    },
+    {
+     "w": "weights",
+     "start": 17.04,
+     "end": 17.04,
+     "matched": true
+    },
+    {
+     "w": "becomes",
+     "start": 17.04,
+     "end": 17.72,
+     "matched": true
+    },
+    {
+     "w": "expensive.",
+     "start": 17.72,
+     "end": 18.36,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg03",
+   "index": 3,
+   "scene": "s2_speculative",
+   "text": "But what if we could predict several tokens ahead, and verify them together?",
+   "start": 19.8,
+   "end": 23.6,
+   "events": [
+    "screen splits into Traditional vs Speculative lanes",
+    "draft tokens appear rapidly on 'several'",
+    "target verifies them together on 'verify'"
+   ],
+   "words": [
+    {
+     "w": "But",
+     "start": 19.8,
+     "end": 20.02,
+     "matched": true
+    },
+    {
+     "w": "what",
+     "start": 20.02,
+     "end": 20.14,
+     "matched": true
+    },
+    {
+     "w": "if",
+     "start": 20.14,
+     "end": 20.26,
+     "matched": true
+    },
+    {
+     "w": "we",
+     "start": 20.26,
+     "end": 20.38,
+     "matched": true
+    },
+    {
+     "w": "could",
+     "start": 20.38,
+     "end": 20.62,
+     "matched": true
+    },
+    {
+     "w": "predict",
+     "start": 20.62,
+     "end": 20.82,
+     "matched": true
+    },
+    {
+     "w": "several",
+     "start": 20.82,
+     "end": 21.28,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 21.28,
+     "end": 21.6,
+     "matched": true
+    },
+    {
+     "w": "ahead,",
+     "start": 21.6,
+     "end": 22.02,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 22.02,
+     "end": 22.6,
+     "matched": true
+    },
+    {
+     "w": "verify",
+     "start": 22.6,
+     "end": 22.92,
+     "matched": true
+    },
+    {
+     "w": "them",
+     "start": 22.92,
+     "end": 23.2,
+     "matched": true
+    },
+    {
+     "w": "together?",
+     "start": 23.2,
+     "end": 23.56,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg04",
+   "index": 4,
+   "scene": "s2_speculative",
+   "text": "That's the idea behind speculative decoding.",
+   "start": 24.36,
+   "end": 26.73,
+   "events": [
+    "'speculative decoding' label; draft tokens turn green after verification"
+   ],
+   "words": [
+    {
+     "w": "That's",
+     "start": 24.36,
+     "end": 24.64,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 24.64,
+     "end": 24.88,
+     "matched": true
+    },
+    {
+     "w": "idea",
+     "start": 24.88,
+     "end": 25.16,
+     "matched": true
+    },
+    {
+     "w": "behind",
+     "start": 25.16,
+     "end": 25.56,
+     "matched": true
+    },
+    {
+     "w": "speculative",
+     "start": 25.56,
+     "end": 26.16,
+     "matched": true
+    },
+    {
+     "w": "decoding.",
+     "start": 26.16,
+     "end": 26.66,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg05",
+   "index": 5,
+   "scene": "s2_speculative",
+   "text": "And SpecInfer takes this a step further.",
+   "start": 27.59,
+   "end": 29.96,
+   "events": [
+    "a linear draft chain morphs into a branching tree ('a step further')"
+   ],
+   "words": [
+    {
+     "w": "And",
+     "start": 27.64,
+     "end": 28.0,
+     "matched": true
+    },
+    {
+     "w": "SpecInfer",
+     "start": 28.0,
+     "end": 28.4,
+     "matched": true
+    },
+    {
+     "w": "takes",
+     "start": 28.4,
+     "end": 29.0,
+     "matched": true
+    },
+    {
+     "w": "this",
+     "start": 29.0,
+     "end": 29.2,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 29.2,
+     "end": 29.38,
+     "matched": true
+    },
+    {
+     "w": "step",
+     "start": 29.38,
+     "end": 29.58,
+     "matched": true
+    },
+    {
+     "w": "further.",
+     "start": 29.58,
+     "end": 29.92,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg06",
+   "index": 6,
+   "scene": "s3_tree",
+   "text": "First, we introduce a smaller, faster draft model.",
+   "start": 31.28,
+   "end": 34.42,
+   "events": [
+    "small draft model block appears beside the large target model ('draft model')"
+   ],
+   "words": [
+    {
+     "w": "First,",
+     "start": 31.3,
+     "end": 31.68,
+     "matched": true
+    },
+    {
+     "w": "we",
+     "start": 31.92,
+     "end": 32.18,
+     "matched": true
+    },
+    {
+     "w": "introduce",
+     "start": 32.18,
+     "end": 32.48,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 32.48,
+     "end": 32.72,
+     "matched": true
+    },
+    {
+     "w": "smaller,",
+     "start": 32.72,
+     "end": 33.08,
+     "matched": true
+    },
+    {
+     "w": "faster",
+     "start": 33.74,
+     "end": 33.74,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 33.74,
+     "end": 34.1,
+     "matched": true
+    },
+    {
+     "w": "model.",
+     "start": 34.1,
+     "end": 34.38,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg07",
+   "index": 7,
+   "scene": "s3_tree",
+   "text": "Instead of asking our expensive target model to generate every token, the draft model proposes several possible continuations.",
+   "start": 35.15,
+   "end": 41.87,
+   "events": [
+    "draft model proposes several continuations; target model stays idle"
+   ],
+   "words": [
+    {
+     "w": "Instead",
+     "start": 35.32,
+     "end": 35.4,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 35.4,
+     "end": 35.86,
+     "matched": true
+    },
+    {
+     "w": "asking",
+     "start": 35.86,
+     "end": 35.86,
+     "matched": true
+    },
+    {
+     "w": "our",
+     "start": 35.86,
+     "end": 36.08,
+     "matched": true
+    },
+    {
+     "w": "expensive",
+     "start": 36.08,
+     "end": 36.58,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 36.58,
+     "end": 36.92,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 36.92,
+     "end": 37.2,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 37.2,
+     "end": 37.5,
+     "matched": true
+    },
+    {
+     "w": "generate",
+     "start": 37.5,
+     "end": 37.72,
+     "matched": true
+    },
+    {
+     "w": "every",
+     "start": 37.72,
+     "end": 38.14,
+     "matched": true
+    },
+    {
+     "w": "token,",
+     "start": 38.14,
+     "end": 38.4,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 39.0,
+     "end": 39.16,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 39.16,
+     "end": 39.4,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 39.4,
+     "end": 39.72,
+     "matched": true
+    },
+    {
+     "w": "proposes",
+     "start": 39.72,
+     "end": 40.14,
+     "matched": true
+    },
+    {
+     "w": "several",
+     "start": 40.14,
+     "end": 40.58,
+     "matched": true
+    },
+    {
+     "w": "possible",
+     "start": 40.58,
+     "end": 41.08,
+     "matched": true
+    },
+    {
+     "w": "continuations.",
+     "start": 41.08,
+     "end": 42.38,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg08",
+   "index": 8,
+   "scene": "s3_tree",
+   "text": "But rather than committing to just one sequence, SpecInfer organizes these predictions into a branching token tree.",
+   "start": 42.81,
+   "end": 49.27,
+   "events": [
+    "prompt 'The animal' at root; three branches grow on 'branching token tree'",
+    "label: Token Tree"
+   ],
+   "words": [
+    {
+     "w": "But",
+     "start": 42.81,
+     "end": 43.02,
+     "matched": true
+    },
+    {
+     "w": "rather",
+     "start": 43.02,
+     "end": 43.2,
+     "matched": true
+    },
+    {
+     "w": "than",
+     "start": 43.2,
+     "end": 43.5,
+     "matched": true
+    },
+    {
+     "w": "committing",
+     "start": 43.5,
+     "end": 43.7,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 43.7,
+     "end": 43.9,
+     "matched": true
+    },
+    {
+     "w": "just",
+     "start": 43.9,
+     "end": 44.2,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 44.2,
+     "end": 44.48,
+     "matched": true
+    },
+    {
+     "w": "sequence,",
+     "start": 44.48,
+     "end": 44.88,
+     "matched": true
+    },
+    {
+     "w": "SpecInfer",
+     "start": 45.165,
+     "end": 45.965,
+     "matched": true
+    },
+    {
+     "w": "organizes",
+     "start": 45.965,
+     "end": 46.785,
+     "matched": true
+    },
+    {
+     "w": "these",
+     "start": 46.785,
+     "end": 47.065,
+     "matched": true
+    },
+    {
+     "w": "predictions",
+     "start": 47.065,
+     "end": 47.445,
+     "matched": true
+    },
+    {
+     "w": "into",
+     "start": 47.445,
+     "end": 48.025,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 48.025,
+     "end": 48.265,
+     "matched": true
+    },
+    {
+     "w": "branching",
+     "start": 48.265,
+     "end": 48.685,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 48.685,
+     "end": 48.965,
+     "matched": true
+    },
+    {
+     "w": "tree.",
+     "start": 48.965,
+     "end": 49.265,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg09",
+   "index": 9,
+   "scene": "s3_tree",
+   "text": "Each path represents a different possible continuation of the sentence.",
+   "start": 50.07,
+   "end": 53.38,
+   "events": [
+    "each root-to-leaf path is highlighted in turn ('each path')"
+   ],
+   "words": [
+    {
+     "w": "Each",
+     "start": 50.225,
+     "end": 50.325,
+     "matched": true
+    },
+    {
+     "w": "path",
+     "start": 50.325,
+     "end": 50.625,
+     "matched": true
+    },
+    {
+     "w": "represents",
+     "start": 50.625,
+     "end": 51.105,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 51.105,
+     "end": 51.305,
+     "matched": true
+    },
+    {
+     "w": "different",
+     "start": 51.305,
+     "end": 51.645,
+     "matched": true
+    },
+    {
+     "w": "possible",
+     "start": 51.645,
+     "end": 52.065,
+     "matched": true
+    },
+    {
+     "w": "continuation",
+     "start": 52.065,
+     "end": 52.625,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 52.625,
+     "end": 52.845,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 52.845,
+     "end": 53.365,
+     "matched": true
+    },
+    {
+     "w": "sentence.",
+     "start": 53.365,
+     "end": 53.365,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg10",
+   "index": 10,
+   "scene": "s4_mask",
+   "text": "Now comes the interesting part.",
+   "start": 54.69,
+   "end": 56.1,
+   "events": [
+    "tree slides to the top; question framing"
+   ],
+   "words": [
+    {
+     "w": "Now",
+     "start": 54.805,
+     "end": 55.005,
+     "matched": true
+    },
+    {
+     "w": "comes",
+     "start": 55.005,
+     "end": 55.285,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 55.285,
+     "end": 55.525,
+     "matched": true
+    },
+    {
+     "w": "interesting",
+     "start": 55.525,
+     "end": 55.845,
+     "matched": true
+    },
+    {
+     "w": "part.",
+     "start": 55.845,
+     "end": 56.125,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg11",
+   "index": 11,
+   "scene": "s4_mask",
+   "text": "How can the large model verify all these different paths at once, without mixing their information?",
+   "start": 56.89,
+   "end": 61.94,
+   "events": [
+    "three paths flash together; warning: must not mix branch information"
+   ],
+   "words": [
+    {
+     "w": "How",
+     "start": 56.985,
+     "end": 57.045,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 57.045,
+     "end": 57.225,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 57.225,
+     "end": 57.405,
+     "matched": true
+    },
+    {
+     "w": "large",
+     "start": 57.405,
+     "end": 57.705,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 57.705,
+     "end": 57.905,
+     "matched": true
+    },
+    {
+     "w": "verify",
+     "start": 57.905,
+     "end": 58.385,
+     "matched": true
+    },
+    {
+     "w": "all",
+     "start": 58.385,
+     "end": 58.785,
+     "matched": true
+    },
+    {
+     "w": "these",
+     "start": 58.785,
+     "end": 59.025,
+     "matched": true
+    },
+    {
+     "w": "different",
+     "start": 59.025,
+     "end": 59.365,
+     "matched": true
+    },
+    {
+     "w": "paths",
+     "start": 59.365,
+     "end": 59.545,
+     "matched": true
+    },
+    {
+     "w": "at",
+     "start": 59.545,
+     "end": 59.985,
+     "matched": true
+    },
+    {
+     "w": "once,",
+     "start": 59.985,
+     "end": 60.065,
+     "matched": true
+    },
+    {
+     "w": "without",
+     "start": 60.785,
+     "end": 60.845,
+     "matched": true
+    },
+    {
+     "w": "mixing",
+     "start": 60.845,
+     "end": 61.125,
+     "matched": true
+    },
+    {
+     "w": "their",
+     "start": 61.125,
+     "end": 61.445,
+     "matched": true
+    },
+    {
+     "w": "information?",
+     "start": 61.445,
+     "end": 61.865,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg12",
+   "index": 12,
+   "scene": "s4_mask",
+   "text": "SpecInfer uses tree-based attention.",
+   "start": 62.85,
+   "end": 64.98,
+   "events": [
+    "label 'tree-based attention'"
+   ],
+   "words": [
+    {
+     "w": "SpecInfer",
+     "start": 62.885,
+     "end": 63.485,
+     "matched": true
+    },
+    {
+     "w": "uses",
+     "start": 63.485,
+     "end": 63.885,
+     "matched": true
+    },
+    {
+     "w": "tree-based",
+     "start": 63.885,
+     "end": 64.465,
+     "matched": true
+    },
+    {
+     "w": "attention.",
+     "start": 64.465,
+     "end": 64.885,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg13",
+   "index": 13,
+   "scene": "s4_mask",
+   "text": "We pack the candidate tokens into a single verification structure and construct a special attention mask.",
+   "start": 65.66,
+   "end": 71.11,
+   "events": [
+    "nodes fly from the tree into one packed sequence ('pack')",
+    "attention mask grid builds ('attention mask')"
+   ],
+   "words": [
+    {
+     "w": "We",
+     "start": 65.66,
+     "end": 65.82,
+     "matched": true
+    },
+    {
+     "w": "pack",
+     "start": 65.82,
+     "end": 66.06,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 66.06,
+     "end": 66.58,
+     "matched": true
+    },
+    {
+     "w": "candidate",
+     "start": 66.58,
+     "end": 66.58,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 66.58,
+     "end": 66.88,
+     "matched": true
+    },
+    {
+     "w": "into",
+     "start": 66.88,
+     "end": 67.24,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 67.24,
+     "end": 67.48,
+     "matched": true
+    },
+    {
+     "w": "single",
+     "start": 67.48,
+     "end": 67.74,
+     "matched": true
+    },
+    {
+     "w": "verification",
+     "start": 67.74,
+     "end": 68.34,
+     "matched": true
+    },
+    {
+     "w": "structure",
+     "start": 68.34,
+     "end": 68.78,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 68.78,
+     "end": 69.52,
+     "matched": true
+    },
+    {
+     "w": "construct",
+     "start": 69.52,
+     "end": 69.86,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 69.86,
+     "end": 70.14,
+     "matched": true
+    },
+    {
+     "w": "special",
+     "start": 70.14,
+     "end": 70.42,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 70.42,
+     "end": 70.8,
+     "matched": true
+    },
+    {
+     "w": "mask.",
+     "start": 70.8,
+     "end": 71.18,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg14",
+   "index": 14,
+   "scene": "s4_mask",
+   "text": "Each token can attend to the original prompt and its own ancestors in the tree.",
+   "start": 72.02,
+   "end": 75.98,
+   "events": [
+    "query 'on' (sat branch) row: prompt, 'sat' and itself light up ('ancestors')"
+   ],
+   "words": [
+    {
+     "w": "Each",
+     "start": 72.12,
+     "end": 72.3,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 72.3,
+     "end": 72.52,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 72.52,
+     "end": 72.82,
+     "matched": true
+    },
+    {
+     "w": "attend",
+     "start": 72.82,
+     "end": 73.04,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 73.04,
+     "end": 73.24,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 73.24,
+     "end": 73.38,
+     "matched": true
+    },
+    {
+     "w": "original",
+     "start": 73.38,
+     "end": 73.7,
+     "matched": true
+    },
+    {
+     "w": "prompt",
+     "start": 73.7,
+     "end": 74.02,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 74.02,
+     "end": 74.58,
+     "matched": true
+    },
+    {
+     "w": "its",
+     "start": 74.58,
+     "end": 74.74,
+     "matched": true
+    },
+    {
+     "w": "own",
+     "start": 74.74,
+     "end": 75.02,
+     "matched": true
+    },
+    {
+     "w": "ancestors",
+     "start": 75.02,
+     "end": 75.36,
+     "matched": true
+    },
+    {
+     "w": "in",
+     "start": 75.36,
+     "end": 75.62,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 75.62,
+     "end": 75.94,
+     "matched": true
+    },
+    {
+     "w": "tree.",
+     "start": 75.94,
+     "end": 75.94,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg15",
+   "index": 15,
+   "scene": "s4_mask",
+   "text": "But it cannot see tokens from unrelated branches.",
+   "start": 76.75,
+   "end": 79.13,
+   "events": [
+    "'ran' and 'jumped' columns masked with crosses ('unrelated branches')",
+    "full block-diagonal tree mask revealed"
+   ],
+   "words": [
+    {
+     "w": "But",
+     "start": 76.75,
+     "end": 76.84,
+     "matched": true
+    },
+    {
+     "w": "it",
+     "start": 76.84,
+     "end": 77.02,
+     "matched": true
+    },
+    {
+     "w": "cannot",
+     "start": 77.02,
+     "end": 77.24,
+     "matched": true
+    },
+    {
+     "w": "see",
+     "start": 77.24,
+     "end": 77.56,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 77.56,
+     "end": 77.82,
+     "matched": true
+    },
+    {
+     "w": "from",
+     "start": 77.82,
+     "end": 78.16,
+     "matched": true
+    },
+    {
+     "w": "unrelated",
+     "start": 78.16,
+     "end": 78.6,
+     "matched": true
+    },
+    {
+     "w": "branches.",
+     "start": 78.6,
+     "end": 79.06,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg16",
+   "index": 16,
+   "scene": "s5_verify",
+   "text": "This lets the target model evaluate multiple candidate continuations in parallel, using a single forward pass.",
+   "start": 80.49,
+   "end": 86.45,
+   "events": [
+    "packed sequence + mask enter the target model; all positions light together ('single forward pass')",
+    "one next-token prediction emerges above every node"
+   ],
+   "words": [
+    {
+     "w": "This",
+     "start": 80.49,
+     "end": 80.72,
+     "matched": true
+    },
+    {
+     "w": "lets",
+     "start": 80.72,
+     "end": 80.88,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 80.88,
+     "end": 81.14,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 81.14,
+     "end": 81.38,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 81.38,
+     "end": 81.72,
+     "matched": true
+    },
+    {
+     "w": "evaluate",
+     "start": 81.72,
+     "end": 82.2,
+     "matched": true
+    },
+    {
+     "w": "multiple",
+     "start": 82.2,
+     "end": 82.76,
+     "matched": true
+    },
+    {
+     "w": "candidate",
+     "start": 82.76,
+     "end": 83.16,
+     "matched": true
+    },
+    {
+     "w": "continuations",
+     "start": 83.16,
+     "end": 83.86,
+     "matched": true
+    },
+    {
+     "w": "in",
+     "start": 83.86,
+     "end": 84.18,
+     "matched": true
+    },
+    {
+     "w": "parallel,",
+     "start": 84.18,
+     "end": 84.44,
+     "matched": true
+    },
+    {
+     "w": "using",
+     "start": 84.44,
+     "end": 85.22,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 85.22,
+     "end": 85.46,
+     "matched": true
+    },
+    {
+     "w": "single",
+     "start": 85.46,
+     "end": 85.7,
+     "matched": true
+    },
+    {
+     "w": "forward",
+     "start": 85.7,
+     "end": 86.08,
+     "matched": true
+    },
+    {
+     "w": "pass.",
+     "start": 86.08,
+     "end": 86.44,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg17",
+   "index": 17,
+   "scene": "s5_verify",
+   "text": "For greedy decoding, the verifier checks which proposed tokens agree with the target model's predictions.",
+   "start": 87.23,
+   "end": 92.45,
+   "events": [
+    "greedy check: each drafted child is compared with its parent's target prediction ('agree')"
+   ],
+   "words": [
+    {
+     "w": "For",
+     "start": 87.23,
+     "end": 87.42,
+     "matched": true
+    },
+    {
+     "w": "greedy",
+     "start": 87.42,
+     "end": 87.7,
+     "matched": true
+    },
+    {
+     "w": "decoding,",
+     "start": 87.7,
+     "end": 88.14,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 88.7,
+     "end": 88.86,
+     "matched": true
+    },
+    {
+     "w": "verifier",
+     "start": 88.86,
+     "end": 89.24,
+     "matched": true
+    },
+    {
+     "w": "checks",
+     "start": 89.24,
+     "end": 89.56,
+     "matched": true
+    },
+    {
+     "w": "which",
+     "start": 89.56,
+     "end": 89.86,
+     "matched": true
+    },
+    {
+     "w": "proposed",
+     "start": 89.86,
+     "end": 90.32,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 90.32,
+     "end": 90.64,
+     "matched": true
+    },
+    {
+     "w": "agree",
+     "start": 90.64,
+     "end": 90.92,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 90.92,
+     "end": 91.14,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 91.14,
+     "end": 91.4,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 91.4,
+     "end": 91.54,
+     "matched": true
+    },
+    {
+     "w": "model's",
+     "start": 91.54,
+     "end": 91.86,
+     "matched": true
+    },
+    {
+     "w": "predictions.",
+     "start": 91.8,
+     "end": 92.44,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg18",
+   "index": 18,
+   "scene": "s6_accept",
+   "text": "Matching tokens along the selected path are accepted. When a prediction disagrees, the target model supplies the correct next token, and the remaining speculative continuation is discarded.",
+   "start": 93.96,
+   "end": 104.25,
+   "events": [
+    "'sat' 'on' 'the' accepted one by one (green)",
+    "'ran'/'jumped' branches rejected (red)",
+    "'mat' supplied by the target model as the correction token",
+    "output becomes 'The animal sat on the mat'"
+   ],
+   "words": [
+    {
+     "w": "Matching",
+     "start": 94.24,
+     "end": 94.72,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 94.72,
+     "end": 94.72,
+     "matched": true
+    },
+    {
+     "w": "along",
+     "start": 94.72,
+     "end": 94.98,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 94.98,
+     "end": 95.2,
+     "matched": true
+    },
+    {
+     "w": "selected",
+     "start": 95.2,
+     "end": 95.5,
+     "matched": true
+    },
+    {
+     "w": "path",
+     "start": 95.5,
+     "end": 95.82,
+     "matched": true
+    },
+    {
+     "w": "are",
+     "start": 95.82,
+     "end": 96.08,
+     "matched": true
+    },
+    {
+     "w": "accepted.",
+     "start": 96.08,
+     "end": 96.4,
+     "matched": true
+    },
+    {
+     "w": "When",
+     "start": 97.26,
+     "end": 97.34,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 97.34,
+     "end": 97.82,
+     "matched": true
+    },
+    {
+     "w": "prediction",
+     "start": 97.82,
+     "end": 97.82,
+     "matched": true
+    },
+    {
+     "w": "disagrees,",
+     "start": 97.82,
+     "end": 98.42,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 99.02,
+     "end": 99.18,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 99.18,
+     "end": 99.42,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 99.42,
+     "end": 99.72,
+     "matched": true
+    },
+    {
+     "w": "supplies",
+     "start": 99.72,
+     "end": 100.08,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 100.08,
+     "end": 100.32,
+     "matched": true
+    },
+    {
+     "w": "correct",
+     "start": 100.32,
+     "end": 100.54,
+     "matched": true
+    },
+    {
+     "w": "next",
+     "start": 100.54,
+     "end": 100.9,
+     "matched": true
+    },
+    {
+     "w": "token,",
+     "start": 100.9,
+     "end": 101.1,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 101.68,
+     "end": 101.78,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 101.78,
+     "end": 102.02,
+     "matched": true
+    },
+    {
+     "w": "remaining",
+     "start": 102.02,
+     "end": 102.3,
+     "matched": true
+    },
+    {
+     "w": "speculative",
+     "start": 102.3,
+     "end": 102.82,
+     "matched": true
+    },
+    {
+     "w": "continuation",
+     "start": 102.82,
+     "end": 103.42,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 103.42,
+     "end": 103.82,
+     "matched": true
+    },
+    {
+     "w": "discarded.",
+     "start": 103.54,
+     "end": 104.18,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg19",
+   "index": 19,
+   "scene": "s6_accept",
+   "text": "Then the process repeats.",
+   "start": 105.38,
+   "end": 106.93,
+   "events": [
+    "loop arrow: draft -> tree -> verify repeats from the new prefix"
+   ],
+   "words": [
+    {
+     "w": "Then",
+     "start": 105.38,
+     "end": 105.72,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 105.9,
+     "end": 106.42,
+     "matched": true
+    },
+    {
+     "w": "process",
+     "start": 106.42,
+     "end": 106.42,
+     "matched": true
+    },
+    {
+     "w": "repeats.",
+     "start": 106.42,
+     "end": 106.84,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg20",
+   "index": 20,
+   "scene": "s7_speed",
+   "text": "Here's why this is powerful.",
+   "start": 108.32,
+   "end": 109.45,
+   "events": [
+    "comparison title"
+   ],
+   "words": [
+    {
+     "w": "Here's",
+     "start": 108.32,
+     "end": 108.545,
+     "matched": true
+    },
+    {
+     "w": "why",
+     "start": 108.545,
+     "end": 108.685,
+     "matched": true
+    },
+    {
+     "w": "this",
+     "start": 108.685,
+     "end": 108.845,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 108.845,
+     "end": 109.085,
+     "matched": true
+    },
+    {
+     "w": "powerful.",
+     "start": 109.085,
+     "end": 109.405,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg21",
+   "index": 21,
+   "scene": "s7_speed",
+   "text": "Instead of spending an expensive target-model pass generating just one token, we can potentially advance several tokens at once.",
+   "start": 109.92,
+   "end": 116.37,
+   "events": [
+    "timeline: 4 sequential target passes vs draft + 1 tree-verification pass (illustrative)"
+   ],
+   "words": [
+    {
+     "w": "Instead",
+     "start": 110.165,
+     "end": 110.165,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 110.165,
+     "end": 110.605,
+     "matched": true
+    },
+    {
+     "w": "spending",
+     "start": 110.605,
+     "end": 110.605,
+     "matched": true
+    },
+    {
+     "w": "an",
+     "start": 110.605,
+     "end": 110.805,
+     "matched": true
+    },
+    {
+     "w": "expensive",
+     "start": 110.805,
+     "end": 111.285,
+     "matched": true
+    },
+    {
+     "w": "target-model",
+     "start": 111.285,
+     "end": 111.865,
+     "matched": true
+    },
+    {
+     "w": "pass",
+     "start": 111.865,
+     "end": 112.245,
+     "matched": true
+    },
+    {
+     "w": "generating",
+     "start": 112.245,
+     "end": 112.605,
+     "matched": true
+    },
+    {
+     "w": "just",
+     "start": 112.605,
+     "end": 113.025,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 113.025,
+     "end": 113.225,
+     "matched": true
+    },
+    {
+     "w": "token,",
+     "start": 113.225,
+     "end": 113.445,
+     "matched": true
+    },
+    {
+     "w": "we",
+     "start": 114.025,
+     "end": 114.185,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 114.185,
+     "end": 114.345,
+     "matched": true
+    },
+    {
+     "w": "potentially",
+     "start": 114.345,
+     "end": 114.825,
+     "matched": true
+    },
+    {
+     "w": "advance",
+     "start": 114.825,
+     "end": 115.205,
+     "matched": true
+    },
+    {
+     "w": "several",
+     "start": 115.205,
+     "end": 115.565,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 115.565,
+     "end": 115.865,
+     "matched": true
+    },
+    {
+     "w": "at",
+     "start": 115.865,
+     "end": 116.285,
+     "matched": true
+    },
+    {
+     "w": "once.",
+     "start": 116.285,
+     "end": 116.345,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg22",
+   "index": 22,
+   "scene": "s7_speed",
+   "text": "And unlike simply trusting the smaller model, the verification process preserves the target model's intended output.",
+   "start": 117.14,
+   "end": 123.03,
+   "events": [
+    "both outputs shown identical: same target-model output"
+   ],
+   "words": [
+    {
+     "w": "And",
+     "start": 117.14,
+     "end": 117.425,
+     "matched": true
+    },
+    {
+     "w": "unlike",
+     "start": 117.425,
+     "end": 117.605,
+     "matched": true
+    },
+    {
+     "w": "simply",
+     "start": 117.605,
+     "end": 118.045,
+     "matched": true
+    },
+    {
+     "w": "trusting",
+     "start": 118.045,
+     "end": 118.365,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 118.365,
+     "end": 118.605,
+     "matched": true
+    },
+    {
+     "w": "smaller",
+     "start": 118.605,
+     "end": 118.905,
+     "matched": true
+    },
+    {
+     "w": "model,",
+     "start": 118.905,
+     "end": 119.125,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 119.705,
+     "end": 119.825,
+     "matched": true
+    },
+    {
+     "w": "verification",
+     "start": 119.825,
+     "end": 120.305,
+     "matched": true
+    },
+    {
+     "w": "process",
+     "start": 120.305,
+     "end": 120.905,
+     "matched": true
+    },
+    {
+     "w": "preserves",
+     "start": 120.905,
+     "end": 121.285,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 121.285,
+     "end": 121.545,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 121.545,
+     "end": 121.805,
+     "matched": true
+    },
+    {
+     "w": "model's",
+     "start": 121.805,
+     "end": 122.325,
+     "matched": true
+    },
+    {
+     "w": "intended",
+     "start": 122.325,
+     "end": 122.645,
+     "matched": true
+    },
+    {
+     "w": "output.",
+     "start": 122.645,
+     "end": 123.045,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg23",
+   "index": 23,
+   "scene": "s7_speed",
+   "text": "Of course, larger trees aren't automatically better. More branches create additional verification work, and poor draft predictions reduce the benefit.",
+   "start": 123.93,
+   "end": 131.66,
+   "events": [
+    "bigger tree lengthens verify bar; poor draft accepts fewer tokens (trade-off)"
+   ],
+   "words": [
+    {
+     "w": "Of",
+     "start": 123.93,
+     "end": 124.365,
+     "matched": true
+    },
+    {
+     "w": "course,",
+     "start": 124.365,
+     "end": 124.365,
+     "matched": true
+    },
+    {
+     "w": "larger",
+     "start": 124.985,
+     "end": 125.045,
+     "matched": true
+    },
+    {
+     "w": "trees",
+     "start": 125.045,
+     "end": 125.365,
+     "matched": true
+    },
+    {
+     "w": "aren't",
+     "start": 125.365,
+     "end": 125.645,
+     "matched": true
+    },
+    {
+     "w": "automatically",
+     "start": 125.645,
+     "end": 126.185,
+     "matched": true
+    },
+    {
+     "w": "better.",
+     "start": 126.185,
+     "end": 126.525,
+     "matched": true
+    },
+    {
+     "w": "More",
+     "start": 127.085,
+     "end": 127.205,
+     "matched": true
+    },
+    {
+     "w": "branches",
+     "start": 127.205,
+     "end": 127.605,
+     "matched": false
+    },
+    {
+     "w": "create",
+     "start": 127.605,
+     "end": 127.885,
+     "matched": true
+    },
+    {
+     "w": "additional",
+     "start": 127.885,
+     "end": 128.325,
+     "matched": true
+    },
+    {
+     "w": "verification",
+     "start": 128.325,
+     "end": 128.845,
+     "matched": true
+    },
+    {
+     "w": "work,",
+     "start": 128.845,
+     "end": 129.205,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 129.205,
+     "end": 129.36,
+     "matched": false
+    },
+    {
+     "w": "poor",
+     "start": 129.36,
+     "end": 129.98,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 129.98,
+     "end": 130.28,
+     "matched": true
+    },
+    {
+     "w": "predictions",
+     "start": 130.28,
+     "end": 130.76,
+     "matched": true
+    },
+    {
+     "w": "reduce",
+     "start": 130.76,
+     "end": 131.22,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 131.22,
+     "end": 131.42,
+     "matched": true
+    },
+    {
+     "w": "benefit.",
+     "start": 131.42,
+     "end": 131.7,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg24",
+   "index": 24,
+   "scene": "s7_speed",
+   "text": "But when the draft model is accurate and verification is efficient, SpecInfer can significantly reduce generation latency.",
+   "start": 132.56,
+   "end": 139.0,
+   "events": [
+    "latency comparison settles: benefit only when savings outweigh overhead"
+   ],
+   "words": [
+    {
+     "w": "But",
+     "start": 132.62,
+     "end": 132.68,
+     "matched": true
+    },
+    {
+     "w": "when",
+     "start": 132.68,
+     "end": 132.78,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 132.78,
+     "end": 133.2,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 133.2,
+     "end": 133.2,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 133.2,
+     "end": 133.44,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 133.44,
+     "end": 133.72,
+     "matched": true
+    },
+    {
+     "w": "accurate",
+     "start": 133.72,
+     "end": 133.98,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 133.98,
+     "end": 134.54,
+     "matched": true
+    },
+    {
+     "w": "verification",
+     "start": 134.54,
+     "end": 135.0,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 135.0,
+     "end": 135.32,
+     "matched": true
+    },
+    {
+     "w": "efficient,",
+     "start": 135.32,
+     "end": 135.64,
+     "matched": true
+    },
+    {
+     "w": "SpecInfer",
+     "start": 136.4,
+     "end": 136.64,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 136.64,
+     "end": 136.96,
+     "matched": true
+    },
+    {
+     "w": "significantly",
+     "start": 136.96,
+     "end": 137.54,
+     "matched": true
+    },
+    {
+     "w": "reduce",
+     "start": 137.54,
+     "end": 137.96,
+     "matched": true
+    },
+    {
+     "w": "generation",
+     "start": 137.96,
+     "end": 138.54,
+     "matched": true
+    },
+    {
+     "w": "latency.",
+     "start": 138.54,
+     "end": 138.9,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg25",
+   "index": 25,
+   "scene": "s8_takeaway",
+   "text": "The key insight is simple.",
+   "start": 140.11,
+   "end": 141.27,
+   "events": [
+    "Draft -> Tree -> Verify blocks"
+   ],
+   "words": [
+    {
+     "w": "The",
+     "start": 140.11,
+     "end": 140.24,
+     "matched": true
+    },
+    {
+     "w": "key",
+     "start": 140.24,
+     "end": 140.46,
+     "matched": true
+    },
+    {
+     "w": "insight",
+     "start": 140.46,
+     "end": 140.8,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 140.8,
+     "end": 140.96,
+     "matched": true
+    },
+    {
+     "w": "simple.",
+     "start": 140.96,
+     "end": 141.24,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg26",
+   "index": 26,
+   "scene": "s8_takeaway",
+   "text": "Don't make your largest model discover every token sequentially.",
+   "start": 141.83,
+   "end": 144.7,
+   "events": [
+    "sequential chain crossed out"
+   ],
+   "words": [
+    {
+     "w": "Don't",
+     "start": 142.06,
+     "end": 142.06,
+     "matched": true
+    },
+    {
+     "w": "make",
+     "start": 142.06,
+     "end": 142.26,
+     "matched": true
+    },
+    {
+     "w": "your",
+     "start": 142.26,
+     "end": 142.4,
+     "matched": true
+    },
+    {
+     "w": "largest",
+     "start": 142.4,
+     "end": 142.76,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 142.76,
+     "end": 143.0,
+     "matched": true
+    },
+    {
+     "w": "discover",
+     "start": 143.0,
+     "end": 143.44,
+     "matched": true
+    },
+    {
+     "w": "every",
+     "start": 143.44,
+     "end": 143.86,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 143.86,
+     "end": 144.1,
+     "matched": true
+    },
+    {
+     "w": "sequentially.",
+     "start": 144.1,
+     "end": 144.62,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg27",
+   "index": 27,
+   "scene": "s8_takeaway",
+   "text": "Let smaller models speculate, then let the large model verify many possibilities together.",
+   "start": 145.32,
+   "end": 150.25,
+   "events": [
+    "tagline: 'More verified tokens per expensive model pass.'"
+   ],
+   "words": [
+    {
+     "w": "Let",
+     "start": 145.48,
+     "end": 145.52,
+     "matched": true
+    },
+    {
+     "w": "smaller",
+     "start": 145.52,
+     "end": 145.88,
+     "matched": true
+    },
+    {
+     "w": "models",
+     "start": 145.88,
+     "end": 146.16,
+     "matched": true
+    },
+    {
+     "w": "speculate,",
+     "start": 146.16,
+     "end": 146.6,
+     "matched": true
+    },
+    {
+     "w": "then",
+     "start": 147.02,
+     "end": 147.28,
+     "matched": true
+    },
+    {
+     "w": "let",
+     "start": 147.28,
+     "end": 147.42,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 147.42,
+     "end": 147.62,
+     "matched": true
+    },
+    {
+     "w": "large",
+     "start": 147.62,
+     "end": 147.94,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 147.94,
+     "end": 148.2,
+     "matched": true
+    },
+    {
+     "w": "verify",
+     "start": 148.2,
+     "end": 148.76,
+     "matched": true
+    },
+    {
+     "w": "many",
+     "start": 148.76,
+     "end": 149.14,
+     "matched": true
+    },
+    {
+     "w": "possibilities",
+     "start": 149.14,
+     "end": 149.76,
+     "matched": true
+    },
+    {
+     "w": "together.",
+     "start": 149.76,
+     "end": 150.24,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg28",
+   "index": 28,
+   "scene": "s8_takeaway",
+   "text": "That's the intuition behind SpecInfer.",
+   "start": 151.0,
+   "end": 152.79,
+   "events": [
+    "final title card SpecInfer - held to the end"
+   ],
+   "words": [
+    {
+     "w": "That's",
+     "start": 151.0,
+     "end": 151.285,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 151.285,
+     "end": 151.485,
+     "matched": true
+    },
+    {
+     "w": "intuition",
+     "start": 151.485,
+     "end": 151.805,
+     "matched": true
+    },
+    {
+     "w": "behind",
+     "start": 151.805,
+     "end": 152.225,
+     "matched": true
+    },
+    {
+     "w": "SpecInfer.",
+     "start": 152.225,
+     "end": 152.685,
+     "matched": true
+    }
+   ]
+  }
+ ]
+}
