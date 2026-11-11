@@ -1,0 +1,12 @@
+{
+  "name": "kmeans-reel",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "audio": "python3 generate_audio.py",
+    "data": "python3 make_clusters.py",
+    "render": "node render.mjs"
+  },
+  "dependencies": { "puppeteer-core": "^23.11.1" }
+}

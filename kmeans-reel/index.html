@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>K-Means — Why different results? (Reel)</title>
+<style>
+  html, body { margin: 0; background: #E9E4DA; height: 100%; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { height: 96vh; width: auto; aspect-ratio: 9 / 16; box-shadow: 0 10px 40px rgba(0,0,0,.12); cursor: pointer; }
+  body.render canvas { height: 1920px; width: 1080px; box-shadow: none; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<audio id="aud" src="output/audio_final.m4a" preload="auto"></audio>
+
+<!-- DATA:BEGIN (injected by `node render.mjs --inject` from clustering_data.json + timing.json) -->
+<script id="data">window.DATA = {"k":3,"data_seed":7,"points":[[2.2465,7.6813],[2.2643,7.2267],[1.842,7.2827],[3.0672,7.6333],[3.0221,7.5369],[2.6369,7.5019],[2.7038,7.6743],[1.8662,7.1425],[2.5833,7.3747],[2.7126,7.0468],[2.5852,7.6168],[2.734,8.0584],[2.0278,6.9933],[2.1936,7.3415],[2.7792,7.5366],[2.1316,6.8737],[2.0876,8.0715],[1.9152,7.5346],[2.6559,6.5806],[2.4291,8.1184],[2.3363,6.9505],[2.6984,7.3657],[1.5212,7.8553],[2.8016,7.9202],[3.2644,7.5992],[2.4716,6.6855],[2.7693,7.0635],[2.1284,6.7044],[1.8194,7.1079],[1.5254,7.5316],[3.266,7.7182],[2.6144,6.9951],[1.7281,7.9376],[3.0611,7.4865],[2.5475,7.6389],[3.3564,7.7405],[2.7112,7.7013],[2.9731,7.6913],[2.2896,7.9607],[2.7312,7.3174],[5.7949,7.9574],[5.6722,8.2301],[5.2031,7.3719],[6.225,7.6147],[5.0717,8.1206],[6.4793,7.3553],[4.772,7.5259],[5.5106,7.4361],[6.4429,7.0352],[6.3564,6.9024],[5.1278,7.9473],[6.2772,8.0725],[5.8071,7.6783],[5.6915,7.9164],[5.4943,7.7526],[5.9436,7.6005],[6.0584,7.9112],[5.3434,7.3951],[5.5921,8.1081],[5.3981,7.8122],[4.9257,7.7341],[5.839,7.7312],[5.3413,7.9603],[5.7693,7.3129],[5.2675,7.5453],[5.4646,7.5655],[6.2051,6.9573],[5.56,8.1244],[6.1137,8.4201],[4.5792,7.4056],[5.3954,7.9428],[6.0099,6.7793],[5.7055,8.2571],[5.5104,7.7051],[6.0783,7.6778],[5.5469,8.4433],[6.2291,7.4384],[6.1488,7.4539],[5.6794,7.9878],[5.7333,7.9513],[6.9997,2.0221],[5.9327,1.7179],[7.4231,3.0479],[7.5575,2.0374],[6.6007,1.9158],[7.0979,3.5537],[6.0214,3.5362],[7.2422,2.4933],[6.5374,2.2383],[6.8597,2.846],[7.544,2.4916],[6.1164,3.2111],[6.6749,2.6745],[7.5257,2.4419],[6.8061,2.2333],[6.5938,3.0996],[6.6513,3.3959],[6.5602,3.2242],[6.1633,3.1279],[5.7992,2.5923],[6.4751,2.5828],[6.2155,2.7402],[7.7643,2.6266],[6.9451,3.2003],[6.4713,1.8442],[6.239,3.2442],[5.53,2.2413],[7.2548,3.0756],[6.605,3.0831],[6.7079,1.8927],[5.5834,2.2166],[7.1998,2.2607],[6.0135,2.1374],[5.6044,2.5296],[5.8333,2.8185],[7.0711,2.4347],[6.7892,2.3249],[7.107,3.0485],[7.0331,2.796],[7.4669,2.9959]],"true_group":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],"bounds":[0,10,0,10],"runs":[{"name":"run1","seed":4,"init_indices":[30,38,13],"init_centroids":[[3.266,7.7182],[2.2896,7.9607],[2.1936,7.3415]],"iterations":[{"iter":1,"centroids_before":[[3.266,7.7182],[2.2896,7.9607],[2.1936,7.3415]],"assign":[1,2,2,0,0,2,1,2,2,2,1,1,2,2,0,2,1,2,2,1,2,2,1,0,0,2,2,2,2,2,0,2,1,0,1,0,1,0,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"centroids_after":[[5.860359550561798,5.426906741573034],[2.3258,7.846772727272727],[2.29619,7.13103]],"inertia":702.4260775721552,"changed":null},{"iter":2,"centroids_before":[[5.860359550561798,5.426906741573034],[2.3258,7.846772727272727],[2.29619,7.13103]],"assign":[1,2,2,1,1,1,1,2,2,2,1,1,2,2,1,2,1,1,2,1,2,2,1,1,1,2,2,2,2,1,1,2,1,1,1,1,1,1,1,2,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"centroids_after":[[6.209358974358974,5.110330769230769],[2.756132,7.73086],[2.3439,7.061911764705882]],"inertia":569.8236169869189,"changed":14},{"iter":3,"centroids_before":[[6.209358974358974,5.110330769230769],[2.756132,7.73086],[2.3439,7.061911764705882]],"assign":[1,2,2,1,1,1,1,2,2,2,1,1,2,2,1,2,1,2,2,1,2,1,2,1,1,2,2,2,2,2,1,2,1,1,1,1,1,1,1,1,0,1,1,0,1,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,1,0,1,0,1,0,0,1,0,1,1,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"centroids_after":[[6.381883076923077,4.5477384615384615],[3.7534783783783787,7.784754054054055],[2.1876944444444444,7.127272222222222]],"inertia":483.71501834538094,"changed":18},{"iter":4,"centroids_before":[[6.381883076923077,4.5477384615384615],[3.7534783783783787,7.784754054054055],[2.1876944444444444,7.127272222222222]],"assign":[2,2,2,1,1,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,1,2,2,1,2,1,2,1,2,2,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"centroids_after":[[6.6279818181818175,3.0379295454545456],[5.1087911111111115,7.774391111111111],[2.3081548387096777,7.368170967741936]],"inertia":157.9804882705795,"changed":34},{"iter":5,"centroids_before":[[6.6279818181818175,3.0379295454545456],[5.1087911111111115,7.774391111111111],[2.3081548387096777,7.368170967741936]],"assign":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"centroids_after":[[6.6654225,2.6498675],[5.6841,7.7034325],[2.4774675,7.444945]],"inertia":52.804487612,"changed":13},{"iter":6,"centroids_before":[[6.6654225,2.6498675],[5.6841,7.7034325],[2.4774675,7.444945]],"assign":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"centroids_after":[[6.6654225,2.6498675],[5.6841,7.7034325],[2.4774675,7.444945]],"inertia":52.804487612,"changed":0}],"final_centroids":[[6.6654225,2.6498675],[5.6841,7.7034325],[2.4774675,7.444945]],"final_assign":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"final_inertia":52.804487612,"n_iterations":6,"composition":{"0":[2],"1":[1],"2":[0]}},{"name":"run2","seed":2,"init_indices":[110,108,7],"init_centroids":[[5.5834,2.2166],[6.605,3.0831],[1.8662,7.1425]],"iterations":[{"iter":1,"centroids_before":[[5.5834,2.2166],[6.605,3.0831],[1.8662,7.1425]],"assign":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,1,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0,1,0,1,1,0,0,1,0,0,0,1,1,1,1,1],"centroids_after":[[6.00764,2.1906299999999996],[6.78508888888889,3.5154527777777775],[3.901891891891892,7.614421621621622]],"inertia":311.2020388508183,"changed":null},{"iter":2,"centroids_before":[[6.00764,2.1906299999999996],[6.78508888888889,3.5154527777777775],[3.901891891891892,7.614421621621622]],"assign":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,1,0,0,1,1,1,0,1,1,1,0,1,0,1,1,1,1,0,0,0,1,1,0,1,0,1,1,0,0,0,0,0,0,0,0,1,1,1],"centroids_after":[[6.420135,2.27276],[6.91071,3.026975],[4.08078375,7.57418875]],"inertia":251.69560219775,"changed":16},{"iter":3,"centroids_before":[[6.420135,2.27276],[6.91071,3.026975],[4.08078375,7.57418875]],"assign":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,1,0,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,0,0,0,1,1,0,1,0,1,1,0,0,0,0,0,0,1,0,1,1,1],"centroids_after":[[6.369816666666667,2.2414444444444444],[6.907281818181818,2.9840318181818186],[4.08078375,7.57418875]],"inertia":251.471625678649,"changed":2},{"iter":4,"centroids_before":[[6.369816666666667,2.2414444444444444],[6.907281818181818,2.9840318181818186],[4.08078375,7.57418875]],"assign":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,0,0,0,1,1,0,1,0,1,1,0,0,1,0,0,0,1,0,1,1,1],"centroids_after":[[6.2437125,2.25299375],[6.9465625,2.91445],[4.08078375,7.57418875]],"inertia":250.848027231875,"changed":2},{"iter":5,"centroids_before":[[6.2437125,2.25299375],[6.9465625,2.91445],[4.08078375,7.57418875]],"assign":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,0,0,0,1,1,0,1,0,1,1,0,0,1,0,0,0,1,0,1,1,1],"centroids_after":[[6.2437125,2.25299375],[6.9465625,2.91445],[4.08078375,7.57418875]],"inertia":250.848027231875,"changed":0}],"final_centroids":[[6.2437125,2.25299375],[6.9465625,2.91445],[4.08078375,7.57418875]],"final_assign":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,0,0,0,1,1,0,1,0,1,1,0,0,1,0,0,0,1,0,1,1,1],"final_inertia":250.848027231875,"n_iterations":5,"composition":{"0":[2],"1":[2],"2":[0,1]}}],"note":"Lloyd's algorithm, Forgy init (random data points chosen by seed). Each iteration: assign to nearest centroid, then move centroid to mean."};
+window.TIMING = {"audio_duration":63.112,"warp":{"lead_in":1,"inserts":[{"at":11.25,"dur":1.4,"after":"You set K"},{"at":20.166,"dur":1.4,"after":"The second run"},{"at":25.96,"dur":1,"after":"Both runs"},{"at":30.401,"dur":0.6,"after":"Why does"},{"at":39.165,"dur":0.5,"after":"A. "},{"at":44.373,"dur":0.5,"after":"B. "},{"at":49.139,"dur":0.5,"after":"C. "},{"at":56.454,"dur":0.6,"after":"D. "}],"narration_end_video":70.612,"total":80,"think_seconds":9.388},"voice":"Adam","voice_id":"pNInz6obpgDQGcFmaJgB","model_id":"eleven_multilingual_v2","blocks":[{"text":"You run K-Means clustering on a dataset with three clearly visible groups of points. You set K equal to three and run the algorithm twice using different random seeds.","char_start":0,"char_end":167,"start":0,"end":11.029},{"text":"The first run identifies all three groups correctly. The second run splits one group into two clusters and merges the other two groups together.","char_start":169,"char_end":313,"start":11.471,"end":19.946},{"text":"Both runs converge, and neither produces any further changes to its cluster assignments.","char_start":315,"char_end":403,"start":20.387,"end":25.739},{"text":"Why does K-Means produce different results on the exact same dataset?","char_start":405,"char_end":474,"start":26.181,"end":30.209},{"text":"A. K-Means minimizes a non-convex objective, so different initial centroids can converge to different local minima.","char_start":476,"char_end":591,"start":30.592,"end":38.974,"option":"A"},{"text":"B. K-Means automatically changes the number of clusters during optimization.","char_start":593,"char_end":669,"start":39.357,"end":44.152,"option":"B"},{"text":"C. K-Means uses a different distance metric each time it runs.","char_start":671,"char_end":733,"start":44.594,"end":48.947,"option":"C"},{"text":"D. K-Means guarantees the global optimum, but only when the dataset contains fewer than three clusters.","char_start":735,"char_end":838,"start":49.33,"end":56.262,"option":"D"},{"text":"Which is it, and how would you confirm it experimentally using different initializations and inertia scores?","char_start":840,"char_end":948,"start":56.645,"end":63.111}],"sentences":[{"index":0,"text":"You run K-Means clustering on a dataset with three clearly visible groups of points.","char_start":0,"char_end":84,"start":0,"end":5.097},{"index":1,"text":"You set K equal to three and run the algorithm twice using different random seeds.","char_start":85,"char_end":167,"start":5.422,"end":11.029},{"index":2,"text":"The first run identifies all three groups correctly.","char_start":169,"char_end":221,"start":11.471,"end":14.733},{"index":3,"text":"The second run splits one group into two clusters and merges the other two groups together.","char_start":222,"char_end":313,"start":14.942,"end":19.946},{"index":4,"text":"Both runs converge, and neither produces any further changes to its cluster assignments.","char_start":315,"char_end":403,"start":20.387,"end":25.739},{"index":5,"text":"Why does K-Means produce different results on the exact same dataset?","char_start":405,"char_end":474,"start":26.181,"end":30.209},{"index":6,"text":"A. K-Means minimizes a non-convex objective, so different initial centroids can converge to different local minima.","char_start":476,"char_end":591,"start":30.592,"end":38.974},{"index":7,"text":"B. K-Means automatically changes the number of clusters during optimization.","char_start":593,"char_end":669,"start":39.357,"end":44.152},{"index":8,"text":"C. K-Means uses a different distance metric each time it runs.","char_start":671,"char_end":733,"start":44.594,"end":48.947},{"index":9,"text":"D. K-Means guarantees the global optimum, but only when the dataset contains fewer than three clusters.","char_start":735,"char_end":838,"start":49.33,"end":56.262},{"index":10,"text":"Which is it, and how would you confirm it experimentally using different initializations and inertia scores?","char_start":840,"char_end":948,"start":56.645,"end":63.111}],"cues":{"three_groups":{"phrase":"three clearly visible groups","start":2.856,"end":4.354},"k_three":{"phrase":"K equal to three","start":5.909,"end":7.245},"random_seeds":{"phrase":"different random seeds","start":9.59,"end":10.913},"first_run":{"phrase":"The first run","start":11.471,"end":12.26},"second_run":{"phrase":"The second run","start":14.942,"end":15.674},"splits":{"phrase":"splits one group into two clusters","start":15.743,"end":17.636},"merges":{"phrase":"merges the other two groups together","start":18.123,"end":19.83},"converge":{"phrase":"Both runs converge","start":20.387,"end":21.792},"no_changes":{"phrase":"neither produces any further changes","start":22.152,"end":24.102},"question":{"phrase":"Why does K-Means","start":26.181,"end":27.214},"opt_A":{"phrase":"A. K-Means","start":30.592,"end":32.032},"opt_B":{"phrase":"B. K-Means","start":39.357,"end":40.588},"opt_C":{"phrase":"C. K-Means","start":44.594,"end":45.847},"opt_D":{"phrase":"D. K-Means","start":49.33,"end":50.782},"final_q":{"phrase":"Which is it","start":56.645,"end":57.202},"inertia":{"phrase":"inertia scores","start":61.695,"end":62.821}},"words":[{"w":"You","char_start":0,"start":0,"end":0.174},{"w":"run","char_start":4,"start":0.255,"end":0.453},{"w":"K-Means","char_start":8,"start":0.522,"end":1.184},{"w":"clustering","char_start":16,"start":1.254,"end":1.776},{"w":"on","char_start":27,"start":1.846,"end":1.927},{"w":"a","char_start":30,"start":1.974,"end":1.997},{"w":"dataset","char_start":32,"start":2.055,"end":2.612},{"w":"with","char_start":40,"start":2.659,"end":2.81},{"w":"three","char_start":45,"start":2.856,"end":3.123},{"w":"clearly","char_start":51,"start":3.193,"end":3.622},{"w":"visible","char_start":59,"start":3.68,"end":4.052},{"w":"groups","char_start":67,"start":4.087,"end":4.354},{"w":"of","char_start":74,"start":4.389,"end":4.458},{"w":"points.","char_start":77,"start":4.528,"end":5.097},{"w":"You","char_start":85,"start":5.422,"end":5.55},{"w":"set","char_start":89,"start":5.619,"end":5.828},{"w":"K","char_start":93,"start":5.909,"end":6.084},{"w":"equal","char_start":95,"start":6.327,"end":6.594},{"w":"to","char_start":101,"start":6.653,"end":6.711},{"w":"three","char_start":104,"start":6.792,"end":7.245},{"w":"and","char_start":110,"start":7.419,"end":7.651},{"w":"run","char_start":114,"start":7.721,"end":7.883},{"w":"the","char_start":118,"start":7.918,"end":7.999},{"w":"algorithm","char_start":122,"start":8.081,"end":8.649},{"w":"twice","char_start":132,"start":8.719,"end":9.172},{"w":"using","char_start":138,"start":9.242,"end":9.52},{"w":"different","char_start":144,"start":9.59,"end":9.927},{"w":"random","char_start":154,"start":9.985,"end":10.356},{"w":"seeds.","char_start":161,"start":10.437,"end":11.029},{"w":"The","char_start":169,"start":11.471,"end":11.587},{"w":"first","char_start":173,"start":11.645,"end":11.9},{"w":"run","char_start":179,"start":11.97,"end":12.26},{"w":"identifies","char_start":183,"start":12.353,"end":13.096},{"w":"all","char_start":194,"start":13.166,"end":13.386},{"w":"three","char_start":198,"start":13.456,"end":13.7},{"w":"groups","char_start":204,"start":13.746,"end":14.013},{"w":"correctly.","char_start":211,"start":14.06,"end":14.733},{"w":"The","char_start":222,"start":14.942,"end":15.058},{"w":"second","char_start":226,"start":15.116,"end":15.395},{"w":"run","char_start":233,"start":15.453,"end":15.674},{"w":"splits","char_start":237,"start":15.743,"end":16.08},{"w":"one","char_start":244,"start":16.138,"end":16.312},{"w":"group","char_start":248,"start":16.359,"end":16.591},{"w":"into","char_start":254,"start":16.649,"end":16.835},{"w":"two","char_start":259,"start":16.893,"end":17.044},{"w":"clusters","char_start":263,"start":17.102,"end":17.636},{"w":"and","char_start":272,"start":17.845,"end":18.054},{"w":"merges","char_start":276,"start":18.123,"end":18.495},{"w":"the","char_start":283,"start":18.553,"end":18.622},{"w":"other","char_start":287,"start":18.692,"end":18.866},{"w":"two","char_start":293,"start":18.901,"end":19.04},{"w":"groups","char_start":297,"start":19.098,"end":19.377},{"w":"together.","char_start":304,"start":19.412,"end":19.946},{"w":"Both","char_start":315,"start":20.387,"end":20.654},{"w":"runs","char_start":320,"start":20.724,"end":20.991},{"w":"converge,","char_start":325,"start":21.049,"end":21.815},{"w":"and","char_start":335,"start":21.931,"end":22.094},{"w":"neither","char_start":339,"start":22.152,"end":22.419},{"w":"produces","char_start":347,"start":22.477,"end":22.941},{"w":"any","char_start":356,"start":22.999,"end":23.15},{"w":"further","char_start":360,"start":23.22,"end":23.522},{"w":"changes","char_start":368,"start":23.58,"end":24.102},{"w":"to","char_start":376,"start":24.172,"end":24.253},{"w":"its","char_start":379,"start":24.346,"end":24.462},{"w":"cluster","char_start":383,"start":24.509,"end":24.88},{"w":"assignments.","char_start":391,"start":24.938,"end":25.739},{"w":"Why","char_start":405,"start":26.181,"end":26.366},{"w":"does","char_start":409,"start":26.424,"end":26.575},{"w":"K-Means","char_start":414,"start":26.633,"end":27.214},{"w":"produce","char_start":422,"start":27.284,"end":27.643},{"w":"different","char_start":430,"start":27.678,"end":27.969},{"w":"results","char_start":440,"start":28.003,"end":28.386},{"w":"on","char_start":448,"start":28.433,"end":28.514},{"w":"the","char_start":451,"start":28.549,"end":28.63},{"w":"exact","char_start":455,"start":28.711,"end":29.094},{"w":"same","char_start":461,"start":29.141,"end":29.408},{"w":"dataset?","char_start":466,"start":29.454,"end":30.209},{"w":"A.","char_start":476,"start":30.592,"end":31.045},{"w":"K-Means","char_start":479,"start":31.428,"end":32.032},{"w":"minimizes","char_start":487,"start":32.113,"end":32.856},{"w":"a","char_start":497,"start":32.949,"end":33.018},{"w":"non-convex","char_start":499,"start":33.135,"end":33.97},{"w":"objective,","char_start":510,"start":34.04,"end":34.83},{"w":"so","char_start":521,"start":35.073,"end":35.259},{"w":"different","char_start":524,"start":35.34,"end":35.689},{"w":"initial","char_start":534,"start":35.735,"end":36.083},{"w":"centroids","char_start":542,"start":36.141,"end":36.722},{"w":"can","char_start":552,"start":36.768,"end":36.908},{"w":"converge","char_start":556,"start":36.977,"end":37.546},{"w":"to","char_start":565,"start":37.593,"end":37.674},{"w":"different","char_start":568,"start":37.755,"end":38.069},{"w":"local","char_start":578,"start":38.115,"end":38.394},{"w":"minima.","char_start":584,"start":38.452,"end":38.974},{"w":"B.","char_start":593,"start":39.357,"end":39.787},{"w":"K-Means","char_start":596,"start":40.031,"end":40.588},{"w":"automatically","char_start":604,"start":40.646,"end":41.285},{"w":"changes","char_start":618,"start":41.343,"end":41.796},{"w":"the","char_start":626,"start":41.854,"end":41.923},{"w":"number","char_start":630,"start":41.981,"end":42.213},{"w":"of","char_start":637,"start":42.272,"end":42.318},{"w":"clusters","char_start":640,"start":42.388,"end":42.875},{"w":"during","char_start":649,"start":42.922,"end":43.166},{"w":"optimization.","char_start":656,"start":43.224,"end":44.152},{"w":"C.","char_start":671,"start":44.594,"end":45.046},{"w":"K-Means","char_start":674,"start":45.325,"end":45.847},{"w":"uses","char_start":682,"start":45.917,"end":46.265},{"w":"a","char_start":687,"start":46.323,"end":46.358},{"w":"different","char_start":689,"start":46.416,"end":46.73},{"w":"distance","char_start":699,"start":46.788,"end":47.229},{"w":"metric","char_start":708,"start":47.287,"end":47.682},{"w":"each","char_start":715,"start":47.752,"end":47.937},{"w":"time","char_start":720,"start":47.984,"end":48.216},{"w":"it","char_start":725,"start":48.251,"end":48.32},{"w":"runs.","char_start":728,"start":48.378,"end":48.947},{"w":"D.","char_start":735,"start":49.33,"end":49.818},{"w":"K-Means","char_start":738,"start":50.201,"end":50.782},{"w":"guarantees","char_start":746,"start":50.84,"end":51.513},{"w":"the","char_start":757,"start":51.571,"end":51.641},{"w":"global","char_start":761,"start":51.687,"end":52.024},{"w":"optimum,","char_start":768,"start":52.082,"end":52.674},{"w":"but","char_start":777,"start":52.79,"end":52.941},{"w":"only","char_start":781,"start":52.999,"end":53.243},{"w":"when","char_start":786,"start":53.289,"end":53.417},{"w":"the","char_start":791,"start":53.452,"end":53.522},{"w":"dataset","char_start":795,"start":53.568,"end":54.102},{"w":"contains","char_start":803,"start":54.149,"end":54.601},{"w":"fewer","char_start":812,"start":54.683,"end":54.95},{"w":"than","char_start":818,"start":55.008,"end":55.147},{"w":"three","char_start":823,"start":55.228,"end":55.519},{"w":"clusters.","char_start":829,"start":55.565,"end":56.262},{"w":"Which","char_start":840,"start":56.645,"end":56.865},{"w":"is","char_start":846,"start":56.912,"end":57.016},{"w":"it,","char_start":849,"start":57.074,"end":57.295},{"w":"and","char_start":853,"start":57.446,"end":57.585},{"w":"how","char_start":857,"start":57.632,"end":57.724},{"w":"would","char_start":861,"start":57.759,"end":57.899},{"w":"you","char_start":867,"start":57.922,"end":57.992},{"w":"confirm","char_start":871,"start":58.038,"end":58.421},{"w":"it","char_start":879,"start":58.468,"end":58.549},{"w":"experimentally","char_start":882,"start":58.595,"end":59.408},{"w":"using","char_start":897,"start":59.489,"end":59.745},{"w":"different","char_start":903,"start":59.803,"end":60.105},{"w":"initializations","char_start":913,"start":60.151,"end":61.173},{"w":"and","char_start":929,"start":61.382,"end":61.602},{"w":"inertia","char_start":933,"start":61.695,"end":62.241},{"w":"scores?","char_start":941,"start":62.299,"end":63.111}]};</script>
+<!-- DATA:END -->
+
+<script>
+'use strict';
+// ============================================================================
+//  Deterministic K-Means reel.  draw(t) renders the exact frame at time t (s).
+//  All clustering states come from clustering_data.json (precomputed + validated
+//  Lloyd iterations); all timing comes from ElevenLabs alignment via timing.json.
+// ============================================================================
+const W = 1080, H = 1920;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+const C = {
+  bg: '#F7F5F0', ink: '#292622', terra: '#C46A4A', orange: '#E5A17B', teal: '#6F9D94',
+  blue: '#7E9DB8', card: '#FFFFFF', border: '#E8E2D8', muted: '#857D72', beige: '#EFE9DF',
+  sand: '#E9E1D3', gray: '#BDB4A6'
+};
+const SERIF = '"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif';
+const SANS = '-apple-system, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif';
+
+// ---------------------------------------------------------------- math utils
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const easeOut = k => 1 - Math.pow(1 - k, 3);
+const easeOutBack = k => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+// opacity of a window [a,b] with fade f in & out
+const win = (t, a, b, f = .45) => Math.min(easeInOut(prog(t, a, a + f)), 1 - easeInOut(prog(t, b - f, b)));
+const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+const mixRGB = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)];
+const rgba = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+// ------------------------------------------------------------- time warp
+let D, TM, T, CAPS, RUNS, ORDER, TOTAL;
+function warp(n) {             // narration-time (s) -> video-time (s)
+  let v = TM.warp.lead_in + n;
+  for (const ins of TM.warp.inserts) if (ins.at <= n) v += ins.dur;
+  return v;
+}
+const cueV = (name, edge = 'start') => warp(TM.cues[name][edge]);
+
+function setup() {
+  D = window.DATA; TM = window.TIMING;
+  TOTAL = TM.warp.total;
+  window.TOTAL = TOTAL;
+  const groupColor = [C.terra, C.teal, C.blue];
+  RUNS = D.runs.map(r => {
+    // colour map: a cluster made of a single natural group takes that group's colour,
+    // a merged cluster takes the colour of its first group, extra clusters get orange.
+    const used = new Set(), cmap = {};
+    const ids = Object.keys(r.composition).map(Number).sort((a, b) => r.composition[b].length - r.composition[a].length || a - b);
+    for (const id of ids) {
+      const comp = r.composition[id];
+      const g = comp[0];
+      if (!used.has(g)) { cmap[id] = groupColor[g]; used.add(g); } else cmap[id] = C.orange;
+    }
+    return { ...r, cmap, crgb: Object.fromEntries(Object.entries(cmap).map(([k, v]) => [k, hex(v)])), n: r.iterations.length };
+  });
+  const r1 = RUNS[0], r2 = RUNS[1];
+  T = {};
+  T.ptsA = 1.15; T.ptsB = 3.3;
+  T.groups = cueV('three_groups');
+  T.k = cueV('k_three');
+  T.seeds = cueV('random_seeds');
+  T.R1 = cueV('random_seeds', 'end') + .35;
+  T.second = cueV('second_run');
+  T.D1 = (T.second - .4 - T.R1) / r1.n;
+  T.R2i = T.second;
+  T.R2 = T.second + .8;
+  T.conv = cueV('converge');
+  T.D2 = Math.min(.85, (T.conv - 1.0 - T.R2) / r2.n);
+  T.split = cueV('splits'); T.merge = cueV('merges');
+  T.noch = cueV('no_changes');
+  T.cmp = T.conv - .1;
+  T.q = cueV('question') - .25;
+  T.cmpEnd = T.q + .05;
+  T.opt = { A: cueV('opt_A'), B: cueV('opt_B'), C: cueV('opt_C'), D: cueV('opt_D') };
+  T.optEnd = {};
+  for (const b of TM.blocks) if (b.option) T.optEnd[b.option] = warp(b.end);
+  T.final = cueV('final_q');
+  T.inits = warp(TM.words.find(w => w.w.startsWith('initializations')).start);
+  T.inertia = cueV('inertia');
+  T.narrEnd = TM.warp.narration_end_video;
+  // deterministic point reveal order
+  const rnd = mulberry32(11);
+  ORDER = D.points.map((_, i) => i).map(i => [rnd(), i]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+  window.REVEAL = new Array(D.points.length); ORDER.forEach((p, k) => REVEAL[p] = k);
+  buildCaptions();
+}
+
+// ------------------------------------------------------------- captions
+// Emphasis is balanced across options A–D (two terms each) so no option is visually favoured.
+const KEY = new Set(['k-means', 'converge', 'non-convex', 'minima', 'automatically', 'number',
+  'distance', 'metric', 'global', 'optimum', 'inertia', 'initializations', 'random', 'seeds']);
+const norm = w => w.replace(/[.,?!]$/g, '').toLowerCase();
+function buildCaptions() {
+  const words = TM.words.map(w => ({ w: w.w, s: warp(w.start), e: warp(w.end), key: KEY.has(norm(w.w)) && !(w.w === 'K' && false) }));
+  CAPS = [];
+  let cur = [];
+  const flush = () => { if (cur.length) CAPS.push({ words: cur, s: cur[0].s, e: cur[cur.length - 1].e }); cur = []; };
+  for (const w of words) {
+    if (/^[A-D]\.$/.test(w.w)) { flush(); }
+    cur.push(w);
+    const len = cur.map(x => x.w).join(' ').length;
+    if (/[.?!]$/.test(w.w) && !/^[A-D]\.$/.test(w.w)) flush();
+    else if (/,$/.test(w.w) && len > 18) flush();
+    else if (len > 44) flush();
+  }
+  flush();
+}
+
+// ------------------------------------------------------------- primitives
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function card(x, y, w, h, r = 34, a = 1, opts = {}) {
+  ctx.save();
+  ctx.globalAlpha *= a;
+  ctx.shadowColor = 'rgba(70,50,30,0.07)'; ctx.shadowBlur = 28; ctx.shadowOffsetY = 8;
+  rr(x, y, w, h, r); ctx.fillStyle = opts.fill || C.card; ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.lineWidth = opts.lw || 2; ctx.strokeStyle = opts.stroke || C.border; ctx.stroke();
+  ctx.restore();
+}
+function text(s, x, y, { font = SANS, size = 36, weight = 400, color = C.ink, align = 'left', base = 'alphabetic', alpha = 1, spacing = 0 } = {}) {
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.font = `${weight} ${size}px ${font}`;
+  ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = base;
+  if (spacing) ctx.letterSpacing = spacing + 'px';
+  ctx.fillText(s, x, y);
+  ctx.restore();
+}
+function measure(s, size, weight = 400, font = SANS, spacing = 0) {
+  ctx.save(); ctx.font = `${weight} ${size}px ${font}`; if (spacing) ctx.letterSpacing = spacing + 'px';
+  const w = ctx.measureText(s).width; ctx.restore(); return w;
+}
+function wrap(s, maxW, size, weight = 400, font = SANS) {
+  const words = s.split(' '), lines = []; let line = '';
+  for (const w of words) {
+    const tryL = line ? line + ' ' + w : w;
+    if (measure(tryL, size, weight, font) > maxW && line) { lines.push(line); line = w; } else line = tryL;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+// pill chip; returns its width
+function chip(label, cx, cy, { size = 30, weight = 500, fill = C.card, color = C.ink, stroke = C.border, alpha = 1, scale = 1, padX = 26, h = 62, dot = null } = {}) {
+  if (alpha <= 0.001) return 0;
+  const tw = measure(label, size, weight) + (dot ? 30 : 0);
+  const w = tw + padX * 2;
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.translate(cx, cy); ctx.scale(scale, scale);
+  rr(-w / 2, -h / 2, w, h, h / 2); ctx.fillStyle = fill; ctx.fill();
+  if (stroke) { ctx.lineWidth = 2; ctx.strokeStyle = stroke; ctx.stroke(); }
+  let x0 = -tw / 2;
+  if (dot) {
+    ctx.beginPath(); ctx.arc(x0 + 9, 0, 9, 0, Math.PI * 2);
+    if (dot.hollow) { ctx.lineWidth = 3; ctx.setLineDash([4, 3]); ctx.strokeStyle = dot.color; ctx.stroke(); ctx.setLineDash([]); }
+    else { ctx.fillStyle = dot.color; ctx.fill(); }
+    x0 += 30;
+  }
+  ctx.font = `${weight} ${size}px ${SANS}`; ctx.fillStyle = color; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  ctx.fillText(label, x0, 2);
+  ctx.restore();
+  return w * scale;
+}
+// row of chips centred at cx
+function chipRow(items, cx, cy, gap = 18) {
+  const ws = items.map(it => measure(it.label, it.size || 30, it.weight || 500) + (it.dot ? 30 : 0) + 2 * (it.padX || 26));
+  const total = ws.reduce((a, b) => a + b, 0) + gap * (items.length - 1);
+  let x = cx - total / 2;
+  items.forEach((it, i) => { chip(it.label, x + ws[i] / 2, cy, it); x += ws[i] + gap; });
+}
+// Claude-inspired asterisk motif (understated, decorative)
+function asterisk(cx, cy, r, rot, color = C.terra, alpha = 1) {
+  const L = [1, .8, .94, .76, 1, .84, .9, .78, .97, .82, .92, .8];
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.translate(cx, cy); ctx.rotate(rot);
+  ctx.strokeStyle = color; ctx.lineCap = 'round'; ctx.lineWidth = r * .2;
+  for (let i = 0; i < L.length; i++) {
+    const a = i / L.length * Math.PI * 2;
+    ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * .16, Math.sin(a) * r * .16);
+    ctx.lineTo(Math.cos(a) * r * L[i], Math.sin(a) * r * L[i]); ctx.stroke();
+  }
+  ctx.restore();
+}
+function checkmark(x, y, s, color, lw = 5) {
+  ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(x - s * .5, y); ctx.lineTo(x - s * .12, y + s * .38); ctx.lineTo(x + s * .55, y - s * .4); ctx.stroke(); ctx.restore();
+}
+
+// ------------------------------------------------------------- plot
+const DOM = [0.3, 9.3];
+function mapper(rect) {
+  const s = rect.w / (DOM[1] - DOM[0]);
+  return { x: v => rect.x + (v - DOM[0]) * s, y: v => rect.y + rect.h - (v - DOM[0]) * s, s };
+}
+// Sutherland–Hodgman clip of polygon by half-plane n·p <= c
+function clipHalf(poly, nx, ny, c) {
+  const out = [];
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i], b = poly[(i + 1) % poly.length];
+    const da = nx * a[0] + ny * a[1] - c, db = nx * b[0] + ny * b[1] - c;
+    if (da <= 0) out.push(a);
+    if ((da < 0) !== (db < 0) && da !== db) { const k = da / (da - db); out.push([lerp(a[0], b[0], k), lerp(a[1], b[1], k)]); }
+  }
+  return out;
+}
+function voronoi(rect, pc, colors, alpha) {   // pc: centroid pixel positions
+  if (alpha <= 0.001) return;
+  const box = [[rect.x, rect.y], [rect.x + rect.w, rect.y], [rect.x + rect.w, rect.y + rect.h], [rect.x, rect.y + rect.h]];
+  const onEdge = p => Math.abs(p[0] - rect.x) < .5 || Math.abs(p[0] - rect.x - rect.w) < .5 || Math.abs(p[1] - rect.y) < .5 || Math.abs(p[1] - rect.y - rect.h) < .5;
+  const sameSide = (a, b) => (Math.abs(a[0] - b[0]) < .5 && (Math.abs(a[0] - rect.x) < .5 || Math.abs(a[0] - rect.x - rect.w) < .5)) ||
+    (Math.abs(a[1] - b[1]) < .5 && (Math.abs(a[1] - rect.y) < .5 || Math.abs(a[1] - rect.y - rect.h) < .5));
+  ctx.save();
+  for (let i = 0; i < pc.length; i++) {
+    let poly = box;
+    for (let j = 0; j < pc.length; j++) {
+      if (i === j) continue;
+      const nx = pc[j][0] - pc[i][0], ny = pc[j][1] - pc[i][1];
+      if (Math.abs(nx) + Math.abs(ny) < 1e-6) continue;
+      const c = (pc[j][0] ** 2 + pc[j][1] ** 2 - pc[i][0] ** 2 - pc[i][1] ** 2) / 2;
+      poly = clipHalf(poly, nx, ny, c);
+    }
+    if (poly.length < 3) continue;
+    ctx.beginPath(); poly.forEach((p, k) => k ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath();
+    ctx.fillStyle = rgba(colors[i], .085 * alpha); ctx.fill();
+    ctx.setLineDash([10, 9]); ctx.lineWidth = 2.5; ctx.strokeStyle = rgba(hex(C.muted), .55 * alpha);
+    for (let k = 0; k < poly.length; k++) {
+      const a = poly[k], b = poly[(k + 1) % poly.length];
+      if (onEdge(a) && onEdge(b) && sameSide(a, b)) continue;
+      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+}
+function plotFrame(rect, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha;
+  rr(rect.x, rect.y, rect.w, rect.h, 18 * rect.w / 840); ctx.fillStyle = '#FCFBF8'; ctx.fill();
+  ctx.lineWidth = 1.5; ctx.strokeStyle = C.border; ctx.stroke();
+  ctx.strokeStyle = 'rgba(232,226,216,0.75)'; ctx.lineWidth = 1.2;
+  for (let i = 1; i < 6; i++) {
+    const x = rect.x + rect.w * i / 6, y = rect.y + rect.h * i / 6;
+    ctx.beginPath(); ctx.moveTo(x, rect.y + 6); ctx.lineTo(x, rect.y + rect.h - 6); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rect.x + 6, y); ctx.lineTo(rect.x + rect.w - 6, y); ctx.stroke();
+  }
+  ctx.restore();
+}
+function centroidMarker(x, y, color, { alpha = 1, scale = 1, hollow = false, label = null } = {}) {
+  if (alpha <= 0.001 || scale <= 0.001) return;
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.translate(x, y); ctx.scale(scale, scale);
+  if (hollow) {
+    ctx.setLineDash([6, 5]); ctx.lineWidth = 4; ctx.strokeStyle = color;
+    ctx.beginPath(); ctx.arc(0, 0, 19, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+  } else {
+    ctx.shadowColor = 'rgba(41,38,34,0.25)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
+    ctx.beginPath(); ctx.arc(0, 0, 21, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.lineWidth = 6; ctx.strokeStyle = color; ctx.stroke();
+    ctx.lineWidth = 4; ctx.strokeStyle = C.ink; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-7, 0); ctx.lineTo(7, 0); ctx.moveTo(0, -7); ctx.lineTo(0, 7); ctx.stroke();
+  }
+  if (label) text(label, 27, -20, { size: 24, weight: 700, color, alpha: 1 });
+  ctx.restore();
+}
+/** Draw a scatter plot. st = { colors[], ptAlpha[], ptScale[], cents:[{p:[x,y],color,alpha,scale,hollow,label}],
+ *  vor:{cents,colors,alpha}, lines:{alpha, assign, cents, colors}, trails:[{a,b,color,alpha}], halos:[] } */
+function drawPlot(rect, st, alpha = 1) {
+  if (alpha <= 0.001) return;
+  const m = mapper(rect), ps = rect.w / 840;
+  ctx.save(); ctx.globalAlpha *= alpha;
+  plotFrame(rect);
+  ctx.save(); rr(rect.x, rect.y, rect.w, rect.h, 18 * ps); ctx.clip();
+  if (st.vor) voronoi(rect, st.vor.cents.map(c => [m.x(c[0]), m.y(c[1])]), st.vor.colors, st.vor.alpha);
+  if (st.halos) for (const h of st.halos) halo(m, h, ps);
+  if (st.lines && st.lines.alpha > 0.001) {
+    ctx.lineWidth = 1.6;
+    D.points.forEach((p, i) => {
+      const k = st.lines.assign[i], c = st.lines.cents[k];
+      ctx.strokeStyle = rgba(st.lines.colors[k], .32 * st.lines.alpha);
+      ctx.beginPath(); ctx.moveTo(m.x(p[0]), m.y(p[1])); ctx.lineTo(m.x(c[0]), m.y(c[1])); ctx.stroke();
+    });
+  }
+  if (st.trails) for (const tr of st.trails) {
+    if (tr.alpha <= 0.001) continue;
+    ctx.save(); ctx.globalAlpha *= tr.alpha; ctx.setLineDash([3, 9]); ctx.lineCap = 'round'; ctx.lineWidth = 4 * ps;
+    ctx.strokeStyle = tr.color; ctx.beginPath(); ctx.moveTo(m.x(tr.a[0]), m.y(tr.a[1])); ctx.lineTo(m.x(tr.b[0]), m.y(tr.b[1])); ctx.stroke(); ctx.restore();
+  }
+  D.points.forEach((p, i) => {
+    const a = st.ptAlpha ? st.ptAlpha[i] : 1, s = st.ptScale ? st.ptScale[i] : 1;
+    if (a <= 0.001 || s <= 0.001) return;
+    ctx.globalAlpha = alpha * a;
+    ctx.beginPath(); ctx.arc(m.x(p[0]), m.y(p[1]), 10.5 * ps * s, 0, Math.PI * 2);
+    ctx.fillStyle = rgba(st.colors[i]); ctx.fill();
+    ctx.lineWidth = 2.2 * ps; ctx.strokeStyle = 'rgba(255,255,255,0.95)'; ctx.stroke();
+  });
+  ctx.globalAlpha = alpha;
+  ctx.restore();
+  if (st.cents) for (const c of st.cents) centroidMarker(m.x(c.p[0]), m.y(c.p[1]), c.color, { alpha: c.alpha, scale: (c.scale ?? 1) * Math.max(ps, .62), hollow: c.hollow, label: c.label });
+  if (st.notes) for (const n of st.notes) note(m, n, ps);
+  ctx.restore();
+}
+function halo(m, h, ps) {
+  if (h.alpha <= 0.001) return;
+  ctx.save(); ctx.globalAlpha *= h.alpha;
+  ctx.translate(m.x(h.cx), m.y(h.cy)); ctx.rotate(h.rot || 0);
+  ctx.beginPath(); ctx.ellipse(0, 0, h.rx * m.s * (h.scale || 1), h.ry * m.s * (h.scale || 1), 0, 0, Math.PI * 2);
+  if (h.fill) { ctx.fillStyle = h.fill; ctx.fill(); }
+  ctx.setLineDash([12, 10]); ctx.lineWidth = 3.2 * ps; ctx.strokeStyle = h.color; ctx.stroke();
+  ctx.restore();
+}
+function note(m, n, ps) {
+  if (n.alpha <= 0.001) return;
+  ctx.save(); ctx.globalAlpha *= n.alpha;
+  const x = m.x(n.x), y = m.y(n.y), size = 28 * Math.max(ps, .7);
+  const w = measure(n.text, size, 600) + 40, h = size * 1.9;
+  ctx.translate(x, y); ctx.scale(n.scale ?? 1, n.scale ?? 1);
+  rr(-w / 2, -h / 2, w, h, h / 2); ctx.fillStyle = C.ink; ctx.fill();
+  text(n.text, 0, 2, { size, weight: 600, color: '#FFF', align: 'center', base: 'middle' });
+  ctx.restore();
+}
+
+// ------------------------------------------------------------- K-Means run state
+const GRAY = hex('#A79E91');
+/** State of a precomputed K-Means run at time t. R = time of first assignment step, Dur = seconds per iteration. */
+function runState(run, t, R, Dur) {
+  const it = run.iterations, n = it.length;
+  const colorOf = k => run.crgb[k];
+  const st = { iter: 0, changed: null, inertia: null, converged: false, linesAlpha: 0, lineIter: 0, moving: [] };
+  let cents = run.init_centroids.map(c => c.slice());
+  let colors = D.points.map(() => GRAY);
+  if (t >= R) {
+    const i = Math.min(n - 1, Math.floor((t - R) / Dur));
+    const tt = t - (R + i * Dur);
+    const h = it[i], prevA = i > 0 ? it[i - 1].assign : null;
+    // 1) assignment: points recolour to their nearest centroid (staggered by distance)
+    const kA = tt / (0.36 * Dur);
+    colors = D.points.map((p, j) => {
+      const from = prevA ? colorOf(prevA[j]) : GRAY, to = colorOf(h.assign[j]);
+      if (from === to) return to;
+      return mixRGB(from, to, easeInOut(clamp(kA * 1.25 - (REVEAL[j] / D.points.length) * .25)));
+    });
+    st.linesAlpha = Math.sin(Math.PI * clamp(tt / (0.46 * Dur))) * (i === n - 1 ? .55 : 1);
+    st.lineIter = i;
+    // 2) update: centroids glide to the mean of their assigned points
+    const kM = easeInOut(prog(tt, 0.44 * Dur, 0.94 * Dur));
+    cents = h.centroids_before.map((b, k) => [lerp(b[0], h.centroids_after[k][0], kM), lerp(b[1], h.centroids_after[k][1], kM)]);
+    st.moving = h.centroids_before.map((b, k) => ({ a: b, b: cents[k], color: run.cmap[k], alpha: (tt < 1.0 * Dur ? 1 : 0) * clamp(Math.hypot(b[0] - h.centroids_after[k][0], b[1] - h.centroids_after[k][1]) * 3) * (1 - prog(tt, .95 * Dur, 1.0 * Dur)) }));
+    st.iter = i + 1;
+    st.changed = h.changed;
+    const prevIn = i > 0 ? it[i - 1].inertia : null;
+    st.inertia = prevIn == null ? h.inertia * kM + (1 - kM) * h.inertia : lerp(prevIn, h.inertia, kM);
+    st.inertiaShown = i > 0 || kM > 0;
+    st.assign = h.assign; st.beforeCents = h.centroids_before;
+    st.converged = i === n - 1 && tt >= 0.3 * Dur;
+    st.tConv = R + (n - 1) * Dur + 0.3 * Dur;
+  }
+  st.cents = cents; st.colors = colors;
+  return st;
+}
+function finalState(run) {
+  return { cents: run.final_centroids, colors: run.final_assign.map(k => run.crgb[k]) };
+}
+
+// ------------------------------------------------------------- layout
+const CARD = { x: 60, y: 282, w: 960, h: 990 };
+const PLOT = { x: 120, y: 372, w: 840, h: 840 };
+const MINI = [{ x: 82, y: 512, w: 411, h: 411 }, { x: 587, y: 512, w: 411, h: 411 }];
+const CMPCARD = [{ x: 60, y: 390, w: 455, h: 840 }, { x: 565, y: 390, w: 455, h: 840 }];
+
+// ------------------------------------------------------------- scenes
+function drawHeader(t) {
+  const a = 1 - prog(t, TOTAL - .6, TOTAL - .05);
+  asterisk(98, 176, 30, t * .18, C.terra, a);
+  text('ML Interview Quiz', 146, 190, { font: SERIF, size: 42, weight: 600, color: C.ink, alpha: a });
+  chip('K-Means', 922, 176, { size: 28, weight: 600, color: C.terra, fill: '#FBF1EC', stroke: '#F0D9CE', alpha: a, h: 56 });
+  // progress
+  ctx.save(); ctx.globalAlpha = a;
+  rr(60, 100, 960, 6, 3); ctx.fillStyle = C.sand; ctx.fill();
+  rr(60, 100, 960 * clamp(t / TOTAL), 6, 3); ctx.fillStyle = C.terra; ctx.fill();
+  ctx.restore();
+}
+
+function sceneDataset(t) {
+  const r1 = RUNS[0], r2 = RUNS[1];
+  const aCard = 1 - easeInOut(prog(t, T.cmp, T.cmp + .45));
+  const aIn = easeOut(prog(t, .2, .9));
+  if (aCard * aIn <= 0.001) return;
+  ctx.save();
+  ctx.globalAlpha = aIn;
+  ctx.translate(0, (1 - aIn) * 30);
+  card(CARD.x, CARD.y, CARD.w, CARD.h, 36, aCard);
+
+  // --- card header labels (crossfade)
+  const hy = 336;
+  const lbl = [
+    ['Dataset · 120 points', 0, T.seeds - .1],
+    ['Two random initializations', T.seeds, T.R1 - .05],
+    [`Run 1 · seed ${r1.seed}`, T.R1, T.R2i],
+    [`Run 2 · seed ${r2.seed}`, T.R2i, T.cmp + 1],
+  ];
+  for (const [s, a, b] of lbl) text(s, 120, hy, { font: SERIF, size: 38, weight: 600, alpha: aCard * (a === 0 ? 1 - easeInOut(prog(t, b - .35, b)) : win(t, a, b, .35)) });
+  const kPop = prog(t, T.k, T.k + .5);
+  chip('K = 3', 900, hy - 12, { size: 30, weight: 700, fill: C.terra, color: '#FFF', stroke: null, alpha: aCard * clamp(kPop * 3), scale: easeOutBack(kPop) * .9 + .1 * clamp(kPop * 3), h: 58 });
+
+  // --- plot state
+  let st;
+  const pr = D.points.map((_, i) => prog(t, T.ptsA + (REVEAL[i] / D.points.length) * (T.ptsB - T.ptsA), T.ptsA + (REVEAL[i] / D.points.length) * (T.ptsB - T.ptsA) + .45));
+  const ptScale = pr.map(k => easeOutBack(k)), ptAlpha = pr.map(k => clamp(k * 2.5));
+  const halos = [];
+  const groupHalo = [[2.4, 7.4, 1.25, 1.12], [5.6, 7.6, 1.25, 1.12], [6.6, 2.6, 1.35, 1.25]];
+  groupHalo.forEach((g, i) => {
+    const k = prog(t, T.groups + i * .38, T.groups + i * .38 + .55);
+    const a = easeOut(k) * (1 - prog(t, T.seeds - .6, T.seeds));
+    halos.push({ cx: g[0], cy: g[1], rx: g[2], ry: g[3], alpha: a, color: rgba(hex(C.terra), .55), fill: 'rgba(196,106,74,0.045)', scale: .85 + .15 * easeOut(k) });
+  });
+  if (t < T.R2i) {
+    const rs = runState(r1, t, T.R1, T.D1);
+    st = { colors: rs.colors, ptAlpha, ptScale, halos };
+    // initial centroids: both seeds shown, run-2 ghosts fade before run 1 starts
+    const kS = prog(t, T.seeds, T.seeds + .6);
+    const r2gh = r2.init_centroids.map((c, k) => ({ p: c, color: rgba(hex(C.ink), .7), hollow: true, alpha: easeOut(prog(t, T.seeds + .45 + k * .12, T.seeds + .9 + k * .12)) * (1 - prog(t, T.R1 - .5, T.R1 - .05)), scale: 1, label: k === 0 ? '2' : null }));
+    const r1c = rs.cents.map((c, k) => ({ p: c, color: r1.cmap[k], alpha: clamp(prog(t, T.seeds + k * .12, T.seeds + .35 + k * .12) * 2), scale: easeOutBack(prog(t, T.seeds + k * .12, T.seeds + .5 + k * .12)), label: (k === 0 && t < T.R1) ? '1' : null }));
+    st.cents = [...r2gh, ...r1c];
+    if (t >= T.R1) {
+      const va = easeInOut(prog(t, T.R1, T.R1 + .6));
+      st.vor = { cents: rs.cents, colors: [0, 1, 2].map(k => r1.crgb[k]), alpha: va * (1 - prog(t, T.R2i - .2, T.R2i + .3)) };
+      st.lines = { alpha: rs.linesAlpha, assign: rs.assign, cents: rs.beforeCents, colors: r1.crgb };
+      st.trails = rs.moving;
+      // reset to the identical dataset for run 2
+      const kr = prog(t, T.second - .25, T.second + .2);
+      if (kr > 0) st.colors = st.colors.map(c => mixRGB(c, GRAY, easeInOut(kr)));
+      if (kr > 0) st.cents.forEach(c => c.alpha *= 1 - easeInOut(kr));
+    }
+    sceneDataset.stats = rs;
+  } else {
+    const rs = runState(r2, t, T.R2, T.D2);
+    st = { colors: rs.colors, ptAlpha, ptScale };
+    st.cents = rs.cents.map((c, k) => ({ p: c, color: r2.cmap[k], alpha: clamp(prog(t, T.R2i + .15 + k * .12, T.R2i + .4 + k * .12) * 2), scale: easeOutBack(prog(t, T.R2i + .15 + k * .12, T.R2i + .6 + k * .12)) }));
+    st.vor = { cents: rs.cents, colors: [0, 1, 2].map(k => r2.crgb[k]), alpha: easeInOut(prog(t, T.R2, T.R2 + .6)) };
+    st.lines = t >= T.R2 ? { alpha: rs.linesAlpha, assign: rs.assign, cents: rs.beforeCents, colors: r2.crgb } : null;
+    st.trails = rs.moving;
+    // annotations: one natural group split, two natural groups merged
+    const fadeOut = 1 - prog(t, T.cmp - .5, T.cmp - .05);
+    const ks = prog(t, Math.max(T.split, T.R2 + T.D2 * .9), Math.max(T.split, T.R2 + T.D2 * .9) + .5);
+    const km = prog(t, Math.max(T.merge, T.R2 + T.D2 * 1.9), Math.max(T.merge, T.R2 + T.D2 * 1.9) + .5);
+    st.halos = [
+      { cx: 6.6, cy: 2.6, rx: 1.45, ry: 1.3, alpha: easeOut(ks) * fadeOut, color: rgba(hex(C.ink), .5), scale: .9 + .1 * easeOut(ks) },
+      { cx: 4.0, cy: 7.5, rx: 3.05, ry: 1.38, alpha: easeOut(km) * fadeOut, color: rgba(hex(C.ink), .5), scale: .9 + .1 * easeOut(km) },
+    ];
+    st.notes = [
+      { x: 3.55, y: 2.45, text: '1 group → 2 clusters', alpha: easeOut(ks) * fadeOut, scale: .9 + .1 * easeOutBack(ks) },
+      { x: 4.0, y: 5.55, text: '2 groups → 1 cluster', alpha: easeOut(km) * fadeOut, scale: .9 + .1 * easeOutBack(km) },
+    ];
+    sceneDataset.stats = rs;
+  }
+  if (t < T.cmp) drawPlot(PLOT, st, 1);
+
+  // --- stats strip below the card
+  const sy = 1328;
+  const a1 = aCard * (1 - prog(t, T.seeds - .4, T.seeds));
+  chipRow([
+    { label: '120 points', alpha: a1 * easeOut(prog(t, 1.6, 2.1)) },
+    { label: 'Same data for both runs', alpha: a1 * easeOut(prog(t, T.k + 1.0, T.k + 1.5)), dot: { color: C.terra } },
+  ], 540, sy);
+  const a2 = aCard * win(t, T.seeds + .2, T.R1 + .1, .4);
+  chipRow([
+    { label: `Run 1 · seed ${r1.seed}`, dot: { color: C.ink }, alpha: a2 },
+    { label: `Run 2 · seed ${r2.seed}`, dot: { color: C.ink, hollow: true }, alpha: a2 * easeOut(prog(t, T.seeds + .45, T.seeds + .9)) },
+  ], 540, sy);
+  const rs = sceneDataset.stats;
+  const aRun = aCard * (t < T.R2i ? win(t, T.R1 - .05, T.R2i, .35) : prog(t, T.R2 - .3, T.R2 + .1));
+  if (aRun > 0.001) {
+    if (rs.converged) {
+      const kc = prog(t, rs.tConv, rs.tConv + .45);
+      chipRow([
+        { label: `Iteration ${rs.iter}`, alpha: aRun },
+        { label: 'Converged · 0 reassigned', alpha: aRun * clamp(kc * 2), scale: .9 + .1 * easeOutBack(kc), fill: '#EEF4F2', stroke: '#CFE0DC', color: '#3E6B62', weight: 600, dot: { color: C.teal } },
+      ], 540, sy);
+    } else {
+      chipRow([
+        { label: `Iteration ${Math.max(1, rs.iter)}`, alpha: aRun },
+        { label: `Reassigned ${rs.changed == null ? '—' : rs.changed}`, alpha: aRun },
+        { label: `Inertia ${rs.inertiaShown ? rs.inertia.toFixed(1) : '—'}`, alpha: aRun },
+      ], 540, sy);
+    }
+  }
+  ctx.restore();
+}
+
+function sceneCompare(t) {
+  const a = win(t, T.cmp, T.cmpEnd, .5);
+  if (a <= 0.001) return;
+  const r1 = RUNS[0], r2 = RUNS[1];
+  const kT = easeInOut(prog(t, T.cmp, T.cmp + .9));
+  ctx.save(); ctx.globalAlpha = a;
+  // chips row
+  const kc = prog(t, T.cmp + .4, T.cmp + .9);
+  chipRow([
+    { label: 'Same dataset', alpha: easeOut(kc), dot: { color: C.terra } },
+    { label: 'Same K = 3', alpha: easeOut(prog(t, T.cmp + .55, T.cmp + 1.05)), dot: { color: C.terra } },
+    { label: 'Different seeds', alpha: easeOut(prog(t, T.cmp + .7, T.cmp + 1.2)), dot: { color: C.ink, hollow: true } },
+  ], 540, 318, 14);
+  [r1, r2].forEach((r, i) => {
+    const cc = CMPCARD[i];
+    const ka = i === 0 ? easeOut(prog(t, T.cmp + .25, T.cmp + .85)) : kT;
+    card(cc.x, cc.y, cc.w, cc.h, 30, ka);
+    text(`Run ${i + 1}`, cc.x + 30, cc.y + 76, { font: SERIF, size: 44, weight: 600, alpha: ka });
+    chip(`seed ${r.seed}`, cc.x + cc.w - 92, cc.y + 62, { size: 26, alpha: ka, h: 50, padX: 20 });
+    const fs = finalState(r);
+    const st = { colors: fs.colors, cents: fs.cents.map((c, k) => ({ p: c, color: r.cmap[k], alpha: 1 })), vor: { cents: fs.cents, colors: [0, 1, 2].map(k => r.crgb[k]), alpha: 1 } };
+    let rect = MINI[i];
+    if (i === 1) rect = { x: lerp(PLOT.x, MINI[1].x, kT), y: lerp(PLOT.y, MINI[1].y, kT), w: lerp(PLOT.w, MINI[1].w, kT), h: lerp(PLOT.h, MINI[1].h, kT) };
+    drawPlot(rect, st, i === 0 ? ka : 1);
+    // numbers
+    const kn = easeOut(prog(t, T.cmp + .9 + i * .25, T.cmp + 1.4 + i * .25));
+    text('Final inertia', cc.x + 30, cc.y + 620, { size: 28, color: C.muted, alpha: kn });
+    text(r.final_inertia.toFixed(1), cc.x + 30, cc.y + 690, { font: SERIF, size: 64, weight: 600, color: C.ink, alpha: kn });
+    text(`${r.n_iterations} iterations`, cc.x + cc.w - 30, cc.y + 690, { size: 28, color: C.muted, align: 'right', alpha: kn });
+    const kz = prog(t, T.noch + i * .2, T.noch + .5 + i * .2);
+    chip('Converged · 0 reassigned', cc.x + cc.w / 2, cc.y + 770, { size: 26, weight: 600, h: 54, padX: 18, fill: '#EEF4F2', stroke: '#CFE0DC', color: '#3E6B62', alpha: clamp(kz * 2), scale: .9 + .1 * easeOutBack(kz), dot: { color: C.teal } });
+  });
+  const kb = easeOut(prog(t, T.noch + .6, T.noch + 1.2));
+  text('Same data. Same K. Different answers.', 540, 1326, { font: SERIF, size: 44, weight: 600, align: 'center', alpha: kb });
+  ctx.restore();
+}
+
+function optionLayout() {
+  if (optionLayout.cache) return optionLayout.cache;
+  const qLines = wrap('Why does K-Means produce different results on the exact same dataset?', 840, 50, 600, SERIF);
+  const qH = 108 + qLines.length * 64 + 30;
+  const opts = TM.blocks.filter(b => b.option).map(b => ({ letter: b.option, lines: wrap(b.text.slice(3), 760, 35, 400) }));
+  let y = 290 + qH + 26;
+  for (const o of opts) { o.y = y; o.h = 52 + o.lines.length * 46; y += o.h + 18; }
+  return optionLayout.cache = { qLines, qH, opts, bottom: y };
+}
+
+function sceneQuestion(t) {
+  const a = prog(t, T.q, T.q + .6) * (1 - prog(t, TOTAL - .6, TOTAL - .05));
+  if (a <= 0.001) return;
+  const L = optionLayout();
+  ctx.save(); ctx.globalAlpha = easeInOut(a);
+  const kq = easeOut(prog(t, T.q, T.q + .7));
+  ctx.save(); ctx.translate(0, (1 - kq) * 28);
+  card(60, 290, 960, L.qH, 34, 1, { fill: '#FFFFFF' });
+  asterisk(112, 352, 17, t * .25, C.terra, 1);
+  text('QUESTION', 140, 362, { size: 26, weight: 700, color: C.terra, spacing: 3 });
+  L.qLines.forEach((ln, i) => text(ln, 100, 290 + 108 + 52 + i * 64, { font: SERIF, size: 50, weight: 600 }));
+  ctx.restore();
+  for (const o of L.opts) {
+    const s = T.opt[o.letter], e = T.optEnd[o.letter];
+    const k = prog(t, s - .15, s + .5);
+    if (k <= 0) continue;
+    const ke = easeOut(k);
+    // identical "now reading" highlight for every option (no answer is singled out)
+    const reading = clamp(prog(t, s - .15, s + .25)) * (1 - prog(t, e, e + .5));
+    ctx.save();
+    ctx.globalAlpha *= ke;
+    ctx.translate(60 + (1 - ke) * 50, o.y);
+    card(0, 0, 960, o.h, 26, 1, { stroke: rgba(mixRGB(hex(C.border), hex(C.orange), reading)), lw: 2 + reading * 1.5 });
+    if (reading > .001) { ctx.save(); ctx.globalAlpha *= reading; rr(0, 18, 7, o.h - 36, 3.5); ctx.fillStyle = C.orange; ctx.fill(); ctx.restore(); }
+    ctx.beginPath(); ctx.arc(66, o.h / 2, 32, 0, Math.PI * 2); ctx.fillStyle = C.beige; ctx.fill();
+    text(o.letter, 66, o.h / 2 + 2, { font: SERIF, size: 38, weight: 700, align: 'center', base: 'middle', color: C.ink });
+    const ty = o.h / 2 - (o.lines.length - 1) * 23 + 12;
+    o.lines.forEach((ln, i) => text(ln, 128, ty + i * 46, { size: 35, color: C.ink }));
+    ctx.restore();
+  }
+  // experiment prompt chips under the options
+  chipRow([
+    { label: 'different initializations', alpha: easeOut(prog(t, T.inits - .1, T.inits + .4)), dot: { color: C.ink, hollow: true } },
+    { label: 'inertia scores', alpha: easeOut(prog(t, T.inertia - .1, T.inertia + .4)), dot: { color: C.terra } },
+  ], 540, L.bottom + 30, 16);
+  ctx.restore();
+}
+
+function sceneThink(t) {
+  const a = prog(t, T.narrEnd + .1, T.narrEnd + .7) * (1 - prog(t, TOTAL - .6, TOTAL - .05));
+  if (a <= 0.001) return;
+  const L = optionLayout();
+  const cy = Math.max(L.bottom + 170, 1505);
+  const span = TOTAL - .6 - (T.narrEnd + .3);
+  const rem = clamp(1 - (t - (T.narrEnd + .3)) / span);
+  ctx.save(); ctx.globalAlpha = easeInOut(a);
+  const cx = 300;
+  ctx.lineWidth = 11; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(cx, cy, 62, 0, Math.PI * 2); ctx.strokeStyle = C.sand; ctx.stroke();
+  if (rem > 0.002) { ctx.beginPath(); ctx.arc(cx, cy, 62, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * rem); ctx.strokeStyle = C.terra; ctx.stroke(); }
+  const secs = Math.max(0, Math.ceil(rem * span));
+  text(String(secs), cx, cy + 3, { font: SERIF, size: 52, weight: 600, align: 'center', base: 'middle' });
+  text('Pause & think it through', 396, cy - 12, { font: SERIF, size: 42, weight: 600 });
+  text('Comment your answer + your experiment', 396, cy + 36, { size: 29, color: C.muted });
+  ctx.restore();
+}
+
+function drawCaption(t) {
+  if (t > T.narrEnd + .6) return;
+  let cap = null, ci = -1;
+  for (let i = 0; i < CAPS.length; i++) {
+    const c = CAPS[i], next = CAPS[i + 1];
+    const end = next ? Math.min(next.s - .05, c.e + .9) : c.e + .6;
+    if (t >= c.s - .12 && t < end) { cap = c; ci = i; break; }
+  }
+  if (!cap) return;
+  const next = CAPS[ci + 1];
+  const end = next ? Math.min(next.s - .05, cap.e + .9) : cap.e + .6;
+  const a = Math.min(easeOut(prog(t, cap.s - .12, cap.s + .05)), (next && next.s - .05 < cap.e + .9) ? 1 : 1 - prog(t, end - .25, end));
+  const size = 44, maxW = 880;
+  // layout rich words
+  const items = cap.words.map(w => ({ ...w, wt: w.key ? 700 : 500 }));
+  items.forEach(w => w.width = measure(w.w, size, w.wt));
+  const sp = measure(' ', size, 500);
+  const lines = [[]]; let lw = 0;
+  for (const w of items) {
+    if (lines[lines.length - 1].length && lw + sp + w.width > maxW) { lines.push([]); lw = 0; }
+    lw += (lines[lines.length - 1].length ? sp : 0) + w.width; lines[lines.length - 1].push(w);
+  }
+  const lineH = 60, boxH = lines.length * lineH + 44;
+  const widths = lines.map(l => l.reduce((s, w, i) => s + w.width + (i ? sp : 0), 0));
+  const boxW = Math.max(...widths) + 76;
+  const L = optionLayout();
+  const inQ = t > T.q;
+  const top = inQ ? Math.max(1445, L.bottom + 82) : 1430;
+  ctx.save(); ctx.globalAlpha = a;
+  rr(540 - boxW / 2, top, boxW, boxH, 28); ctx.fillStyle = 'rgba(255,255,255,0.94)'; ctx.fill();
+  ctx.lineWidth = 2; ctx.strokeStyle = C.border; ctx.stroke();
+  lines.forEach((l, li) => {
+    let x = 540 - widths[li] / 2;
+    const y = top + 22 + lineH * li + lineH / 2 + 2;
+    for (const w of l) {
+      const spoken = clamp((t - w.s + .06) / .12);
+      const col = w.key ? C.terra : C.ink;
+      text(w.w, x, y, { size, weight: w.wt, color: col, base: 'middle', alpha: .38 + .62 * spoken });
+      x += w.width + sp;
+    }
+  });
+  ctx.restore();
+}
+
+function drawEnd(t) {
+  const k = prog(t, TOTAL - .55, TOTAL - .05);
+  if (k <= 0) return;
+  asterisk(540, 1730, 34, t * .2, C.terra, easeInOut(k) * .8);
+}
+
+// ------------------------------------------------------------- draw(t)
+function draw(t) {
+  if (!T) setup();
+  t = clamp(t, 0, TOTAL);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  drawHeader(t);
+  if (t < T.cmp + .6) sceneDataset(t);
+  if (t > T.cmp - .01 && t < T.cmpEnd + .01) sceneCompare(t);
+  if (t > T.q) sceneQuestion(t);
+  sceneThink(t);
+  drawCaption(t);
+  drawEnd(t);
+}
+window.draw = draw;
+
+// ------------------------------------------------------------- live preview
+async function ensureData() {
+  if (window.DATA && window.TIMING) return;
+  const [d, tm] = await Promise.all([fetch('clustering_data.json').then(r => r.json()), fetch('timing.json').then(r => r.json())]);
+  window.DATA = d; window.TIMING = tm;
+}
+window.ready = ensureData().then(setup);
+if (!window.__RENDERING) {
+  window.ready.then(() => {
+    const aud = document.getElementById('aud');
+    let t0 = performance.now(), useAudio = false;
+    cv.addEventListener('click', () => {   // click: restart with sound (browsers block autoplay audio)
+      aud.currentTime = 0; aud.play().then(() => { useAudio = true; }).catch(() => { useAudio = false; t0 = performance.now(); });
+      t0 = performance.now();
+    });
+    const loop = now => {
+      const t = useAudio && !aud.paused ? aud.currentTime : ((now - t0) / 1000) % (TOTAL + 1);
+      draw(Math.min(t, TOTAL));
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  });
+}
+</script>
+</body>
+</html>

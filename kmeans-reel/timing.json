@@ -1,0 +1,1173 @@
+{
+ "audio_duration": 63.112,
+ "warp": {
+  "lead_in": 1.0,
+  "inserts": [
+   {
+    "at": 11.25,
+    "dur": 1.4,
+    "after": "You set K"
+   },
+   {
+    "at": 20.166,
+    "dur": 1.4,
+    "after": "The second run"
+   },
+   {
+    "at": 25.96,
+    "dur": 1.0,
+    "after": "Both runs"
+   },
+   {
+    "at": 30.401,
+    "dur": 0.6,
+    "after": "Why does"
+   },
+   {
+    "at": 39.165,
+    "dur": 0.5,
+    "after": "A. "
+   },
+   {
+    "at": 44.373,
+    "dur": 0.5,
+    "after": "B. "
+   },
+   {
+    "at": 49.139,
+    "dur": 0.5,
+    "after": "C. "
+   },
+   {
+    "at": 56.454,
+    "dur": 0.6,
+    "after": "D. "
+   }
+  ],
+  "narration_end_video": 70.612,
+  "total": 80.0,
+  "think_seconds": 9.388
+ },
+ "voice": "Adam",
+ "voice_id": "pNInz6obpgDQGcFmaJgB",
+ "model_id": "eleven_multilingual_v2",
+ "blocks": [
+  {
+   "text": "You run K-Means clustering on a dataset with three clearly visible groups of points. You set K equal to three and run the algorithm twice using different random seeds.",
+   "char_start": 0,
+   "char_end": 167,
+   "start": 0.0,
+   "end": 11.029
+  },
+  {
+   "text": "The first run identifies all three groups correctly. The second run splits one group into two clusters and merges the other two groups together.",
+   "char_start": 169,
+   "char_end": 313,
+   "start": 11.471,
+   "end": 19.946
+  },
+  {
+   "text": "Both runs converge, and neither produces any further changes to its cluster assignments.",
+   "char_start": 315,
+   "char_end": 403,
+   "start": 20.387,
+   "end": 25.739
+  },
+  {
+   "text": "Why does K-Means produce different results on the exact same dataset?",
+   "char_start": 405,
+   "char_end": 474,
+   "start": 26.181,
+   "end": 30.209
+  },
+  {
+   "text": "A. K-Means minimizes a non-convex objective, so different initial centroids can converge to different local minima.",
+   "char_start": 476,
+   "char_end": 591,
+   "start": 30.592,
+   "end": 38.974,
+   "option": "A"
+  },
+  {
+   "text": "B. K-Means automatically changes the number of clusters during optimization.",
+   "char_start": 593,
+   "char_end": 669,
+   "start": 39.357,
+   "end": 44.152,
+   "option": "B"
+  },
+  {
+   "text": "C. K-Means uses a different distance metric each time it runs.",
+   "char_start": 671,
+   "char_end": 733,
+   "start": 44.594,
+   "end": 48.947,
+   "option": "C"
+  },
+  {
+   "text": "D. K-Means guarantees the global optimum, but only when the dataset contains fewer than three clusters.",
+   "char_start": 735,
+   "char_end": 838,
+   "start": 49.33,
+   "end": 56.262,
+   "option": "D"
+  },
+  {
+   "text": "Which is it, and how would you confirm it experimentally using different initializations and inertia scores?",
+   "char_start": 840,
+   "char_end": 948,
+   "start": 56.645,
+   "end": 63.111
+  }
+ ],
+ "sentences": [
+  {
+   "index": 0,
+   "text": "You run K-Means clustering on a dataset with three clearly visible groups of points.",
+   "char_start": 0,
+   "char_end": 84,
+   "start": 0.0,
+   "end": 5.097
+  },
+  {
+   "index": 1,
+   "text": "You set K equal to three and run the algorithm twice using different random seeds.",
+   "char_start": 85,
+   "char_end": 167,
+   "start": 5.422,
+   "end": 11.029
+  },
+  {
+   "index": 2,
+   "text": "The first run identifies all three groups correctly.",
+   "char_start": 169,
+   "char_end": 221,
+   "start": 11.471,
+   "end": 14.733
+  },
+  {
+   "index": 3,
+   "text": "The second run splits one group into two clusters and merges the other two groups together.",
+   "char_start": 222,
+   "char_end": 313,
+   "start": 14.942,
+   "end": 19.946
+  },
+  {
+   "index": 4,
+   "text": "Both runs converge, and neither produces any further changes to its cluster assignments.",
+   "char_start": 315,
+   "char_end": 403,
+   "start": 20.387,
+   "end": 25.739
+  },
+  {
+   "index": 5,
+   "text": "Why does K-Means produce different results on the exact same dataset?",
+   "char_start": 405,
+   "char_end": 474,
+   "start": 26.181,
+   "end": 30.209
+  },
+  {
+   "index": 6,
+   "text": "A. K-Means minimizes a non-convex objective, so different initial centroids can converge to different local minima.",
+   "char_start": 476,
+   "char_end": 591,
+   "start": 30.592,
+   "end": 38.974
+  },
+  {
+   "index": 7,
+   "text": "B. K-Means automatically changes the number of clusters during optimization.",
+   "char_start": 593,
+   "char_end": 669,
+   "start": 39.357,
+   "end": 44.152
+  },
+  {
+   "index": 8,
+   "text": "C. K-Means uses a different distance metric each time it runs.",
+   "char_start": 671,
+   "char_end": 733,
+   "start": 44.594,
+   "end": 48.947
+  },
+  {
+   "index": 9,
+   "text": "D. K-Means guarantees the global optimum, but only when the dataset contains fewer than three clusters.",
+   "char_start": 735,
+   "char_end": 838,
+   "start": 49.33,
+   "end": 56.262
+  },
+  {
+   "index": 10,
+   "text": "Which is it, and how would you confirm it experimentally using different initializations and inertia scores?",
+   "char_start": 840,
+   "char_end": 948,
+   "start": 56.645,
+   "end": 63.111
+  }
+ ],
+ "cues": {
+  "three_groups": {
+   "phrase": "three clearly visible groups",
+   "start": 2.856,
+   "end": 4.354
+  },
+  "k_three": {
+   "phrase": "K equal to three",
+   "start": 5.909,
+   "end": 7.245
+  },
+  "random_seeds": {
+   "phrase": "different random seeds",
+   "start": 9.59,
+   "end": 10.913
+  },
+  "first_run": {
+   "phrase": "The first run",
+   "start": 11.471,
+   "end": 12.26
+  },
+  "second_run": {
+   "phrase": "The second run",
+   "start": 14.942,
+   "end": 15.674
+  },
+  "splits": {
+   "phrase": "splits one group into two clusters",
+   "start": 15.743,
+   "end": 17.636
+  },
+  "merges": {
+   "phrase": "merges the other two groups together",
+   "start": 18.123,
+   "end": 19.83
+  },
+  "converge": {
+   "phrase": "Both runs converge",
+   "start": 20.387,
+   "end": 21.792
+  },
+  "no_changes": {
+   "phrase": "neither produces any further changes",
+   "start": 22.152,
+   "end": 24.102
+  },
+  "question": {
+   "phrase": "Why does K-Means",
+   "start": 26.181,
+   "end": 27.214
+  },
+  "opt_A": {
+   "phrase": "A. K-Means",
+   "start": 30.592,
+   "end": 32.032
+  },
+  "opt_B": {
+   "phrase": "B. K-Means",
+   "start": 39.357,
+   "end": 40.588
+  },
+  "opt_C": {
+   "phrase": "C. K-Means",
+   "start": 44.594,
+   "end": 45.847
+  },
+  "opt_D": {
+   "phrase": "D. K-Means",
+   "start": 49.33,
+   "end": 50.782
+  },
+  "final_q": {
+   "phrase": "Which is it",
+   "start": 56.645,
+   "end": 57.202
+  },
+  "inertia": {
+   "phrase": "inertia scores",
+   "start": 61.695,
+   "end": 62.821
+  }
+ },
+ "words": [
+  {
+   "w": "You",
+   "char_start": 0,
+   "start": 0.0,
+   "end": 0.174
+  },
+  {
+   "w": "run",
+   "char_start": 4,
+   "start": 0.255,
+   "end": 0.453
+  },
+  {
+   "w": "K-Means",
+   "char_start": 8,
+   "start": 0.522,
+   "end": 1.184
+  },
+  {
+   "w": "clustering",
+   "char_start": 16,
+   "start": 1.254,
+   "end": 1.776
+  },
+  {
+   "w": "on",
+   "char_start": 27,
+   "start": 1.846,
+   "end": 1.927
+  },
+  {
+   "w": "a",
+   "char_start": 30,
+   "start": 1.974,
+   "end": 1.997
+  },
+  {
+   "w": "dataset",
+   "char_start": 32,
+   "start": 2.055,
+   "end": 2.612
+  },
+  {
+   "w": "with",
+   "char_start": 40,
+   "start": 2.659,
+   "end": 2.81
+  },
+  {
+   "w": "three",
+   "char_start": 45,
+   "start": 2.856,
+   "end": 3.123
+  },
+  {
+   "w": "clearly",
+   "char_start": 51,
+   "start": 3.193,
+   "end": 3.622
+  },
+  {
+   "w": "visible",
+   "char_start": 59,
+   "start": 3.68,
+   "end": 4.052
+  },
+  {
+   "w": "groups",
+   "char_start": 67,
+   "start": 4.087,
+   "end": 4.354
+  },
+  {
+   "w": "of",
+   "char_start": 74,
+   "start": 4.389,
+   "end": 4.458
+  },
+  {
+   "w": "points.",
+   "char_start": 77,
+   "start": 4.528,
+   "end": 5.097
+  },
+  {
+   "w": "You",
+   "char_start": 85,
+   "start": 5.422,
+   "end": 5.55
+  },
+  {
+   "w": "set",
+   "char_start": 89,
+   "start": 5.619,
+   "end": 5.828
+  },
+  {
+   "w": "K",
+   "char_start": 93,
+   "start": 5.909,
+   "end": 6.084
+  },
+  {
+   "w": "equal",
+   "char_start": 95,
+   "start": 6.327,
+   "end": 6.594
+  },
+  {
+   "w": "to",
+   "char_start": 101,
+   "start": 6.653,
+   "end": 6.711
+  },
+  {
+   "w": "three",
+   "char_start": 104,
+   "start": 6.792,
+   "end": 7.245
+  },
+  {
+   "w": "and",
+   "char_start": 110,
+   "start": 7.419,
+   "end": 7.651
+  },
+  {
+   "w": "run",
+   "char_start": 114,
+   "start": 7.721,
+   "end": 7.883
+  },
+  {
+   "w": "the",
+   "char_start": 118,
+   "start": 7.918,
+   "end": 7.999
+  },
+  {
+   "w": "algorithm",
+   "char_start": 122,
+   "start": 8.081,
+   "end": 8.649
+  },
+  {
+   "w": "twice",
+   "char_start": 132,
+   "start": 8.719,
+   "end": 9.172
+  },
+  {
+   "w": "using",
+   "char_start": 138,
+   "start": 9.242,
+   "end": 9.52
+  },
+  {
+   "w": "different",
+   "char_start": 144,
+   "start": 9.59,
+   "end": 9.927
+  },
+  {
+   "w": "random",
+   "char_start": 154,
+   "start": 9.985,
+   "end": 10.356
+  },
+  {
+   "w": "seeds.",
+   "char_start": 161,
+   "start": 10.437,
+   "end": 11.029
+  },
+  {
+   "w": "The",
+   "char_start": 169,
+   "start": 11.471,
+   "end": 11.587
+  },
+  {
+   "w": "first",
+   "char_start": 173,
+   "start": 11.645,
+   "end": 11.9
+  },
+  {
+   "w": "run",
+   "char_start": 179,
+   "start": 11.97,
+   "end": 12.26
+  },
+  {
+   "w": "identifies",
+   "char_start": 183,
+   "start": 12.353,
+   "end": 13.096
+  },
+  {
+   "w": "all",
+   "char_start": 194,
+   "start": 13.166,
+   "end": 13.386
+  },
+  {
+   "w": "three",
+   "char_start": 198,
+   "start": 13.456,
+   "end": 13.7
+  },
+  {
+   "w": "groups",
+   "char_start": 204,
+   "start": 13.746,
+   "end": 14.013
+  },
+  {
+   "w": "correctly.",
+   "char_start": 211,
+   "start": 14.06,
+   "end": 14.733
+  },
+  {
+   "w": "The",
+   "char_start": 222,
+   "start": 14.942,
+   "end": 15.058
+  },
+  {
+   "w": "second",
+   "char_start": 226,
+   "start": 15.116,
+   "end": 15.395
+  },
+  {
+   "w": "run",
+   "char_start": 233,
+   "start": 15.453,
+   "end": 15.674
+  },
+  {
+   "w": "splits",
+   "char_start": 237,
+   "start": 15.743,
+   "end": 16.08
+  },
+  {
+   "w": "one",
+   "char_start": 244,
+   "start": 16.138,
+   "end": 16.312
+  },
+  {
+   "w": "group",
+   "char_start": 248,
+   "start": 16.359,
+   "end": 16.591
+  },
+  {
+   "w": "into",
+   "char_start": 254,
+   "start": 16.649,
+   "end": 16.835
+  },
+  {
+   "w": "two",
+   "char_start": 259,
+   "start": 16.893,
+   "end": 17.044
+  },
+  {
+   "w": "clusters",
+   "char_start": 263,
+   "start": 17.102,
+   "end": 17.636
+  },
+  {
+   "w": "and",
+   "char_start": 272,
+   "start": 17.845,
+   "end": 18.054
+  },
+  {
+   "w": "merges",
+   "char_start": 276,
+   "start": 18.123,
+   "end": 18.495
+  },
+  {
+   "w": "the",
+   "char_start": 283,
+   "start": 18.553,
+   "end": 18.622
+  },
+  {
+   "w": "other",
+   "char_start": 287,
+   "start": 18.692,
+   "end": 18.866
+  },
+  {
+   "w": "two",
+   "char_start": 293,
+   "start": 18.901,
+   "end": 19.04
+  },
+  {
+   "w": "groups",
+   "char_start": 297,
+   "start": 19.098,
+   "end": 19.377
+  },
+  {
+   "w": "together.",
+   "char_start": 304,
+   "start": 19.412,
+   "end": 19.946
+  },
+  {
+   "w": "Both",
+   "char_start": 315,
+   "start": 20.387,
+   "end": 20.654
+  },
+  {
+   "w": "runs",
+   "char_start": 320,
+   "start": 20.724,
+   "end": 20.991
+  },
+  {
+   "w": "converge,",
+   "char_start": 325,
+   "start": 21.049,
+   "end": 21.815
+  },
+  {
+   "w": "and",
+   "char_start": 335,
+   "start": 21.931,
+   "end": 22.094
+  },
+  {
+   "w": "neither",
+   "char_start": 339,
+   "start": 22.152,
+   "end": 22.419
+  },
+  {
+   "w": "produces",
+   "char_start": 347,
+   "start": 22.477,
+   "end": 22.941
+  },
+  {
+   "w": "any",
+   "char_start": 356,
+   "start": 22.999,
+   "end": 23.15
+  },
+  {
+   "w": "further",
+   "char_start": 360,
+   "start": 23.22,
+   "end": 23.522
+  },
+  {
+   "w": "changes",
+   "char_start": 368,
+   "start": 23.58,
+   "end": 24.102
+  },
+  {
+   "w": "to",
+   "char_start": 376,
+   "start": 24.172,
+   "end": 24.253
+  },
+  {
+   "w": "its",
+   "char_start": 379,
+   "start": 24.346,
+   "end": 24.462
+  },
+  {
+   "w": "cluster",
+   "char_start": 383,
+   "start": 24.509,
+   "end": 24.88
+  },
+  {
+   "w": "assignments.",
+   "char_start": 391,
+   "start": 24.938,
+   "end": 25.739
+  },
+  {
+   "w": "Why",
+   "char_start": 405,
+   "start": 26.181,
+   "end": 26.366
+  },
+  {
+   "w": "does",
+   "char_start": 409,
+   "start": 26.424,
+   "end": 26.575
+  },
+  {
+   "w": "K-Means",
+   "char_start": 414,
+   "start": 26.633,
+   "end": 27.214
+  },
+  {
+   "w": "produce",
+   "char_start": 422,
+   "start": 27.284,
+   "end": 27.643
+  },
+  {
+   "w": "different",
+   "char_start": 430,
+   "start": 27.678,
+   "end": 27.969
+  },
+  {
+   "w": "results",
+   "char_start": 440,
+   "start": 28.003,
+   "end": 28.386
+  },
+  {
+   "w": "on",
+   "char_start": 448,
+   "start": 28.433,
+   "end": 28.514
+  },
+  {
+   "w": "the",
+   "char_start": 451,
+   "start": 28.549,
+   "end": 28.63
+  },
+  {
+   "w": "exact",
+   "char_start": 455,
+   "start": 28.711,
+   "end": 29.094
+  },
+  {
+   "w": "same",
+   "char_start": 461,
+   "start": 29.141,
+   "end": 29.408
+  },
+  {
+   "w": "dataset?",
+   "char_start": 466,
+   "start": 29.454,
+   "end": 30.209
+  },
+  {
+   "w": "A.",
+   "char_start": 476,
+   "start": 30.592,
+   "end": 31.045
+  },
+  {
+   "w": "K-Means",
+   "char_start": 479,
+   "start": 31.428,
+   "end": 32.032
+  },
+  {
+   "w": "minimizes",
+   "char_start": 487,
+   "start": 32.113,
+   "end": 32.856
+  },
+  {
+   "w": "a",
+   "char_start": 497,
+   "start": 32.949,
+   "end": 33.018
+  },
+  {
+   "w": "non-convex",
+   "char_start": 499,
+   "start": 33.135,
+   "end": 33.97
+  },
+  {
+   "w": "objective,",
+   "char_start": 510,
+   "start": 34.04,
+   "end": 34.83
+  },
+  {
+   "w": "so",
+   "char_start": 521,
+   "start": 35.073,
+   "end": 35.259
+  },
+  {
+   "w": "different",
+   "char_start": 524,
+   "start": 35.34,
+   "end": 35.689
+  },
+  {
+   "w": "initial",
+   "char_start": 534,
+   "start": 35.735,
+   "end": 36.083
+  },
+  {
+   "w": "centroids",
+   "char_start": 542,
+   "start": 36.141,
+   "end": 36.722
+  },
+  {
+   "w": "can",
+   "char_start": 552,
+   "start": 36.768,
+   "end": 36.908
+  },
+  {
+   "w": "converge",
+   "char_start": 556,
+   "start": 36.977,
+   "end": 37.546
+  },
+  {
+   "w": "to",
+   "char_start": 565,
+   "start": 37.593,
+   "end": 37.674
+  },
+  {
+   "w": "different",
+   "char_start": 568,
+   "start": 37.755,
+   "end": 38.069
+  },
+  {
+   "w": "local",
+   "char_start": 578,
+   "start": 38.115,
+   "end": 38.394
+  },
+  {
+   "w": "minima.",
+   "char_start": 584,
+   "start": 38.452,
+   "end": 38.974
+  },
+  {
+   "w": "B.",
+   "char_start": 593,
+   "start": 39.357,
+   "end": 39.787
+  },
+  {
+   "w": "K-Means",
+   "char_start": 596,
+   "start": 40.031,
+   "end": 40.588
+  },
+  {
+   "w": "automatically",
+   "char_start": 604,
+   "start": 40.646,
+   "end": 41.285
+  },
+  {
+   "w": "changes",
+   "char_start": 618,
+   "start": 41.343,
+   "end": 41.796
+  },
+  {
+   "w": "the",
+   "char_start": 626,
+   "start": 41.854,
+   "end": 41.923
+  },
+  {
+   "w": "number",
+   "char_start": 630,
+   "start": 41.981,
+   "end": 42.213
+  },
+  {
+   "w": "of",
+   "char_start": 637,
+   "start": 42.272,
+   "end": 42.318
+  },
+  {
+   "w": "clusters",
+   "char_start": 640,
+   "start": 42.388,
+   "end": 42.875
+  },
+  {
+   "w": "during",
+   "char_start": 649,
+   "start": 42.922,
+   "end": 43.166
+  },
+  {
+   "w": "optimization.",
+   "char_start": 656,
+   "start": 43.224,
+   "end": 44.152
+  },
+  {
+   "w": "C.",
+   "char_start": 671,
+   "start": 44.594,
+   "end": 45.046
+  },
+  {
+   "w": "K-Means",
+   "char_start": 674,
+   "start": 45.325,
+   "end": 45.847
+  },
+  {
+   "w": "uses",
+   "char_start": 682,
+   "start": 45.917,
+   "end": 46.265
+  },
+  {
+   "w": "a",
+   "char_start": 687,
+   "start": 46.323,
+   "end": 46.358
+  },
+  {
+   "w": "different",
+   "char_start": 689,
+   "start": 46.416,
+   "end": 46.73
+  },
+  {
+   "w": "distance",
+   "char_start": 699,
+   "start": 46.788,
+   "end": 47.229
+  },
+  {
+   "w": "metric",
+   "char_start": 708,
+   "start": 47.287,
+   "end": 47.682
+  },
+  {
+   "w": "each",
+   "char_start": 715,
+   "start": 47.752,
+   "end": 47.937
+  },
+  {
+   "w": "time",
+   "char_start": 720,
+   "start": 47.984,
+   "end": 48.216
+  },
+  {
+   "w": "it",
+   "char_start": 725,
+   "start": 48.251,
+   "end": 48.32
+  },
+  {
+   "w": "runs.",
+   "char_start": 728,
+   "start": 48.378,
+   "end": 48.947
+  },
+  {
+   "w": "D.",
+   "char_start": 735,
+   "start": 49.33,
+   "end": 49.818
+  },
+  {
+   "w": "K-Means",
+   "char_start": 738,
+   "start": 50.201,
+   "end": 50.782
+  },
+  {
+   "w": "guarantees",
+   "char_start": 746,
+   "start": 50.84,
+   "end": 51.513
+  },
+  {
+   "w": "the",
+   "char_start": 757,
+   "start": 51.571,
+   "end": 51.641
+  },
+  {
+   "w": "global",
+   "char_start": 761,
+   "start": 51.687,
+   "end": 52.024
+  },
+  {
+   "w": "optimum,",
+   "char_start": 768,
+   "start": 52.082,
+   "end": 52.674
+  },
+  {
+   "w": "but",
+   "char_start": 777,
+   "start": 52.79,
+   "end": 52.941
+  },
+  {
+   "w": "only",
+   "char_start": 781,
+   "start": 52.999,
+   "end": 53.243
+  },
+  {
+   "w": "when",
+   "char_start": 786,
+   "start": 53.289,
+   "end": 53.417
+  },
+  {
+   "w": "the",
+   "char_start": 791,
+   "start": 53.452,
+   "end": 53.522
+  },
+  {
+   "w": "dataset",
+   "char_start": 795,
+   "start": 53.568,
+   "end": 54.102
+  },
+  {
+   "w": "contains",
+   "char_start": 803,
+   "start": 54.149,
+   "end": 54.601
+  },
+  {
+   "w": "fewer",
+   "char_start": 812,
+   "start": 54.683,
+   "end": 54.95
+  },
+  {
+   "w": "than",
+   "char_start": 818,
+   "start": 55.008,
+   "end": 55.147
+  },
+  {
+   "w": "three",
+   "char_start": 823,
+   "start": 55.228,
+   "end": 55.519
+  },
+  {
+   "w": "clusters.",
+   "char_start": 829,
+   "start": 55.565,
+   "end": 56.262
+  },
+  {
+   "w": "Which",
+   "char_start": 840,
+   "start": 56.645,
+   "end": 56.865
+  },
+  {
+   "w": "is",
+   "char_start": 846,
+   "start": 56.912,
+   "end": 57.016
+  },
+  {
+   "w": "it,",
+   "char_start": 849,
+   "start": 57.074,
+   "end": 57.295
+  },
+  {
+   "w": "and",
+   "char_start": 853,
+   "start": 57.446,
+   "end": 57.585
+  },
+  {
+   "w": "how",
+   "char_start": 857,
+   "start": 57.632,
+   "end": 57.724
+  },
+  {
+   "w": "would",
+   "char_start": 861,
+   "start": 57.759,
+   "end": 57.899
+  },
+  {
+   "w": "you",
+   "char_start": 867,
+   "start": 57.922,
+   "end": 57.992
+  },
+  {
+   "w": "confirm",
+   "char_start": 871,
+   "start": 58.038,
+   "end": 58.421
+  },
+  {
+   "w": "it",
+   "char_start": 879,
+   "start": 58.468,
+   "end": 58.549
+  },
+  {
+   "w": "experimentally",
+   "char_start": 882,
+   "start": 58.595,
+   "end": 59.408
+  },
+  {
+   "w": "using",
+   "char_start": 897,
+   "start": 59.489,
+   "end": 59.745
+  },
+  {
+   "w": "different",
+   "char_start": 903,
+   "start": 59.803,
+   "end": 60.105
+  },
+  {
+   "w": "initializations",
+   "char_start": 913,
+   "start": 60.151,
+   "end": 61.173
+  },
+  {
+   "w": "and",
+   "char_start": 929,
+   "start": 61.382,
+   "end": 61.602
+  },
+  {
+   "w": "inertia",
+   "char_start": 933,
+   "start": 61.695,
+   "end": 62.241
+  },
+  {
+   "w": "scores?",
+   "char_start": 941,
+   "start": 62.299,
+   "end": 63.111
+  }
+ ]
+}

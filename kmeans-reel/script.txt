@@ -1,0 +1,17 @@
+You run K-Means clustering on a dataset with three clearly visible groups of points. You set K equal to three and run the algorithm twice using different random seeds.
+
+The first run identifies all three groups correctly. The second run splits one group into two clusters and merges the other two groups together.
+
+Both runs converge, and neither produces any further changes to its cluster assignments.
+
+Why does K-Means produce different results on the exact same dataset?
+
+A. K-Means minimizes a non-convex objective, so different initial centroids can converge to different local minima.
+
+B. K-Means automatically changes the number of clusters during optimization.
+
+C. K-Means uses a different distance metric each time it runs.
+
+D. K-Means guarantees the global optimum, but only when the dataset contains fewer than three clusters.
+
+Which is it, and how would you confirm it experimentally using different initializations and inertia scores?
