@@ -1,0 +1,81 @@
+Large language models have a fundamental bottleneck.
+
+They generate text autoregressively, meaning one token at a time.
+
+To generate five new tokens, the model normally needs five sequential decoding steps.
+
+Even on a powerful GPU, generating one token often doesn't fully utilize the available computing power.
+
+So, what if we could generate multiple tokens using fewer expensive model calls?
+
+That's the idea behind speculative decoding.
+
+Instead of asking the large model to generate every token, we introduce a smaller, faster draft model.
+
+The draft model predicts several future tokens.
+
+Then, the large target model checks those predictions in parallel.
+
+If the draft is accepted, we advance by multiple tokens in a single verification step.
+
+With the correct verification procedure, this preserves the target model's output distribution.
+
+But there's still a bottleneck.
+
+In traditional speculative decoding, draft models often generate tokens autoregressively too.
+
+To draft five tokens, the smaller model still performs five sequential steps.
+
+That drafting overhead limits how much acceleration we can achieve.
+
+This is where DFlash comes in.
+
+DFlash replaces the sequential draft model with a lightweight block-diffusion model.
+
+Instead of predicting future tokens one after another, it starts with a block of masked positions.
+
+Then, in a single forward pass, it predicts the entire block in parallel.
+
+Five proposed tokens no longer require five sequential drafting passes.
+
+But predicting several tokens simultaneously introduces a challenge.
+
+How does the draft model know what comes next without seeing the earlier predicted tokens?
+
+DFlash addresses this by conditioning on hidden-state features extracted from the large target model.
+
+These features contain information about the preceding context.
+
+The draft model combines this context with masked token positions, using bidirectional attention within the draft block.
+
+This allows the masked positions to produce their token predictions simultaneously.
+
+Once the block is drafted, the target model verifies the proposed sequence in parallel.
+
+It accepts the longest valid prefix, stopping when a proposed token fails verification.
+
+The accepted tokens become part of the output, and the process repeats from the new position.
+
+Crucially, the large model remains responsible for verification.
+
+The smaller diffusion model only proposes candidates.
+
+The performance advantage comes from reducing sequential drafting work.
+
+Traditional speculative decoding still spends time generating draft tokens one by one.
+
+DFlash proposes a whole block with one draft-model forward pass.
+
+And because its predictions are informed by the target model's hidden states, it can produce stronger drafts with higher acceptance rates.
+
+In the original research, DFlash achieved more than six times acceleration in reported experiments, and up to two point five times the speedup of EAGLE-3.
+
+Here's the key takeaway.
+
+Traditional language models decode sequentially.
+
+Speculative decoding lets a smaller model propose tokens for parallel verification.
+
+DFlash goes one step further by making the drafting process parallel as well.
+
+It's a powerful example of how changing the inference algorithm can make existing language models significantly faster, without changing the target model's output distribution.

@@ -1,0 +1,3705 @@
+{
+ "source": "output/narration.wav",
+ "duration": 176.62,
+ "fps": 30,
+ "method": "whisper-1 word anchors + Needleman-Wunsch alignment to narration.txt + RMS pause snapping",
+ "tts": {
+  "model": "gpt-4o-mini-tts",
+  "voice": "cedar",
+  "speed": 1.0,
+  "instructions": "Speak like an engaging technical educator explaining an advanced machine learning concept. Use a natural conversational pace, clear pronunciation, and short pauses after important concepts. Avoid sounding robotic, theatrical, or overly excited. Emphasize technical terms naturally. Pronounce 'DFlash' as 'D Flash', 'GPU' as the letters G P U, and 'EAGLE-3' as 'Eagle three'.",
+  "requests": 1,
+  "sample_rate": 24000,
+  "raw_duration_s": 183.2,
+  "pause_cap_s": 0.5,
+  "silence_removed_s": 13.14,
+  "lead_in_s": 1.0,
+  "section_pause_s": 0.35,
+  "section_cuts_raw_s": [
+   21.68,
+   44.99,
+   59.57,
+   78.39,
+   103.92,
+   122.86,
+   148.45
+  ],
+  "outro_hold_s": 3.2,
+  "measured_input_lufs": "-22.62",
+  "target_lufs": -16,
+  "final_duration_s": 176.71
+ },
+ "qa": {
+  "script_words": 485,
+  "matched_words": 485,
+  "match_rate": 1.0,
+  "unmatched_script_words": [],
+  "repaired_windows": [],
+  "recognised_text": "Large language models have a fundamental bottleneck. They generate text autoregressively, meaning one token at a time. To generate five new tokens, the model normally needs five sequential decoding steps. Even on a powerful GPU, generating one token often doesn't fully utilize the available computing power. So, what if we could generate multiple tokens using fewer expensive model calls? That's the idea behind speculative decoding. Instead of asking the large model to generate every token, we introduce a smaller, faster draft model. The draft model predicts several future tokens. Then, the large target model checks those predictions in parallel. If the draft is accepted, we advance by multiple tokens in a single verification step. With the correct verification procedure, This preserves the target model's output distribution. But there's still a bottleneck. In traditional speculative decoding, draft models often generate tokens autoregressively, too. To draft five tokens, the smaller model still performs five sequential steps. That drafting overhead limits how much acceleration we can achieve. This is where DFlash comes in. DFlash replaces the sequential draft model with a lightweight block-diffusion model. Instead of predicting future tokens one after another, it starts with a block of masked positions. Then, in a single forward pass, it predicts the entire block in parallel. Five proposed tokens no longer require five sequential drafting passes. But predicting several tokens simultaneously introduces a challenge. How does the draft model know what comes next without seeing the earlier predicted tokens? DFlash addresses this by conditioning on hidden state features extracted from the large target model. These features contain information about the preceding context. The draft model combines this context with masked token positions, using bidirectional attention within the draft block. This allows the masked positions to produce their token predictions simultaneously. Once the block is drafted, the target model verifies the proposed sequence in parallel. It accepts the longest valid prefix, stopping when a proposed token fails verification. The accepted tokens become part of the output, and the process repeats from the new position. Crucially, the large model remains responsible for verification. The smaller diffusion model only proposes candidates. The performance advantage comes from reducing sequential drafting work. Traditional speculative decoding still spends time generating draft tokens one by one. DFlash proposes a whole block with one draft model forward pass. And because its predictions are informed by the target model's hidden states, it can produce stronger drafts with higher acceptance rates. In the original research, DFlash achieved more than 6 times acceleration in reported experiments, and up to 2.5 times the speedup of EAGLE-3. Here's the key takeaway. Traditional language models decode sequentially. Speculative decoding lets a smaller model propose tokens for parallel verification. DFlash goes one step further by making the drafting process parallel as well. It's a powerful example of how changing the inference algorithm can make existing language models significantly faster, without changing the target model's output distribution."
+ },
+ "scenes": [
+  {
+   "id": "s1_bottleneck",
+   "first_segment": "seg00",
+   "speech_start": 1.02,
+   "speech_end": 22.45,
+   "start": 0.0,
+   "end": 22.86
+  },
+  {
+   "id": "s2_specdec",
+   "first_segment": "seg05",
+   "speech_start": 23.27,
+   "speech_end": 46.12,
+   "start": 22.86,
+   "end": 46.53
+  },
+  {
+   "id": "s3_problem",
+   "first_segment": "seg11",
+   "speech_start": 46.94,
+   "speech_end": 61.03,
+   "start": 46.53,
+   "end": 61.45
+  },
+  {
+   "id": "s4_dflash",
+   "first_segment": "seg15",
+   "speech_start": 61.87,
+   "speech_end": 80.21,
+   "start": 61.45,
+   "end": 80.625
+  },
+  {
+   "id": "s5_conditioning",
+   "first_segment": "seg20",
+   "speech_start": 81.04,
+   "speech_end": 106.1,
+   "start": 80.625,
+   "end": 106.505
+  },
+  {
+   "id": "s6_verify",
+   "first_segment": "seg26",
+   "speech_start": 106.91,
+   "speech_end": 125.38,
+   "start": 106.505,
+   "end": 125.795
+  },
+  {
+   "id": "s7_speed",
+   "first_segment": "seg31",
+   "speech_start": 126.21,
+   "speech_end": 151.32,
+   "start": 125.795,
+   "end": 151.72
+  },
+  {
+   "id": "s8_takeaway",
+   "first_segment": "seg36",
+   "speech_start": 152.12,
+   "speech_end": 173.46,
+   "start": 151.72,
+   "end": 176.62
+  }
+ ],
+ "pauses": [
+  [
+   0.0,
+   1.02
+  ],
+  [
+   3.34,
+   3.83
+  ],
+  [
+   5.53,
+   5.84
+  ],
+  [
+   7.25,
+   7.68
+  ],
+  [
+   8.99,
+   9.3
+  ],
+  [
+   11.73,
+   12.21
+  ],
+  [
+   13.72,
+   14.18
+  ],
+  [
+   15.34,
+   15.59
+  ],
+  [
+   18.08,
+   18.56
+  ],
+  [
+   18.85,
+   19.2
+  ],
+  [
+   22.45,
+   23.27
+  ],
+  [
+   25.27,
+   25.71
+  ],
+  [
+   28.29,
+   28.63
+  ],
+  [
+   30.54,
+   31.04
+  ],
+  [
+   33.06,
+   33.52
+  ],
+  [
+   33.8,
+   34.12
+  ],
+  [
+   36.5,
+   36.95
+  ],
+  [
+   38.02,
+   38.36
+  ],
+  [
+   39.8,
+   40.08
+  ],
+  [
+   41.35,
+   41.83
+  ],
+  [
+   43.38,
+   43.77
+  ],
+  [
+   46.12,
+   46.94
+  ],
+  [
+   47.9,
+   48.39
+  ],
+  [
+   49.94,
+   50.31
+  ],
+  [
+   53.02,
+   53.55
+  ],
+  [
+   54.65,
+   54.99
+  ],
+  [
+   57.43,
+   57.9
+  ],
+  [
+   59.03,
+   59.26
+  ],
+  [
+   61.03,
+   61.87
+  ],
+  [
+   63.25,
+   63.72
+  ],
+  [
+   65.69,
+   65.97
+  ],
+  [
+   67.6,
+   68.08
+  ],
+  [
+   70.33,
+   70.63
+  ],
+  [
+   72.51,
+   73.0
+  ],
+  [
+   74.37,
+   74.65
+  ],
+  [
+   76.29,
+   76.75
+  ],
+  [
+   77.66,
+   77.92
+  ],
+  [
+   80.21,
+   81.04
+  ],
+  [
+   82.93,
+   83.23
+  ],
+  [
+   84.17,
+   84.63
+  ],
+  [
+   86.28,
+   86.61
+  ],
+  [
+   88.34,
+   88.81
+  ],
+  [
+   91.49,
+   91.78
+  ],
+  [
+   93.33,
+   93.81
+  ],
+  [
+   95.17,
+   95.4
+  ],
+  [
+   96.67,
+   97.15
+  ],
+  [
+   99.95,
+   100.35
+  ],
+  [
+   102.47,
+   102.96
+  ],
+  [
+   106.1,
+   106.91
+  ],
+  [
+   107.94,
+   108.27
+  ],
+  [
+   110.61,
+   111.07
+  ],
+  [
+   112.75,
+   113.07
+  ],
+  [
+   115.29,
+   115.77
+  ],
+  [
+   117.54,
+   117.89
+  ],
+  [
+   119.53,
+   119.99
+  ],
+  [
+   122.64,
+   123.12
+  ],
+  [
+   125.38,
+   126.21
+  ],
+  [
+   128.88,
+   129.3
+  ],
+  [
+   130.67,
+   130.88
+  ],
+  [
+   133.3,
+   133.78
+  ],
+  [
+   136.7,
+   137.22
+  ],
+  [
+   140.01,
+   140.49
+  ],
+  [
+   141.71,
+   141.99
+  ],
+  [
+   143.1,
+   143.59
+  ],
+  [
+   144.51,
+   144.77
+  ],
+  [
+   147.08,
+   147.32
+  ],
+  [
+   148.37,
+   148.56
+  ],
+  [
+   151.32,
+   152.12
+  ],
+  [
+   153.11,
+   153.51
+  ],
+  [
+   155.51,
+   155.99
+  ],
+  [
+   158.6,
+   158.84
+  ],
+  [
+   160.05,
+   160.54
+  ],
+  [
+   162.02,
+   162.39
+  ],
+  [
+   163.66,
+   163.92
+  ],
+  [
+   164.65,
+   165.13
+  ],
+  [
+   167.72,
+   168.03
+  ],
+  [
+   169.42,
+   169.62
+  ],
+  [
+   170.71,
+   171.19
+  ],
+  [
+   173.46,
+   176.62
+  ]
+ ],
+ "segments": [
+  {
+   "id": "seg00",
+   "scene": "s1_bottleneck",
+   "text": "Large language models have a fundamental bottleneck.",
+   "start": 1.02,
+   "end": 3.34,
+   "words": [
+    {
+     "w": "Large",
+     "start": 1.02,
+     "end": 1.42,
+     "matched": true
+    },
+    {
+     "w": "language",
+     "start": 1.42,
+     "end": 1.82,
+     "matched": true
+    },
+    {
+     "w": "models",
+     "start": 1.82,
+     "end": 2.02,
+     "matched": true
+    },
+    {
+     "w": "have",
+     "start": 2.02,
+     "end": 2.24,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 2.24,
+     "end": 2.52,
+     "matched": true
+    },
+    {
+     "w": "fundamental",
+     "start": 2.52,
+     "end": 2.9,
+     "matched": true
+    },
+    {
+     "w": "bottleneck.",
+     "start": 2.9,
+     "end": 3.44,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg01",
+   "scene": "s1_bottleneck",
+   "text": "They generate text autoregressively, meaning one token at a time.",
+   "start": 3.83,
+   "end": 7.25,
+   "words": [
+    {
+     "w": "They",
+     "start": 3.94,
+     "end": 4.04,
+     "matched": true
+    },
+    {
+     "w": "generate",
+     "start": 4.04,
+     "end": 4.36,
+     "matched": true
+    },
+    {
+     "w": "text",
+     "start": 4.36,
+     "end": 4.72,
+     "matched": true
+    },
+    {
+     "w": "autoregressively,",
+     "start": 4.72,
+     "end": 5.48,
+     "matched": true
+    },
+    {
+     "w": "meaning",
+     "start": 5.92,
+     "end": 6.1,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 6.1,
+     "end": 6.48,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 6.48,
+     "end": 6.68,
+     "matched": true
+    },
+    {
+     "w": "at",
+     "start": 6.68,
+     "end": 6.9,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 6.9,
+     "end": 7.18,
+     "matched": true
+    },
+    {
+     "w": "time.",
+     "start": 7.18,
+     "end": 7.58,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg02",
+   "scene": "s1_bottleneck",
+   "text": "To generate five new tokens, the model normally needs five sequential decoding steps.",
+   "start": 7.68,
+   "end": 11.73,
+   "words": [
+    {
+     "w": "To",
+     "start": 7.72,
+     "end": 7.88,
+     "matched": true
+    },
+    {
+     "w": "generate",
+     "start": 7.88,
+     "end": 8.14,
+     "matched": true
+    },
+    {
+     "w": "five",
+     "start": 8.14,
+     "end": 8.46,
+     "matched": true
+    },
+    {
+     "w": "new",
+     "start": 8.46,
+     "end": 8.9,
+     "matched": true
+    },
+    {
+     "w": "tokens,",
+     "start": 8.9,
+     "end": 8.9,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 9.32,
+     "end": 9.5,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 9.5,
+     "end": 9.54,
+     "matched": true
+    },
+    {
+     "w": "normally",
+     "start": 9.54,
+     "end": 9.98,
+     "matched": true
+    },
+    {
+     "w": "needs",
+     "start": 9.98,
+     "end": 10.16,
+     "matched": true
+    },
+    {
+     "w": "five",
+     "start": 10.16,
+     "end": 10.6,
+     "matched": true
+    },
+    {
+     "w": "sequential",
+     "start": 10.6,
+     "end": 10.98,
+     "matched": true
+    },
+    {
+     "w": "decoding",
+     "start": 10.98,
+     "end": 11.32,
+     "matched": true
+    },
+    {
+     "w": "steps.",
+     "start": 11.32,
+     "end": 11.66,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg03",
+   "scene": "s1_bottleneck",
+   "text": "Even on a powerful GPU, generating one token often doesn't fully utilize the available computing power.",
+   "start": 12.21,
+   "end": 18.08,
+   "words": [
+    {
+     "w": "Even",
+     "start": 12.28,
+     "end": 12.44,
+     "matched": true
+    },
+    {
+     "w": "on",
+     "start": 12.44,
+     "end": 12.58,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 12.58,
+     "end": 12.78,
+     "matched": true
+    },
+    {
+     "w": "powerful",
+     "start": 12.78,
+     "end": 13.06,
+     "matched": true
+    },
+    {
+     "w": "GPU,",
+     "start": 13.06,
+     "end": 13.68,
+     "matched": true
+    },
+    {
+     "w": "generating",
+     "start": 14.56,
+     "end": 14.6,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 14.6,
+     "end": 15.02,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 15.02,
+     "end": 15.22,
+     "matched": true
+    },
+    {
+     "w": "often",
+     "start": 15.22,
+     "end": 15.86,
+     "matched": true
+    },
+    {
+     "w": "doesn't",
+     "start": 15.86,
+     "end": 16.16,
+     "matched": true
+    },
+    {
+     "w": "fully",
+     "start": 16.16,
+     "end": 16.58,
+     "matched": true
+    },
+    {
+     "w": "utilize",
+     "start": 16.58,
+     "end": 16.88,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 16.88,
+     "end": 17.1,
+     "matched": true
+    },
+    {
+     "w": "available",
+     "start": 17.1,
+     "end": 17.46,
+     "matched": true
+    },
+    {
+     "w": "computing",
+     "start": 17.46,
+     "end": 17.78,
+     "matched": true
+    },
+    {
+     "w": "power.",
+     "start": 17.78,
+     "end": 18.08,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg04",
+   "scene": "s1_bottleneck",
+   "text": "So, what if we could generate multiple tokens using fewer expensive model calls?",
+   "start": 18.56,
+   "end": 22.45,
+   "words": [
+    {
+     "w": "So,",
+     "start": 18.64,
+     "end": 19.26,
+     "matched": true
+    },
+    {
+     "w": "what",
+     "start": 19.26,
+     "end": 19.36,
+     "matched": true
+    },
+    {
+     "w": "if",
+     "start": 19.36,
+     "end": 19.44,
+     "matched": true
+    },
+    {
+     "w": "we",
+     "start": 19.44,
+     "end": 19.54,
+     "matched": true
+    },
+    {
+     "w": "could",
+     "start": 19.54,
+     "end": 19.74,
+     "matched": true
+    },
+    {
+     "w": "generate",
+     "start": 19.74,
+     "end": 19.98,
+     "matched": true
+    },
+    {
+     "w": "multiple",
+     "start": 19.98,
+     "end": 20.4,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 20.4,
+     "end": 20.68,
+     "matched": true
+    },
+    {
+     "w": "using",
+     "start": 20.68,
+     "end": 21.06,
+     "matched": true
+    },
+    {
+     "w": "fewer",
+     "start": 21.06,
+     "end": 21.4,
+     "matched": true
+    },
+    {
+     "w": "expensive",
+     "start": 21.4,
+     "end": 21.86,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 21.86,
+     "end": 22.16,
+     "matched": true
+    },
+    {
+     "w": "calls?",
+     "start": 22.16,
+     "end": 22.42,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg05",
+   "scene": "s2_specdec",
+   "text": "That's the idea behind speculative decoding.",
+   "start": 23.27,
+   "end": 25.27,
+   "words": [
+    {
+     "w": "That's",
+     "start": 23.27,
+     "end": 23.5,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 23.5,
+     "end": 23.72,
+     "matched": true
+    },
+    {
+     "w": "idea",
+     "start": 23.72,
+     "end": 23.92,
+     "matched": true
+    },
+    {
+     "w": "behind",
+     "start": 23.92,
+     "end": 24.28,
+     "matched": true
+    },
+    {
+     "w": "speculative",
+     "start": 24.28,
+     "end": 24.78,
+     "matched": true
+    },
+    {
+     "w": "decoding.",
+     "start": 24.78,
+     "end": 25.22,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg06",
+   "scene": "s2_specdec",
+   "text": "Instead of asking the large model to generate every token, we introduce a smaller, faster draft model.",
+   "start": 25.71,
+   "end": 30.54,
+   "words": [
+    {
+     "w": "Instead",
+     "start": 25.92,
+     "end": 25.96,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 25.96,
+     "end": 26.18,
+     "matched": true
+    },
+    {
+     "w": "asking",
+     "start": 26.18,
+     "end": 26.4,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 26.4,
+     "end": 26.58,
+     "matched": true
+    },
+    {
+     "w": "large",
+     "start": 26.58,
+     "end": 26.9,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 26.9,
+     "end": 27.04,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 27.04,
+     "end": 27.34,
+     "matched": true
+    },
+    {
+     "w": "generate",
+     "start": 27.34,
+     "end": 27.6,
+     "matched": true
+    },
+    {
+     "w": "every",
+     "start": 27.6,
+     "end": 27.98,
+     "matched": true
+    },
+    {
+     "w": "token,",
+     "start": 27.98,
+     "end": 28.2,
+     "matched": true
+    },
+    {
+     "w": "we",
+     "start": 28.58,
+     "end": 28.78,
+     "matched": true
+    },
+    {
+     "w": "introduce",
+     "start": 28.78,
+     "end": 29.06,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 29.06,
+     "end": 29.24,
+     "matched": true
+    },
+    {
+     "w": "smaller,",
+     "start": 29.24,
+     "end": 29.6,
+     "matched": true
+    },
+    {
+     "w": "faster",
+     "start": 30.04,
+     "end": 30.04,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 30.04,
+     "end": 30.3,
+     "matched": true
+    },
+    {
+     "w": "model.",
+     "start": 30.3,
+     "end": 30.56,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg07",
+   "scene": "s2_specdec",
+   "text": "The draft model predicts several future tokens.",
+   "start": 31.04,
+   "end": 33.06,
+   "words": [
+    {
+     "w": "The",
+     "start": 31.04,
+     "end": 31.2,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 31.2,
+     "end": 31.42,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 31.42,
+     "end": 31.7,
+     "matched": true
+    },
+    {
+     "w": "predicts",
+     "start": 31.7,
+     "end": 32.12,
+     "matched": true
+    },
+    {
+     "w": "several",
+     "start": 32.12,
+     "end": 32.3,
+     "matched": true
+    },
+    {
+     "w": "future",
+     "start": 32.3,
+     "end": 32.7,
+     "matched": true
+    },
+    {
+     "w": "tokens.",
+     "start": 32.7,
+     "end": 32.88,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg08",
+   "scene": "s2_specdec",
+   "text": "Then, the large target model checks those predictions in parallel.",
+   "start": 33.52,
+   "end": 36.5,
+   "words": [
+    {
+     "w": "Then,",
+     "start": 33.54,
+     "end": 33.82,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 34.16,
+     "end": 34.26,
+     "matched": true
+    },
+    {
+     "w": "large",
+     "start": 34.26,
+     "end": 34.56,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 34.56,
+     "end": 34.84,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 34.84,
+     "end": 35.1,
+     "matched": true
+    },
+    {
+     "w": "checks",
+     "start": 35.1,
+     "end": 35.32,
+     "matched": true
+    },
+    {
+     "w": "those",
+     "start": 35.32,
+     "end": 35.6,
+     "matched": true
+    },
+    {
+     "w": "predictions",
+     "start": 35.6,
+     "end": 35.88,
+     "matched": true
+    },
+    {
+     "w": "in",
+     "start": 35.88,
+     "end": 36.48,
+     "matched": true
+    },
+    {
+     "w": "parallel.",
+     "start": 36.48,
+     "end": 36.48,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg09",
+   "scene": "s2_specdec",
+   "text": "If the draft is accepted, we advance by multiple tokens in a single verification step.",
+   "start": 36.95,
+   "end": 41.35,
+   "words": [
+    {
+     "w": "If",
+     "start": 36.96,
+     "end": 37.1,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 37.1,
+     "end": 37.44,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 37.44,
+     "end": 37.44,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 37.44,
+     "end": 37.6,
+     "matched": true
+    },
+    {
+     "w": "accepted,",
+     "start": 37.6,
+     "end": 37.94,
+     "matched": true
+    },
+    {
+     "w": "we",
+     "start": 38.36,
+     "end": 38.56,
+     "matched": true
+    },
+    {
+     "w": "advance",
+     "start": 38.56,
+     "end": 38.8,
+     "matched": true
+    },
+    {
+     "w": "by",
+     "start": 38.8,
+     "end": 39.08,
+     "matched": true
+    },
+    {
+     "w": "multiple",
+     "start": 39.08,
+     "end": 39.4,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 39.4,
+     "end": 39.74,
+     "matched": true
+    },
+    {
+     "w": "in",
+     "start": 39.74,
+     "end": 40.2,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 40.2,
+     "end": 40.36,
+     "matched": true
+    },
+    {
+     "w": "single",
+     "start": 40.36,
+     "end": 40.58,
+     "matched": true
+    },
+    {
+     "w": "verification",
+     "start": 40.58,
+     "end": 41.08,
+     "matched": true
+    },
+    {
+     "w": "step.",
+     "start": 41.08,
+     "end": 41.44,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg10",
+   "scene": "s2_specdec",
+   "text": "With the correct verification procedure, this preserves the target model's output distribution.",
+   "start": 41.83,
+   "end": 46.12,
+   "words": [
+    {
+     "w": "With",
+     "start": 41.83,
+     "end": 41.98,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 41.98,
+     "end": 42.12,
+     "matched": true
+    },
+    {
+     "w": "correct",
+     "start": 42.12,
+     "end": 42.4,
+     "matched": true
+    },
+    {
+     "w": "verification",
+     "start": 42.4,
+     "end": 42.9,
+     "matched": true
+    },
+    {
+     "w": "procedure,",
+     "start": 42.9,
+     "end": 43.34,
+     "matched": true
+    },
+    {
+     "w": "this",
+     "start": 43.575,
+     "end": 43.975,
+     "matched": true
+    },
+    {
+     "w": "preserves",
+     "start": 43.975,
+     "end": 44.335,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 44.335,
+     "end": 44.575,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 44.575,
+     "end": 44.815,
+     "matched": true
+    },
+    {
+     "w": "model's",
+     "start": 44.815,
+     "end": 45.275,
+     "matched": true
+    },
+    {
+     "w": "output",
+     "start": 45.275,
+     "end": 45.495,
+     "matched": true
+    },
+    {
+     "w": "distribution.",
+     "start": 45.495,
+     "end": 45.995,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg11",
+   "scene": "s3_problem",
+   "text": "But there's still a bottleneck.",
+   "start": 46.94,
+   "end": 47.9,
+   "words": [
+    {
+     "w": "But",
+     "start": 46.94,
+     "end": 47.055,
+     "matched": true
+    },
+    {
+     "w": "there's",
+     "start": 47.055,
+     "end": 47.255,
+     "matched": true
+    },
+    {
+     "w": "still",
+     "start": 47.255,
+     "end": 47.435,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 47.435,
+     "end": 47.615,
+     "matched": true
+    },
+    {
+     "w": "bottleneck.",
+     "start": 47.615,
+     "end": 48.015,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg12",
+   "scene": "s3_problem",
+   "text": "In traditional speculative decoding, draft models often generate tokens autoregressively too.",
+   "start": 48.39,
+   "end": 53.02,
+   "words": [
+    {
+     "w": "In",
+     "start": 48.455,
+     "end": 48.535,
+     "matched": true
+    },
+    {
+     "w": "traditional",
+     "start": 48.535,
+     "end": 48.955,
+     "matched": true
+    },
+    {
+     "w": "speculative",
+     "start": 48.955,
+     "end": 49.415,
+     "matched": true
+    },
+    {
+     "w": "decoding,",
+     "start": 49.415,
+     "end": 49.875,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 50.635,
+     "end": 50.635,
+     "matched": true
+    },
+    {
+     "w": "models",
+     "start": 50.635,
+     "end": 50.895,
+     "matched": true
+    },
+    {
+     "w": "often",
+     "start": 50.895,
+     "end": 51.295,
+     "matched": true
+    },
+    {
+     "w": "generate",
+     "start": 51.295,
+     "end": 51.615,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 51.615,
+     "end": 51.955,
+     "matched": true
+    },
+    {
+     "w": "autoregressively",
+     "start": 51.955,
+     "end": 52.715,
+     "matched": true
+    },
+    {
+     "w": "too.",
+     "start": 52.875,
+     "end": 53.075,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg13",
+   "scene": "s3_problem",
+   "text": "To draft five tokens, the smaller model still performs five sequential steps.",
+   "start": 53.55,
+   "end": 57.43,
+   "words": [
+    {
+     "w": "To",
+     "start": 53.555,
+     "end": 53.735,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 53.735,
+     "end": 53.895,
+     "matched": true
+    },
+    {
+     "w": "five",
+     "start": 53.895,
+     "end": 54.295,
+     "matched": true
+    },
+    {
+     "w": "tokens,",
+     "start": 54.295,
+     "end": 54.555,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 54.815,
+     "end": 55.155,
+     "matched": true
+    },
+    {
+     "w": "smaller",
+     "start": 55.155,
+     "end": 55.455,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 55.455,
+     "end": 55.655,
+     "matched": true
+    },
+    {
+     "w": "still",
+     "start": 55.655,
+     "end": 56.015,
+     "matched": true
+    },
+    {
+     "w": "performs",
+     "start": 56.015,
+     "end": 56.275,
+     "matched": true
+    },
+    {
+     "w": "five",
+     "start": 56.275,
+     "end": 56.675,
+     "matched": true
+    },
+    {
+     "w": "sequential",
+     "start": 56.675,
+     "end": 57.015,
+     "matched": true
+    },
+    {
+     "w": "steps.",
+     "start": 57.015,
+     "end": 57.355,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg14",
+   "scene": "s3_problem",
+   "text": "That drafting overhead limits how much acceleration we can achieve.",
+   "start": 57.9,
+   "end": 61.03,
+   "words": [
+    {
+     "w": "That",
+     "start": 57.9,
+     "end": 58.175,
+     "matched": true
+    },
+    {
+     "w": "drafting",
+     "start": 58.175,
+     "end": 58.515,
+     "matched": true
+    },
+    {
+     "w": "overhead",
+     "start": 58.515,
+     "end": 59.015,
+     "matched": true
+    },
+    {
+     "w": "limits",
+     "start": 59.015,
+     "end": 59.515,
+     "matched": true
+    },
+    {
+     "w": "how",
+     "start": 59.515,
+     "end": 59.715,
+     "matched": true
+    },
+    {
+     "w": "much",
+     "start": 59.715,
+     "end": 59.975,
+     "matched": true
+    },
+    {
+     "w": "acceleration",
+     "start": 59.975,
+     "end": 60.335,
+     "matched": true
+    },
+    {
+     "w": "we",
+     "start": 60.335,
+     "end": 60.595,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 60.595,
+     "end": 60.795,
+     "matched": true
+    },
+    {
+     "w": "achieve.",
+     "start": 60.795,
+     "end": 61.055,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg15",
+   "scene": "s4_dflash",
+   "text": "This is where DFlash comes in.",
+   "start": 61.87,
+   "end": 63.25,
+   "words": [
+    {
+     "w": "This",
+     "start": 61.87,
+     "end": 62.095,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 62.095,
+     "end": 62.215,
+     "matched": true
+    },
+    {
+     "w": "where",
+     "start": 62.215,
+     "end": 62.395,
+     "matched": true
+    },
+    {
+     "w": "DFlash",
+     "start": 62.395,
+     "end": 62.815,
+     "matched": true
+    },
+    {
+     "w": "comes",
+     "start": 62.815,
+     "end": 63.075,
+     "matched": true
+    },
+    {
+     "w": "in.",
+     "start": 63.075,
+     "end": 63.455,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg16",
+   "scene": "s4_dflash",
+   "text": "DFlash replaces the sequential draft model with a lightweight block-diffusion model.",
+   "start": 63.72,
+   "end": 67.6,
+   "words": [
+    {
+     "w": "DFlash",
+     "start": 63.895,
+     "end": 64.155,
+     "matched": true
+    },
+    {
+     "w": "replaces",
+     "start": 64.155,
+     "end": 64.555,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 64.555,
+     "end": 64.795,
+     "matched": true
+    },
+    {
+     "w": "sequential",
+     "start": 64.795,
+     "end": 65.135,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 65.135,
+     "end": 65.415,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 65.415,
+     "end": 65.675,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 65.675,
+     "end": 66.095,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 66.095,
+     "end": 66.315,
+     "matched": true
+    },
+    {
+     "w": "lightweight",
+     "start": 66.315,
+     "end": 66.595,
+     "matched": true
+    },
+    {
+     "w": "block-diffusion",
+     "start": 66.595,
+     "end": 67.315,
+     "matched": true
+    },
+    {
+     "w": "model.",
+     "start": 67.315,
+     "end": 67.555,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg17",
+   "scene": "s4_dflash",
+   "text": "Instead of predicting future tokens one after another, it starts with a block of masked positions.",
+   "start": 68.08,
+   "end": 72.51,
+   "words": [
+    {
+     "w": "Instead",
+     "start": 68.08,
+     "end": 68.34,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 68.34,
+     "end": 68.58,
+     "matched": true
+    },
+    {
+     "w": "predicting",
+     "start": 68.58,
+     "end": 68.8,
+     "matched": true
+    },
+    {
+     "w": "future",
+     "start": 68.8,
+     "end": 69.26,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 69.26,
+     "end": 69.5,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 69.5,
+     "end": 69.82,
+     "matched": true
+    },
+    {
+     "w": "after",
+     "start": 69.82,
+     "end": 70.02,
+     "matched": true
+    },
+    {
+     "w": "another,",
+     "start": 70.02,
+     "end": 70.3,
+     "matched": true
+    },
+    {
+     "w": "it",
+     "start": 70.7,
+     "end": 70.78,
+     "matched": true
+    },
+    {
+     "w": "starts",
+     "start": 70.78,
+     "end": 71.0,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 71.0,
+     "end": 71.16,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 71.16,
+     "end": 71.36,
+     "matched": true
+    },
+    {
+     "w": "block",
+     "start": 71.36,
+     "end": 71.52,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 71.52,
+     "end": 71.74,
+     "matched": true
+    },
+    {
+     "w": "masked",
+     "start": 71.74,
+     "end": 72.04,
+     "matched": true
+    },
+    {
+     "w": "positions.",
+     "start": 71.9,
+     "end": 72.42,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg18",
+   "scene": "s4_dflash",
+   "text": "Then, in a single forward pass, it predicts the entire block in parallel.",
+   "start": 73.0,
+   "end": 76.29,
+   "words": [
+    {
+     "w": "Then,",
+     "start": 73.1,
+     "end": 73.24,
+     "matched": true
+    },
+    {
+     "w": "in",
+     "start": 73.34,
+     "end": 73.38,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 73.38,
+     "end": 73.52,
+     "matched": true
+    },
+    {
+     "w": "single",
+     "start": 73.52,
+     "end": 73.78,
+     "matched": true
+    },
+    {
+     "w": "forward",
+     "start": 73.78,
+     "end": 74.08,
+     "matched": true
+    },
+    {
+     "w": "pass,",
+     "start": 74.08,
+     "end": 74.32,
+     "matched": true
+    },
+    {
+     "w": "it",
+     "start": 74.64,
+     "end": 74.94,
+     "matched": true
+    },
+    {
+     "w": "predicts",
+     "start": 74.94,
+     "end": 75.06,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 75.06,
+     "end": 75.16,
+     "matched": true
+    },
+    {
+     "w": "entire",
+     "start": 75.16,
+     "end": 75.54,
+     "matched": true
+    },
+    {
+     "w": "block",
+     "start": 75.54,
+     "end": 75.7,
+     "matched": true
+    },
+    {
+     "w": "in",
+     "start": 75.7,
+     "end": 76.26,
+     "matched": true
+    },
+    {
+     "w": "parallel.",
+     "start": 76.26,
+     "end": 76.26,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg19",
+   "scene": "s4_dflash",
+   "text": "Five proposed tokens no longer require five sequential drafting passes.",
+   "start": 76.75,
+   "end": 80.21,
+   "words": [
+    {
+     "w": "Five",
+     "start": 76.8,
+     "end": 76.98,
+     "matched": true
+    },
+    {
+     "w": "proposed",
+     "start": 76.98,
+     "end": 77.32,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 77.32,
+     "end": 77.58,
+     "matched": true
+    },
+    {
+     "w": "no",
+     "start": 77.58,
+     "end": 78.12,
+     "matched": true
+    },
+    {
+     "w": "longer",
+     "start": 78.12,
+     "end": 78.38,
+     "matched": true
+    },
+    {
+     "w": "require",
+     "start": 78.38,
+     "end": 78.72,
+     "matched": true
+    },
+    {
+     "w": "five",
+     "start": 78.72,
+     "end": 79.08,
+     "matched": true
+    },
+    {
+     "w": "sequential",
+     "start": 79.08,
+     "end": 79.44,
+     "matched": true
+    },
+    {
+     "w": "drafting",
+     "start": 79.44,
+     "end": 79.78,
+     "matched": true
+    },
+    {
+     "w": "passes.",
+     "start": 79.78,
+     "end": 80.18,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg20",
+   "scene": "s5_conditioning",
+   "text": "But predicting several tokens simultaneously introduces a challenge.",
+   "start": 81.04,
+   "end": 84.17,
+   "words": [
+    {
+     "w": "But",
+     "start": 81.04,
+     "end": 81.26,
+     "matched": true
+    },
+    {
+     "w": "predicting",
+     "start": 81.26,
+     "end": 81.46,
+     "matched": true
+    },
+    {
+     "w": "several",
+     "start": 81.46,
+     "end": 81.9,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 81.9,
+     "end": 82.16,
+     "matched": true
+    },
+    {
+     "w": "simultaneously",
+     "start": 82.16,
+     "end": 82.92,
+     "matched": true
+    },
+    {
+     "w": "introduces",
+     "start": 82.92,
+     "end": 83.6,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 83.6,
+     "end": 83.92,
+     "matched": true
+    },
+    {
+     "w": "challenge.",
+     "start": 83.92,
+     "end": 84.14,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg21",
+   "scene": "s5_conditioning",
+   "text": "How does the draft model know what comes next without seeing the earlier predicted tokens?",
+   "start": 84.63,
+   "end": 88.34,
+   "words": [
+    {
+     "w": "How",
+     "start": 84.66,
+     "end": 84.76,
+     "matched": true
+    },
+    {
+     "w": "does",
+     "start": 84.76,
+     "end": 84.9,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 84.9,
+     "end": 85.26,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 85.26,
+     "end": 85.26,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 85.26,
+     "end": 85.52,
+     "matched": true
+    },
+    {
+     "w": "know",
+     "start": 85.52,
+     "end": 85.68,
+     "matched": true
+    },
+    {
+     "w": "what",
+     "start": 85.68,
+     "end": 85.84,
+     "matched": true
+    },
+    {
+     "w": "comes",
+     "start": 85.84,
+     "end": 86.02,
+     "matched": true
+    },
+    {
+     "w": "next",
+     "start": 86.02,
+     "end": 86.36,
+     "matched": true
+    },
+    {
+     "w": "without",
+     "start": 86.36,
+     "end": 86.82,
+     "matched": true
+    },
+    {
+     "w": "seeing",
+     "start": 86.82,
+     "end": 87.06,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 87.06,
+     "end": 87.26,
+     "matched": true
+    },
+    {
+     "w": "earlier",
+     "start": 87.26,
+     "end": 87.58,
+     "matched": true
+    },
+    {
+     "w": "predicted",
+     "start": 87.58,
+     "end": 87.9,
+     "matched": true
+    },
+    {
+     "w": "tokens?",
+     "start": 87.9,
+     "end": 88.24,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg22",
+   "scene": "s5_conditioning",
+   "text": "DFlash addresses this by conditioning on hidden-state features extracted from the large target model.",
+   "start": 88.81,
+   "end": 93.33,
+   "words": [
+    {
+     "w": "DFlash",
+     "start": 88.81,
+     "end": 89.275,
+     "matched": true
+    },
+    {
+     "w": "addresses",
+     "start": 89.275,
+     "end": 89.595,
+     "matched": true
+    },
+    {
+     "w": "this",
+     "start": 89.595,
+     "end": 89.835,
+     "matched": true
+    },
+    {
+     "w": "by",
+     "start": 89.835,
+     "end": 90.015,
+     "matched": true
+    },
+    {
+     "w": "conditioning",
+     "start": 90.015,
+     "end": 90.395,
+     "matched": true
+    },
+    {
+     "w": "on",
+     "start": 90.395,
+     "end": 90.855,
+     "matched": true
+    },
+    {
+     "w": "hidden-state",
+     "start": 90.855,
+     "end": 91.155,
+     "matched": true
+    },
+    {
+     "w": "features",
+     "start": 91.155,
+     "end": 91.495,
+     "matched": true
+    },
+    {
+     "w": "extracted",
+     "start": 91.495,
+     "end": 92.155,
+     "matched": true
+    },
+    {
+     "w": "from",
+     "start": 92.155,
+     "end": 92.375,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 92.375,
+     "end": 92.535,
+     "matched": true
+    },
+    {
+     "w": "large",
+     "start": 92.535,
+     "end": 92.815,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 92.815,
+     "end": 93.055,
+     "matched": true
+    },
+    {
+     "w": "model.",
+     "start": 93.055,
+     "end": 93.295,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg23",
+   "scene": "s5_conditioning",
+   "text": "These features contain information about the preceding context.",
+   "start": 93.81,
+   "end": 96.67,
+   "words": [
+    {
+     "w": "These",
+     "start": 93.935,
+     "end": 94.055,
+     "matched": true
+    },
+    {
+     "w": "features",
+     "start": 94.055,
+     "end": 94.295,
+     "matched": true
+    },
+    {
+     "w": "contain",
+     "start": 94.295,
+     "end": 94.595,
+     "matched": true
+    },
+    {
+     "w": "information",
+     "start": 94.595,
+     "end": 95.115,
+     "matched": true
+    },
+    {
+     "w": "about",
+     "start": 95.115,
+     "end": 95.595,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 95.595,
+     "end": 95.715,
+     "matched": true
+    },
+    {
+     "w": "preceding",
+     "start": 95.715,
+     "end": 96.155,
+     "matched": true
+    },
+    {
+     "w": "context.",
+     "start": 96.155,
+     "end": 96.655,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg24",
+   "scene": "s5_conditioning",
+   "text": "The draft model combines this context with masked token positions, using bidirectional attention within the draft block.",
+   "start": 97.15,
+   "end": 102.47,
+   "words": [
+    {
+     "w": "The",
+     "start": 97.155,
+     "end": 97.475,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 97.475,
+     "end": 97.495,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 97.495,
+     "end": 97.735,
+     "matched": true
+    },
+    {
+     "w": "combines",
+     "start": 97.735,
+     "end": 98.115,
+     "matched": true
+    },
+    {
+     "w": "this",
+     "start": 98.115,
+     "end": 98.375,
+     "matched": true
+    },
+    {
+     "w": "context",
+     "start": 98.375,
+     "end": 98.695,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 98.695,
+     "end": 98.975,
+     "matched": true
+    },
+    {
+     "w": "masked",
+     "start": 98.975,
+     "end": 99.215,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 99.215,
+     "end": 99.475,
+     "matched": true
+    },
+    {
+     "w": "positions,",
+     "start": 99.475,
+     "end": 99.835,
+     "matched": true
+    },
+    {
+     "w": "using",
+     "start": 100.535,
+     "end": 100.595,
+     "matched": true
+    },
+    {
+     "w": "bidirectional",
+     "start": 100.595,
+     "end": 101.195,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 101.195,
+     "end": 101.675,
+     "matched": true
+    },
+    {
+     "w": "within",
+     "start": 101.675,
+     "end": 101.895,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 101.895,
+     "end": 102.075,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 102.075,
+     "end": 102.295,
+     "matched": true
+    },
+    {
+     "w": "block.",
+     "start": 102.295,
+     "end": 102.535,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg25",
+   "scene": "s5_conditioning",
+   "text": "This allows the masked positions to produce their token predictions simultaneously.",
+   "start": 102.96,
+   "end": 106.1,
+   "words": [
+    {
+     "w": "This",
+     "start": 102.995,
+     "end": 103.135,
+     "matched": true
+    },
+    {
+     "w": "allows",
+     "start": 103.135,
+     "end": 103.355,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 103.355,
+     "end": 103.675,
+     "matched": true
+    },
+    {
+     "w": "masked",
+     "start": 103.675,
+     "end": 103.775,
+     "matched": true
+    },
+    {
+     "w": "positions",
+     "start": 103.775,
+     "end": 104.055,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 104.055,
+     "end": 104.355,
+     "matched": true
+    },
+    {
+     "w": "produce",
+     "start": 104.355,
+     "end": 104.515,
+     "matched": true
+    },
+    {
+     "w": "their",
+     "start": 104.515,
+     "end": 104.755,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 104.755,
+     "end": 104.955,
+     "matched": true
+    },
+    {
+     "w": "predictions",
+     "start": 104.955,
+     "end": 105.335,
+     "matched": true
+    },
+    {
+     "w": "simultaneously.",
+     "start": 105.335,
+     "end": 106.075,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg26",
+   "scene": "s6_verify",
+   "text": "Once the block is drafted, the target model verifies the proposed sequence in parallel.",
+   "start": 106.91,
+   "end": 110.61,
+   "words": [
+    {
+     "w": "Once",
+     "start": 106.915,
+     "end": 107.115,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 107.115,
+     "end": 107.395,
+     "matched": true
+    },
+    {
+     "w": "block",
+     "start": 107.395,
+     "end": 107.395,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 107.395,
+     "end": 107.915,
+     "matched": true
+    },
+    {
+     "w": "drafted,",
+     "start": 107.915,
+     "end": 107.915,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 108.255,
+     "end": 108.495,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 108.495,
+     "end": 108.635,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 108.635,
+     "end": 108.915,
+     "matched": true
+    },
+    {
+     "w": "verifies",
+     "start": 108.915,
+     "end": 109.315,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 109.315,
+     "end": 109.555,
+     "matched": true
+    },
+    {
+     "w": "proposed",
+     "start": 109.555,
+     "end": 109.755,
+     "matched": true
+    },
+    {
+     "w": "sequence",
+     "start": 109.755,
+     "end": 110.095,
+     "matched": true
+    },
+    {
+     "w": "in",
+     "start": 110.095,
+     "end": 110.575,
+     "matched": true
+    },
+    {
+     "w": "parallel.",
+     "start": 110.575,
+     "end": 110.575,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg27",
+   "scene": "s6_verify",
+   "text": "It accepts the longest valid prefix, stopping when a proposed token fails verification.",
+   "start": 111.07,
+   "end": 115.29,
+   "words": [
+    {
+     "w": "It",
+     "start": 111.07,
+     "end": 111.26,
+     "matched": true
+    },
+    {
+     "w": "accepts",
+     "start": 111.26,
+     "end": 111.44,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 111.44,
+     "end": 111.66,
+     "matched": true
+    },
+    {
+     "w": "longest",
+     "start": 111.66,
+     "end": 111.96,
+     "matched": true
+    },
+    {
+     "w": "valid",
+     "start": 111.96,
+     "end": 112.28,
+     "matched": true
+    },
+    {
+     "w": "prefix,",
+     "start": 112.28,
+     "end": 112.7,
+     "matched": true
+    },
+    {
+     "w": "stopping",
+     "start": 113.42,
+     "end": 113.44,
+     "matched": true
+    },
+    {
+     "w": "when",
+     "start": 113.44,
+     "end": 113.6,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 113.6,
+     "end": 113.8,
+     "matched": true
+    },
+    {
+     "w": "proposed",
+     "start": 113.8,
+     "end": 114.06,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 114.06,
+     "end": 114.32,
+     "matched": true
+    },
+    {
+     "w": "fails",
+     "start": 114.32,
+     "end": 114.64,
+     "matched": true
+    },
+    {
+     "w": "verification.",
+     "start": 114.64,
+     "end": 115.16,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg28",
+   "scene": "s6_verify",
+   "text": "The accepted tokens become part of the output, and the process repeats from the new position.",
+   "start": 115.77,
+   "end": 119.53,
+   "words": [
+    {
+     "w": "The",
+     "start": 115.78,
+     "end": 115.96,
+     "matched": true
+    },
+    {
+     "w": "accepted",
+     "start": 115.96,
+     "end": 116.26,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 116.26,
+     "end": 116.54,
+     "matched": true
+    },
+    {
+     "w": "become",
+     "start": 116.54,
+     "end": 116.86,
+     "matched": true
+    },
+    {
+     "w": "part",
+     "start": 116.86,
+     "end": 117.06,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 117.06,
+     "end": 117.16,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 117.16,
+     "end": 117.36,
+     "matched": true
+    },
+    {
+     "w": "output,",
+     "start": 117.36,
+     "end": 117.48,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 117.8,
+     "end": 118.04,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 118.04,
+     "end": 118.44,
+     "matched": true
+    },
+    {
+     "w": "process",
+     "start": 118.44,
+     "end": 118.44,
+     "matched": true
+    },
+    {
+     "w": "repeats",
+     "start": 118.44,
+     "end": 118.74,
+     "matched": true
+    },
+    {
+     "w": "from",
+     "start": 118.74,
+     "end": 118.9,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 118.9,
+     "end": 119.04,
+     "matched": true
+    },
+    {
+     "w": "new",
+     "start": 119.04,
+     "end": 119.2,
+     "matched": true
+    },
+    {
+     "w": "position.",
+     "start": 119.2,
+     "end": 119.46,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg29",
+   "scene": "s6_verify",
+   "text": "Crucially, the large model remains responsible for verification.",
+   "start": 119.99,
+   "end": 122.64,
+   "words": [
+    {
+     "w": "Crucially,",
+     "start": 120.06,
+     "end": 120.32,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 120.44,
+     "end": 120.54,
+     "matched": true
+    },
+    {
+     "w": "large",
+     "start": 120.54,
+     "end": 120.86,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 120.86,
+     "end": 121.02,
+     "matched": true
+    },
+    {
+     "w": "remains",
+     "start": 121.02,
+     "end": 121.34,
+     "matched": true
+    },
+    {
+     "w": "responsible",
+     "start": 121.34,
+     "end": 121.78,
+     "matched": true
+    },
+    {
+     "w": "for",
+     "start": 121.78,
+     "end": 122.04,
+     "matched": true
+    },
+    {
+     "w": "verification.",
+     "start": 122.04,
+     "end": 122.46,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg30",
+   "scene": "s6_verify",
+   "text": "The smaller diffusion model only proposes candidates.",
+   "start": 123.12,
+   "end": 125.38,
+   "words": [
+    {
+     "w": "The",
+     "start": 123.12,
+     "end": 123.26,
+     "matched": true
+    },
+    {
+     "w": "smaller",
+     "start": 123.26,
+     "end": 123.52,
+     "matched": true
+    },
+    {
+     "w": "diffusion",
+     "start": 123.52,
+     "end": 123.92,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 123.92,
+     "end": 124.16,
+     "matched": true
+    },
+    {
+     "w": "only",
+     "start": 124.16,
+     "end": 124.54,
+     "matched": true
+    },
+    {
+     "w": "proposes",
+     "start": 124.54,
+     "end": 124.86,
+     "matched": true
+    },
+    {
+     "w": "candidates.",
+     "start": 124.86,
+     "end": 125.32,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg31",
+   "scene": "s7_speed",
+   "text": "The performance advantage comes from reducing sequential drafting work.",
+   "start": 126.21,
+   "end": 128.88,
+   "words": [
+    {
+     "w": "The",
+     "start": 126.21,
+     "end": 126.3,
+     "matched": true
+    },
+    {
+     "w": "performance",
+     "start": 126.3,
+     "end": 126.72,
+     "matched": true
+    },
+    {
+     "w": "advantage",
+     "start": 126.72,
+     "end": 127.04,
+     "matched": true
+    },
+    {
+     "w": "comes",
+     "start": 127.04,
+     "end": 127.3,
+     "matched": true
+    },
+    {
+     "w": "from",
+     "start": 127.3,
+     "end": 127.52,
+     "matched": true
+    },
+    {
+     "w": "reducing",
+     "start": 127.52,
+     "end": 127.84,
+     "matched": true
+    },
+    {
+     "w": "sequential",
+     "start": 127.84,
+     "end": 128.3,
+     "matched": true
+    },
+    {
+     "w": "drafting",
+     "start": 128.3,
+     "end": 128.58,
+     "matched": true
+    },
+    {
+     "w": "work.",
+     "start": 128.58,
+     "end": 129.22,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg32",
+   "scene": "s7_speed",
+   "text": "Traditional speculative decoding still spends time generating draft tokens one by one.",
+   "start": 129.3,
+   "end": 133.3,
+   "words": [
+    {
+     "w": "Traditional",
+     "start": 129.4,
+     "end": 129.74,
+     "matched": true
+    },
+    {
+     "w": "speculative",
+     "start": 129.74,
+     "end": 130.2,
+     "matched": true
+    },
+    {
+     "w": "decoding",
+     "start": 130.2,
+     "end": 130.6,
+     "matched": true
+    },
+    {
+     "w": "still",
+     "start": 130.6,
+     "end": 131.22,
+     "matched": true
+    },
+    {
+     "w": "spends",
+     "start": 131.22,
+     "end": 131.4,
+     "matched": true
+    },
+    {
+     "w": "time",
+     "start": 131.4,
+     "end": 131.74,
+     "matched": true
+    },
+    {
+     "w": "generating",
+     "start": 131.74,
+     "end": 132.1,
+     "matched": true
+    },
+    {
+     "w": "draft",
+     "start": 132.1,
+     "end": 132.42,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 132.42,
+     "end": 132.66,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 132.66,
+     "end": 132.94,
+     "matched": true
+    },
+    {
+     "w": "by",
+     "start": 132.94,
+     "end": 133.08,
+     "matched": true
+    },
+    {
+     "w": "one.",
+     "start": 133.08,
+     "end": 133.28,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg33",
+   "scene": "s7_speed",
+   "text": "DFlash proposes a whole block with one draft-model forward pass.",
+   "start": 133.78,
+   "end": 136.7,
+   "words": [
+    {
+     "w": "DFlash",
+     "start": 133.78,
+     "end": 134.22,
+     "matched": true
+    },
+    {
+     "w": "proposes",
+     "start": 134.22,
+     "end": 134.6,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 134.6,
+     "end": 134.78,
+     "matched": true
+    },
+    {
+     "w": "whole",
+     "start": 134.78,
+     "end": 135.02,
+     "matched": true
+    },
+    {
+     "w": "block",
+     "start": 135.02,
+     "end": 135.18,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 135.18,
+     "end": 135.4,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 135.4,
+     "end": 135.62,
+     "matched": true
+    },
+    {
+     "w": "draft-model",
+     "start": 135.62,
+     "end": 136.06,
+     "matched": true
+    },
+    {
+     "w": "forward",
+     "start": 136.06,
+     "end": 136.4,
+     "matched": true
+    },
+    {
+     "w": "pass.",
+     "start": 136.4,
+     "end": 136.68,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg34",
+   "scene": "s7_speed",
+   "text": "And because its predictions are informed by the target model's hidden states, it can produce stronger drafts with higher acceptance rates.",
+   "start": 137.22,
+   "end": 143.1,
+   "words": [
+    {
+     "w": "And",
+     "start": 137.26,
+     "end": 137.4,
+     "matched": true
+    },
+    {
+     "w": "because",
+     "start": 137.4,
+     "end": 137.56,
+     "matched": true
+    },
+    {
+     "w": "its",
+     "start": 137.56,
+     "end": 137.78,
+     "matched": true
+    },
+    {
+     "w": "predictions",
+     "start": 137.78,
+     "end": 138.02,
+     "matched": true
+    },
+    {
+     "w": "are",
+     "start": 138.02,
+     "end": 138.3,
+     "matched": true
+    },
+    {
+     "w": "informed",
+     "start": 138.3,
+     "end": 138.56,
+     "matched": true
+    },
+    {
+     "w": "by",
+     "start": 138.56,
+     "end": 138.76,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 138.76,
+     "end": 138.92,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 138.92,
+     "end": 139.16,
+     "matched": true
+    },
+    {
+     "w": "model's",
+     "start": 139.16,
+     "end": 139.5,
+     "matched": true
+    },
+    {
+     "w": "hidden",
+     "start": 139.5,
+     "end": 139.7,
+     "matched": true
+    },
+    {
+     "w": "states,",
+     "start": 139.7,
+     "end": 139.98,
+     "matched": true
+    },
+    {
+     "w": "it",
+     "start": 140.48,
+     "end": 140.58,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 140.58,
+     "end": 140.76,
+     "matched": true
+    },
+    {
+     "w": "produce",
+     "start": 140.76,
+     "end": 140.94,
+     "matched": true
+    },
+    {
+     "w": "stronger",
+     "start": 140.94,
+     "end": 141.32,
+     "matched": true
+    },
+    {
+     "w": "drafts",
+     "start": 141.32,
+     "end": 141.72,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 141.72,
+     "end": 142.16,
+     "matched": true
+    },
+    {
+     "w": "higher",
+     "start": 142.16,
+     "end": 142.4,
+     "matched": true
+    },
+    {
+     "w": "acceptance",
+     "start": 142.4,
+     "end": 142.8,
+     "matched": true
+    },
+    {
+     "w": "rates.",
+     "start": 142.8,
+     "end": 143.08,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg35",
+   "scene": "s7_speed",
+   "text": "In the original research, DFlash achieved more than six times acceleration in reported experiments, and up to two point five times the speedup of EAGLE-3.",
+   "start": 143.59,
+   "end": 151.32,
+   "words": [
+    {
+     "w": "In",
+     "start": 143.66,
+     "end": 143.68,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 143.68,
+     "end": 144.08,
+     "matched": true
+    },
+    {
+     "w": "original",
+     "start": 144.08,
+     "end": 144.08,
+     "matched": true
+    },
+    {
+     "w": "research,",
+     "start": 144.08,
+     "end": 144.5,
+     "matched": true
+    },
+    {
+     "w": "DFlash",
+     "start": 144.98,
+     "end": 145.26,
+     "matched": true
+    },
+    {
+     "w": "achieved",
+     "start": 145.26,
+     "end": 145.58,
+     "matched": true
+    },
+    {
+     "w": "more",
+     "start": 145.58,
+     "end": 145.78,
+     "matched": true
+    },
+    {
+     "w": "than",
+     "start": 145.78,
+     "end": 146.02,
+     "matched": true
+    },
+    {
+     "w": "six",
+     "start": 146.02,
+     "end": 146.2,
+     "matched": true
+    },
+    {
+     "w": "times",
+     "start": 146.2,
+     "end": 146.42,
+     "matched": true
+    },
+    {
+     "w": "acceleration",
+     "start": 146.42,
+     "end": 146.94,
+     "matched": true
+    },
+    {
+     "w": "in",
+     "start": 146.94,
+     "end": 147.42,
+     "matched": true
+    },
+    {
+     "w": "reported",
+     "start": 147.42,
+     "end": 147.76,
+     "matched": true
+    },
+    {
+     "w": "experiments,",
+     "start": 147.76,
+     "end": 148.3,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 148.56,
+     "end": 148.7,
+     "matched": true
+    },
+    {
+     "w": "up",
+     "start": 148.7,
+     "end": 148.82,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 148.82,
+     "end": 149.0,
+     "matched": true
+    },
+    {
+     "w": "two",
+     "start": 149.0,
+     "end": 149.2,
+     "matched": true
+    },
+    {
+     "w": "point",
+     "start": 149.2,
+     "end": 149.2,
+     "matched": true
+    },
+    {
+     "w": "five",
+     "start": 149.2,
+     "end": 149.7,
+     "matched": true
+    },
+    {
+     "w": "times",
+     "start": 149.7,
+     "end": 150.0,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 150.0,
+     "end": 150.18,
+     "matched": true
+    },
+    {
+     "w": "speedup",
+     "start": 150.18,
+     "end": 150.5,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 150.5,
+     "end": 150.78,
+     "matched": true
+    },
+    {
+     "w": "EAGLE-3.",
+     "start": 150.78,
+     "end": 151.38,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg36",
+   "scene": "s8_takeaway",
+   "text": "Here's the key takeaway.",
+   "start": 152.12,
+   "end": 153.11,
+   "words": [
+    {
+     "w": "Here's",
+     "start": 152.12,
+     "end": 152.36,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 152.36,
+     "end": 152.52,
+     "matched": true
+    },
+    {
+     "w": "key",
+     "start": 152.52,
+     "end": 152.7,
+     "matched": true
+    },
+    {
+     "w": "takeaway.",
+     "start": 152.7,
+     "end": 153.04,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg37",
+   "scene": "s8_takeaway",
+   "text": "Traditional language models decode sequentially.",
+   "start": 153.51,
+   "end": 155.51,
+   "words": [
+    {
+     "w": "Traditional",
+     "start": 153.7,
+     "end": 153.98,
+     "matched": true
+    },
+    {
+     "w": "language",
+     "start": 153.98,
+     "end": 154.36,
+     "matched": true
+    },
+    {
+     "w": "models",
+     "start": 154.36,
+     "end": 154.58,
+     "matched": true
+    },
+    {
+     "w": "decode",
+     "start": 154.58,
+     "end": 154.96,
+     "matched": true
+    },
+    {
+     "w": "sequentially.",
+     "start": 154.96,
+     "end": 155.4,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg38",
+   "scene": "s8_takeaway",
+   "text": "Speculative decoding lets a smaller model propose tokens for parallel verification.",
+   "start": 155.99,
+   "end": 160.05,
+   "words": [
+    {
+     "w": "Speculative",
+     "start": 155.99,
+     "end": 156.53,
+     "matched": true
+    },
+    {
+     "w": "decoding",
+     "start": 156.53,
+     "end": 156.91,
+     "matched": true
+    },
+    {
+     "w": "lets",
+     "start": 156.91,
+     "end": 157.13,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 157.13,
+     "end": 157.59,
+     "matched": true
+    },
+    {
+     "w": "smaller",
+     "start": 157.59,
+     "end": 157.59,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 157.59,
+     "end": 157.77,
+     "matched": true
+    },
+    {
+     "w": "propose",
+     "start": 157.77,
+     "end": 158.23,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 158.23,
+     "end": 158.53,
+     "matched": true
+    },
+    {
+     "w": "for",
+     "start": 158.53,
+     "end": 159.03,
+     "matched": true
+    },
+    {
+     "w": "parallel",
+     "start": 159.03,
+     "end": 159.35,
+     "matched": true
+    },
+    {
+     "w": "verification.",
+     "start": 159.35,
+     "end": 159.99,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg39",
+   "scene": "s8_takeaway",
+   "text": "DFlash goes one step further by making the drafting process parallel as well.",
+   "start": 160.54,
+   "end": 164.65,
+   "words": [
+    {
+     "w": "DFlash",
+     "start": 160.77,
+     "end": 160.97,
+     "matched": true
+    },
+    {
+     "w": "goes",
+     "start": 160.97,
+     "end": 161.21,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 161.21,
+     "end": 161.57,
+     "matched": true
+    },
+    {
+     "w": "step",
+     "start": 161.57,
+     "end": 161.69,
+     "matched": true
+    },
+    {
+     "w": "further",
+     "start": 161.69,
+     "end": 161.97,
+     "matched": true
+    },
+    {
+     "w": "by",
+     "start": 161.97,
+     "end": 162.53,
+     "matched": true
+    },
+    {
+     "w": "making",
+     "start": 162.53,
+     "end": 162.73,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 162.73,
+     "end": 162.95,
+     "matched": true
+    },
+    {
+     "w": "drafting",
+     "start": 162.95,
+     "end": 163.17,
+     "matched": true
+    },
+    {
+     "w": "process",
+     "start": 163.17,
+     "end": 163.87,
+     "matched": true
+    },
+    {
+     "w": "parallel",
+     "start": 163.87,
+     "end": 164.21,
+     "matched": true
+    },
+    {
+     "w": "as",
+     "start": 164.21,
+     "end": 164.51,
+     "matched": true
+    },
+    {
+     "w": "well.",
+     "start": 164.51,
+     "end": 164.65,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "id": "seg40",
+   "scene": "s8_takeaway",
+   "text": "It's a powerful example of how changing the inference algorithm can make existing language models significantly faster, without changing the target model's output distribution.",
+   "start": 165.13,
+   "end": 173.46,
+   "words": [
+    {
+     "w": "It's",
+     "start": 165.17,
+     "end": 165.27,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 165.27,
+     "end": 165.45,
+     "matched": true
+    },
+    {
+     "w": "powerful",
+     "start": 165.45,
+     "end": 165.75,
+     "matched": true
+    },
+    {
+     "w": "example",
+     "start": 165.75,
+     "end": 166.11,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 166.11,
+     "end": 166.33,
+     "matched": true
+    },
+    {
+     "w": "how",
+     "start": 166.33,
+     "end": 166.51,
+     "matched": true
+    },
+    {
+     "w": "changing",
+     "start": 166.51,
+     "end": 166.77,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 166.77,
+     "end": 167.01,
+     "matched": true
+    },
+    {
+     "w": "inference",
+     "start": 167.01,
+     "end": 167.23,
+     "matched": true
+    },
+    {
+     "w": "algorithm",
+     "start": 167.23,
+     "end": 167.63,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 167.63,
+     "end": 168.15,
+     "matched": true
+    },
+    {
+     "w": "make",
+     "start": 168.15,
+     "end": 168.35,
+     "matched": true
+    },
+    {
+     "w": "existing",
+     "start": 168.35,
+     "end": 168.79,
+     "matched": true
+    },
+    {
+     "w": "language",
+     "start": 168.79,
+     "end": 169.13,
+     "matched": true
+    },
+    {
+     "w": "models",
+     "start": 169.13,
+     "end": 169.43,
+     "matched": true
+    },
+    {
+     "w": "significantly",
+     "start": 169.43,
+     "end": 170.23,
+     "matched": true
+    },
+    {
+     "w": "faster,",
+     "start": 170.23,
+     "end": 170.67,
+     "matched": true
+    },
+    {
+     "w": "without",
+     "start": 171.27,
+     "end": 171.49,
+     "matched": true
+    },
+    {
+     "w": "changing",
+     "start": 171.49,
+     "end": 171.81,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 171.81,
+     "end": 172.03,
+     "matched": true
+    },
+    {
+     "w": "target",
+     "start": 172.03,
+     "end": 172.25,
+     "matched": true
+    },
+    {
+     "w": "model's",
+     "start": 172.25,
+     "end": 172.73,
+     "matched": true
+    },
+    {
+     "w": "output",
+     "start": 172.73,
+     "end": 172.91,
+     "matched": true
+    },
+    {
+     "w": "distribution.",
+     "start": 172.91,
+     "end": 173.37,
+     "matched": true
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "dflash-video",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Educational Instagram reel: DFlash block-diffusion speculative decoding (Canvas 2D + Puppeteer + ffmpeg)",
+  "scripts": {
+    "audio": ".venv/bin/python generate_audio.py",
+    "align": ".venv/bin/python align_audio.py --check",
+    "inject": "node render.mjs --inject",
+    "preview": "node render.mjs --inject && python3 -m http.server 8080",
+    "stills": "node render.mjs --stills",
+    "qa": "node render.mjs --qa",
+    "render": "node render.mjs"
+  },
+  "dependencies": { "puppeteer-core": "^23.11.1" }
+}
