@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How BERT Embeddings Actually Work — Reel</title>
+<style>
+  html, body { margin: 0; background: #ECE7DE; height: 100%; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  canvas { height: calc(100vh - 70px); width: auto; aspect-ratio: 9 / 16; box-shadow: 0 10px 40px rgba(0,0,0,.12); background: #FAF9F6; }
+  #ui { display: flex; align-items: center; gap: 12px; width: min(620px, 94vw); color: #2B2925; font-size: 14px; }
+  #ui button { border: 1px solid #D9CFC0; background: #fff; border-radius: 18px; padding: 6px 14px; cursor: pointer; font-size: 14px; }
+  #ui input[type=range] { flex: 1; accent-color: #C46A47; }
+  #ui .t { font-variant-numeric: tabular-nums; width: 120px; text-align: right; }
+  body.render { display: block; background: #FAF9F6; }
+  body.render canvas { height: 1920px; width: 1080px; box-shadow: none; }
+  body.render #ui { display: none; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<div id="ui">
+  <button id="play">▶ Play</button>
+  <button id="sound" title="Audio track: output/audio_final.m4a (built by node render.mjs --audio)">Sound: on</button>
+  <input id="seek" type="range" min="0" max="120" step="0.0333" value="0">
+  <span class="t" id="time">0.00 s</span>
+</div>
+<audio id="aud" src="output/audio_final.m4a" preload="auto"></audio>
+
+<!-- DATA:BEGIN (injected by `node render.mjs --inject` from alignment.json) -->
+<script id="data">window.TIMING = {"voice":"Adam","voice_id":"pNInz6obpgDQGcFmaJgB","model_id":"eleven_multilingual_v2","voice_settings":{"stability":0.6,"similarity_boost":0.8,"style":0,"use_speaker_boost":true,"speed":1.12},"script":"How does BERT turn ordinary text into vectors that actually understand context?\nLet's take two sentences.\n'I deposited money at the bank.'\nAnd, 'I sat by the river bank.'\nThe word 'bank' appears in both, but clearly means different things.\nHere's how BERT handles that.\nFirst, it splits each sentence into smaller units called tokens. Some words remain whole, while others are broken into subwords.\nEach token is mapped to a learned vector. BERT then adds positional information, and token-type information when applicable.\nThese vectors enter a stack of Transformer encoder layers.\nInside each layer, something interesting happens: bidirectional self-attention.\nEvery token can attend to other tokens on both sides of the sentence.\nFor example, 'bank' can attend to 'deposited' and 'money' in the first sentence.\nBut in the second, it can attend to 'river' and 'sat'.\nAttention uses learned query, key, and value projections to calculate how information flows between tokens.\nAcross multiple attention heads and encoder layers, each token's representation is progressively updated.\nSo even though the original word is identical, BERT produces different contextual vectors for 'bank' in these two sentences.\nBut what if we need one vector for the entire sentence?\nWe can pool the token representations, for example by taking their mean. Another approach uses the final hidden state of the special CLS token.\nHowever, vanilla BERT wasn't specifically trained to produce optimal sentence similarity embeddings.\nThat's why models like Sentence-BERT fine-tune the architecture to generate more useful sentence-level representations.\nAnd that's the key idea: BERT doesn't simply look up a word's meaning. It constructs representations using the surrounding context.","audio_duration":106.672,"warp":{"lead_in":1,"tail":3,"inserts":[{"at":18.216,"dur":0.3,"after":"Here's how"},{"at":25.896,"dur":0.4,"after":"Some words"},{"at":33.749,"dur":0.5,"after":"BERT then adds"},{"at":42.522,"dur":0.3,"after":"Inside each layer"},{"at":50.915,"dur":0.4,"after":"For example"},{"at":54.439,"dur":0.4,"after":"But in the second"},{"at":66.867,"dur":0.3,"after":"Across multiple"},{"at":73.972,"dur":0.5,"after":"So even though"},{"at":98.869,"dur":0.4,"after":"That's why"}],"narration_end_video":111.172,"total":114.47,"fps":30,"frames":3434},"scenes":[{"scene":"s1","start":0,"end":19.366},{"scene":"s2","start":19.366,"end":27.396},{"scene":"s3","start":27.396,"end":35.7},{"scene":"s4","start":35.7,"end":44.871},{"scene":"s5","start":44.871,"end":70.317},{"scene":"s6","start":70.317,"end":77.823},{"scene":"s7","start":77.823,"end":103.169},{"scene":"s8","start":103.169,"end":114.47}],"sentences":[{"index":0,"text":"How does BERT turn ordinary text into vectors that actually understand context?","char_start":0,"char_end":79,"start":0,"end":5.027,"scene":"s1","video_start":1,"video_end":6.027},{"index":1,"text":"Let's take two sentences.","char_start":80,"char_end":105,"start":5.561,"end":6.943,"scene":"s1","video_start":6.561,"video_end":7.943},{"index":2,"text":"'I deposited money at the bank.'","char_start":106,"char_end":138,"start":7.43,"end":9.16,"scene":"s1","video_start":8.43,"video_end":10.16},{"index":3,"text":"And, 'I sat by the river bank.'","char_start":139,"char_end":170,"start":9.427,"end":11.517,"scene":"s1","video_start":10.427,"video_end":12.517},{"index":4,"text":"The word 'bank' appears in both, but clearly means different things.","char_start":171,"char_end":239,"start":12.016,"end":16.115,"scene":"s1","video_start":13.016,"video_end":17.115},{"index":5,"text":"Here's how BERT handles that.","char_start":240,"char_end":269,"start":16.509,"end":18.019,"scene":"s1","video_start":17.509,"video_end":19.019},{"index":6,"text":"First, it splits each sentence into smaller units called tokens.","char_start":270,"char_end":334,"start":18.413,"end":22.024,"scene":"s2","video_start":19.713,"video_end":23.324},{"index":7,"text":"Some words remain whole, while others are broken into subwords.","char_start":335,"char_end":398,"start":22.361,"end":25.751,"scene":"s2","video_start":23.661,"video_end":27.051},{"index":8,"text":"Each token is mapped to a learned vector.","char_start":399,"char_end":440,"start":26.041,"end":28.491,"scene":"s3","video_start":27.741,"video_end":30.191},{"index":9,"text":"BERT then adds positional information, and token-type information when applicable.","char_start":441,"char_end":523,"start":28.944,"end":33.436,"scene":"s3","video_start":30.644,"video_end":35.136},{"index":10,"text":"These vectors enter a stack of Transformer encoder layers.","char_start":524,"char_end":582,"start":34.063,"end":37.128,"scene":"s4","video_start":36.263,"video_end":39.328},{"index":11,"text":"Inside each layer, something interesting happens: bidirectional self-attention.","char_start":583,"char_end":662,"start":37.419,"end":42.295,"scene":"s4","video_start":39.619,"video_end":44.495},{"index":12,"text":"Every token can attend to other tokens on both sides of the sentence.","char_start":663,"char_end":732,"start":42.748,"end":46.161,"scene":"s5","video_start":45.248,"video_end":48.661},{"index":13,"text":"For example, 'bank' can attend to 'deposited' and 'money' in the first sentence.","char_start":733,"char_end":813,"start":46.451,"end":50.77,"scene":"s5","video_start":48.951,"video_end":53.27},{"index":14,"text":"But in the second, it can attend to 'river' and 'sat'.","char_start":814,"char_end":868,"start":51.06,"end":54.241,"scene":"s5","video_start":53.96,"video_end":57.141},{"index":15,"text":"Attention uses learned query, key, and value projections to calculate how information flows between tokens.","char_start":869,"char_end":976,"start":54.636,"end":60.87,"scene":"s5","video_start":57.936,"video_end":64.17},{"index":16,"text":"Across multiple attention heads and encoder layers, each token's representation is progressively updated.","char_start":977,"char_end":1082,"start":61.161,"end":66.699,"scene":"s5","video_start":64.461,"video_end":69.999},{"index":17,"text":"So even though the original word is identical, BERT produces different contextual vectors for 'bank' in these two sentences.","char_start":1083,"char_end":1207,"start":67.035,"end":73.746,"scene":"s6","video_start":70.635,"video_end":77.346},{"index":18,"text":"But what if we need one vector for the entire sentence?","char_start":1208,"char_end":1263,"start":74.199,"end":77.101,"scene":"s7","video_start":78.299,"video_end":81.201},{"index":19,"text":"We can pool the token representations, for example by taking their mean.","char_start":1264,"char_end":1336,"start":77.438,"end":81.432,"scene":"s7","video_start":81.538,"video_end":85.532},{"index":20,"text":"Another approach uses the final hidden state of the special CLS token.","char_start":1337,"char_end":1407,"start":82.058,"end":86.018,"scene":"s7","video_start":86.158,"video_end":90.118},{"index":21,"text":"However, vanilla BERT wasn't specifically trained to produce optimal sentence similarity embeddings.","char_start":1408,"char_end":1508,"start":86.412,"end":91.857,"scene":"s7","video_start":90.512,"video_end":95.957},{"index":22,"text":"That's why models like Sentence-BERT fine-tune the architecture to generate more useful sentence-level representations.","char_start":1509,"char_end":1628,"start":92.31,"end":98.672,"scene":"s7","video_start":96.41,"video_end":102.772},{"index":23,"text":"And that's the key idea: BERT doesn't simply look up a word's meaning.","char_start":1629,"char_end":1699,"start":99.067,"end":102.759,"scene":"s8","video_start":103.567,"video_end":107.259},{"index":24,"text":"It constructs representations using the surrounding context.","char_start":1700,"char_end":1760,"start":103.049,"end":106.672,"scene":"s8","video_start":107.549,"video_end":111.172}],"subtitles":[{"text":"How does BERT turn ordinary text into vectors","words":["How","does","BERT","turn","ordinary","text","into","vectors"],"word_times":[[1,1.29],[1.337,1.511],[1.592,1.859],[1.917,2.265],[2.347,2.846],[2.904,3.264],[3.31,3.473],[3.543,3.926]],"start":0,"end":2.926,"video_start":1,"video_end":3.926,"sentence":0,"scene":"s1","show_from":0.95,"show_until":3.952},{"text":"that actually understand context?","words":["that","actually","understand","context?"],"word_times":[[3.972,4.111],[4.158,4.587],[4.646,5.18],[5.249,6.027]],"start":2.972,"end":5.027,"video_start":3.972,"video_end":6.027,"sentence":0,"scene":"s1","show_from":3.922,"show_until":6.541},{"text":"Let's take two sentences.","words":["Let's","take","two","sentences."],"word_times":[[6.561,6.77],[6.805,6.979],[7.014,7.153],[7.223,7.943]],"start":5.561,"end":6.943,"video_start":6.561,"video_end":7.943,"sentence":1,"scene":"s1","show_from":6.511,"show_until":8.41},{"text":"'I deposited money at the bank.'","words":["'I","deposited","money","at","the","bank.'"],"word_times":[[8.43,8.535],[8.639,9.15],[9.208,9.452],[9.499,9.58],[9.626,9.696],[9.742,10.16]],"start":7.43,"end":9.16,"video_start":8.43,"video_end":10.16,"sentence":2,"scene":"s1","show_from":8.38,"show_until":10.407},{"text":"And, 'I sat by the river bank.'","words":["And,","'I","sat","by","the","river","bank.'"],"word_times":[[10.427,10.81],[11.054,11.159],[11.275,11.519],[11.577,11.681],[11.728,11.797],[11.855,12.064],[12.111,12.517]],"start":9.427,"end":11.517,"video_start":10.427,"video_end":12.517,"sentence":3,"scene":"s1","show_from":10.377,"show_until":12.996},{"text":"The word 'bank' appears in both,","words":["The","word","'bank'","appears","in","both,"],"word_times":[[13.016,13.144],[13.19,13.434],[13.504,13.841],[14.026,14.479],[14.537,14.618],[14.688,15.141]],"start":12.016,"end":14.141,"video_start":13.016,"video_end":15.141,"sentence":4,"scene":"s1","show_from":12.966,"show_until":15.225},{"text":"but clearly means different things.","words":["but","clearly","means","different","things."],"word_times":[[15.245,15.385],[15.431,15.779],[15.838,16.093],[16.151,16.476],[16.523,17.115]],"start":14.245,"end":16.115,"video_start":15.245,"video_end":17.115,"sentence":4,"scene":"s1","show_from":15.195,"show_until":17.489},{"text":"Here's how BERT handles that.","words":["Here's","how","BERT","handles","that."],"word_times":[[17.509,17.753],[17.8,17.927],[18.009,18.241],[18.287,18.601],[18.647,19.019]],"start":16.509,"end":18.019,"video_start":17.509,"video_end":19.019,"sentence":5,"scene":"s1","show_from":17.459,"show_until":19.619},{"text":"First, it splits each sentence into","words":["First,","it","splits","each","sentence","into"],"word_times":[[19.713,20.143],[20.329,20.433],[20.48,20.782],[20.84,21.025],[21.072,21.478],[21.513,21.664]],"start":18.413,"end":20.364,"video_start":19.713,"video_end":21.664,"sentence":6,"scene":"s2","show_from":19.663,"show_until":21.702},{"text":"smaller units called tokens.","words":["smaller","units","called","tokens."],"word_times":[[21.722,22.047],[22.117,22.361],[22.407,22.651],[22.686,23.324]],"start":20.422,"end":22.024,"video_start":21.722,"video_end":23.324,"sentence":6,"scene":"s2","show_from":21.672,"show_until":23.641},{"text":"Some words remain whole,","words":["Some","words","remain","whole,"],"word_times":[[23.661,23.858],[23.893,24.114],[24.16,24.427],[24.474,24.915]],"start":22.361,"end":23.615,"video_start":23.661,"video_end":24.915,"sentence":7,"scene":"s2","show_from":23.611,"show_until":25.034},{"text":"while others are broken into subwords.","words":["while","others","are","broken","into","subwords."],"word_times":[[25.054,25.286],[25.333,25.6],[25.635,25.739],[25.774,26.052],[26.099,26.238],[26.296,27.051]],"start":23.754,"end":25.751,"video_start":25.054,"video_end":27.051,"sentence":7,"scene":"s2","show_from":25.004,"show_until":27.651},{"text":"Each token is mapped to a","words":["Each","token","is","mapped","to","a"],"word_times":[[27.741,27.95],[27.997,28.333],[28.403,28.519],[28.6,28.925],[28.983,29.111],[29.216,29.239]],"start":26.041,"end":27.539,"video_start":27.741,"video_end":29.239,"sentence":8,"scene":"s3","show_from":27.691,"show_until":29.289},{"text":"learned vector.","words":["learned","vector."],"word_times":[[29.309,29.61],[29.668,30.191]],"start":27.609,"end":28.491,"video_start":29.309,"video_end":30.191,"sentence":8,"scene":"s3","show_from":29.259,"show_until":30.624},{"text":"BERT then adds positional information,","words":["BERT","then","adds","positional","information,"],"word_times":[[30.644,30.841],[30.876,31.026],[31.096,31.386],[31.433,31.932],[31.99,32.698]],"start":28.944,"end":30.998,"video_start":30.644,"video_end":32.698,"sentence":9,"scene":"s3","show_from":30.594,"show_until":32.794},{"text":"and token-type information","words":["and","token-type","information"],"word_times":[[32.814,33.023],[33.105,33.708],[33.755,34.266]],"start":31.114,"end":32.566,"video_start":32.814,"video_end":34.266,"sentence":9,"scene":"s3","show_from":32.764,"show_until":34.292},{"text":"when applicable.","words":["when","applicable."],"word_times":[[34.312,34.475],[34.521,35.136]],"start":32.612,"end":33.436,"video_start":34.312,"video_end":35.136,"sentence":9,"scene":"s3","show_from":34.262,"show_until":35.736},{"text":"These vectors enter a stack of","words":["These","vectors","enter","a","stack","of"],"word_times":[[36.263,36.496],[36.542,36.879],[36.925,37.134],[37.192,37.215],[37.273,37.587],[37.633,37.691]],"start":34.063,"end":35.491,"video_start":36.263,"video_end":37.691,"sentence":10,"scene":"s4","show_from":36.213,"show_until":37.729},{"text":"Transformer encoder layers.","words":["Transformer","encoder","layers."],"word_times":[[37.749,38.341],[38.4,38.783],[38.829,39.328]],"start":35.549,"end":37.128,"video_start":37.749,"video_end":39.328,"sentence":10,"scene":"s4","show_from":37.699,"show_until":39.599},{"text":"Inside each layer,","words":["Inside","each","layer,"],"word_times":[[39.619,40.095],[40.129,40.304],[40.362,40.745]],"start":37.419,"end":38.545,"video_start":39.619,"video_end":40.745,"sentence":11,"scene":"s4","show_from":39.569,"show_until":40.864},{"text":"something interesting happens:","words":["something","interesting","happens:"],"word_times":[[40.884,41.221],[41.279,41.732],[41.801,42.359]],"start":38.684,"end":40.159,"video_start":40.884,"video_end":42.359,"sentence":11,"scene":"s4","show_from":40.834,"show_until":42.791},{"text":"bidirectional self-attention.","words":["bidirectional","self-attention."],"word_times":[[42.811,43.578],[43.647,44.495]],"start":40.611,"end":42.295,"video_start":42.811,"video_end":44.495,"sentence":11,"scene":"s4","show_from":42.761,"show_until":45.095},{"text":"Every token can attend to other tokens","words":["Every","token","can","attend","to","other","tokens"],"word_times":[[45.248,45.526],[45.573,45.874],[45.921,46.037],[46.083,46.385],[46.443,46.513],[46.582,46.768],[46.815,47.151]],"start":42.748,"end":44.651,"video_start":45.248,"video_end":47.151,"sentence":12,"scene":"s5","show_from":45.198,"show_until":47.178},{"text":"on both sides of the sentence.","words":["on","both","sides","of","the","sentence."],"word_times":[[47.198,47.291],[47.349,47.535],[47.581,47.894],[47.918,47.964],[48.011,48.08],[48.127,48.661]],"start":44.698,"end":46.161,"video_start":47.198,"video_end":48.661,"sentence":12,"scene":"s5","show_from":47.148,"show_until":48.931},{"text":"For example,","words":["For","example,"],"word_times":[[48.951,49.102],[49.148,49.636]],"start":46.451,"end":47.136,"video_start":48.951,"video_end":49.636,"sentence":13,"scene":"s5","show_from":48.901,"show_until":49.906},{"text":"'bank' can attend to 'deposited' and","words":["'bank'","can","attend","to","'deposited'","and"],"word_times":[[49.926,50.216],[50.344,50.507],[50.553,50.82],[50.867,50.959],[51.064,51.644],[51.714,51.819]],"start":47.426,"end":49.319,"video_start":49.926,"video_end":51.819,"sentence":13,"scene":"s5","show_from":49.876,"show_until":51.88},{"text":"'money' in the first sentence.","words":["'money'","in","the","first","sentence."],"word_times":[[51.9,52.144],[52.213,52.283],[52.329,52.399],[52.446,52.678],[52.747,53.27]],"start":49.4,"end":50.77,"video_start":51.9,"video_end":53.27,"sentence":13,"scene":"s5","show_from":51.85,"show_until":53.87},{"text":"But in the second,","words":["But","in","the","second,"],"word_times":[[53.96,54.099],[54.146,54.216],[54.262,54.332],[54.378,54.854]],"start":51.06,"end":51.954,"video_start":53.96,"video_end":54.854,"sentence":14,"scene":"s5","show_from":53.91,"show_until":54.985},{"text":"it can attend to 'river' and 'sat'.","words":["it","can","attend","to","'river'","and","'sat'."],"word_times":[[55.005,55.121],[55.168,55.295],[55.342,55.609],[55.667,55.794],[56.003,56.259],[56.421,56.619],[56.7,57.141]],"start":52.105,"end":54.241,"video_start":55.005,"video_end":57.141,"sentence":14,"scene":"s5","show_from":54.955,"show_until":57.741},{"text":"Attention uses learned query, key,","words":["Attention","uses","learned","query,","key,"],"word_times":[[57.936,58.4],[58.47,58.795],[58.865,59.178],[59.225,59.712],[59.863,60.235]],"start":54.636,"end":56.935,"video_start":57.936,"video_end":60.235,"sentence":15,"scene":"s5","show_from":57.886,"show_until":60.25},{"text":"and value projections to calculate how","words":["and","value","projections","to","calculate","how"],"word_times":[[60.27,60.478],[60.583,60.989],[61.024,61.593],[61.639,61.709],[61.767,62.232],[62.266,62.382]],"start":56.97,"end":59.082,"video_start":60.27,"video_end":62.382,"sentence":15,"scene":"s5","show_from":60.22,"show_until":62.421},{"text":"information flows between tokens.","words":["information","flows","between","tokens."],"word_times":[[62.441,62.905],[62.963,63.218],[63.265,63.555],[63.602,64.17]],"start":59.141,"end":60.87,"video_start":62.441,"video_end":64.17,"sentence":15,"scene":"s5","show_from":62.391,"show_until":64.441},{"text":"Across multiple attention heads","words":["Across","multiple","attention","heads"],"word_times":[[64.461,64.809],[64.867,65.239],[65.273,65.656],[65.715,65.935]],"start":61.161,"end":62.635,"video_start":64.461,"video_end":65.935,"sentence":16,"scene":"s5","show_from":64.411,"show_until":65.962},{"text":"and encoder layers,","words":["and","encoder","layers,"],"word_times":[[65.982,66.098],[66.167,66.55],[66.597,67.061]],"start":62.682,"end":63.761,"video_start":65.982,"video_end":67.061,"sentence":16,"scene":"s5","show_from":65.932,"show_until":67.227},{"text":"each token's representation is","words":["each","token's","representation","is"],"word_times":[[67.247,67.444],[67.491,67.839],[67.886,68.594],[68.652,68.733]],"start":63.947,"end":65.433,"video_start":67.247,"video_end":68.733,"sentence":16,"scene":"s5","show_from":67.197,"show_until":68.76},{"text":"progressively updated.","words":["progressively","updated."],"word_times":[[68.78,69.348],[69.395,69.999]],"start":65.48,"end":66.699,"video_start":68.78,"video_end":69.999,"sentence":16,"scene":"s5","show_from":68.73,"show_until":70.599},{"text":"So even though the original","words":["So","even","though","the","original"],"word_times":[[70.635,70.763],[70.833,70.995],[71.03,71.204],[71.239,71.309],[71.367,71.738]],"start":67.035,"end":68.138,"video_start":70.635,"video_end":71.738,"sentence":17,"scene":"s6","show_from":70.585,"show_until":71.765},{"text":"word is identical,","words":["word","is","identical,"],"word_times":[[71.785,71.982],[72.028,72.11],[72.168,72.864]],"start":68.185,"end":69.264,"video_start":71.785,"video_end":72.864,"sentence":17,"scene":"s6","show_from":71.735,"show_until":73.03},{"text":"BERT produces different contextual vectors","words":["BERT","produces","different","contextual","vectors"],"word_times":[[73.05,73.34],[73.422,73.874],[73.932,74.257],[74.304,74.861],[74.919,75.244]],"start":69.45,"end":71.644,"video_start":73.05,"video_end":75.244,"sentence":17,"scene":"s6","show_from":73,"show_until":75.271},{"text":"for 'bank' in these two sentences.","words":["for","'bank'","in","these","two","sentences."],"word_times":[[75.291,75.418],[75.5,75.778],[76.034,76.15],[76.196,76.382],[76.417,76.545],[76.603,77.346]],"start":71.691,"end":73.746,"video_start":75.291,"video_end":77.346,"sentence":17,"scene":"s6","show_from":75.241,"show_until":77.946},{"text":"But what if we need one vector","words":["But","what","if","we","need","one","vector"],"word_times":[[78.299,78.449],[78.484,78.624],[78.658,78.728],[78.775,78.867],[78.937,79.134],[79.192,79.401],[79.448,79.75]],"start":74.199,"end":75.65,"video_start":78.299,"video_end":79.75,"sentence":18,"scene":"s7","show_from":78.249,"show_until":79.788},{"text":"for the entire sentence?","words":["for","the","entire","sentence?"],"word_times":[[79.808,79.912],[79.959,80.04],[80.098,80.528],[80.574,81.201]],"start":75.708,"end":77.101,"video_start":79.808,"video_end":81.201,"sentence":18,"scene":"s7","show_from":79.758,"show_until":81.518},{"text":"We can pool the token representations,","words":["We","can","pool","the","token","representations,"],"word_times":[[81.538,81.631],[81.677,81.793],[81.84,82.072],[82.13,82.199],[82.246,82.525],[82.571,83.546]],"start":77.438,"end":79.446,"video_start":81.538,"video_end":83.546,"sentence":19,"scene":"s7","show_from":81.488,"show_until":83.631},{"text":"for example by taking their mean.","words":["for","example","by","taking","their","mean."],"word_times":[[83.651,83.79],[83.848,84.243],[84.289,84.405],[84.475,84.765],[84.823,84.997],[85.044,85.532]],"start":79.551,"end":81.432,"video_start":83.651,"video_end":85.532,"sentence":19,"scene":"s7","show_from":83.601,"show_until":86.132},{"text":"Another approach uses the final hidden","words":["Another","approach","uses","the","final","hidden"],"word_times":[[86.158,86.518],[86.565,86.913],[86.971,87.25],[87.296,87.366],[87.412,87.738],[87.807,88.074]],"start":82.058,"end":83.974,"video_start":86.158,"video_end":88.074,"sentence":20,"scene":"s7","show_from":86.108,"show_until":88.112},{"text":"state of the special CLS token.","words":["state","of","the","special","CLS","token."],"word_times":[[88.132,88.446],[88.481,88.55],[88.597,88.666],[88.713,89.061],[89.119,89.549],[89.607,90.118]],"start":84.032,"end":86.018,"video_start":88.132,"video_end":90.118,"sentence":20,"scene":"s7","show_from":88.082,"show_until":90.492},{"text":"However, vanilla BERT wasn't specifically","words":["However,","vanilla","BERT","wasn't","specifically"],"word_times":[[90.512,91.058],[91.209,91.522],[91.569,91.778],[91.824,92.091],[92.138,92.672]],"start":86.412,"end":88.572,"video_start":90.512,"video_end":92.672,"sentence":21,"scene":"s7","show_from":90.462,"show_until":92.698},{"text":"trained to produce optimal sentence","words":["trained","to","produce","optimal","sentence"],"word_times":[[92.718,93.148],[93.252,93.368],[93.426,93.728],[93.775,94.193],[94.251,94.657]],"start":88.618,"end":90.557,"video_start":92.718,"video_end":94.657,"sentence":21,"scene":"s7","show_from":92.668,"show_until":94.672},{"text":"similarity embeddings.","words":["similarity","embeddings."],"word_times":[[94.692,95.226],[95.272,95.957]],"start":90.592,"end":91.857,"video_start":94.692,"video_end":95.957,"sentence":21,"scene":"s7","show_from":94.642,"show_until":96.39},{"text":"That's why models like Sentence-BERT","words":["That's","why","models","like","Sentence-BERT"],"word_times":[[96.41,96.631],[96.666,96.793],[96.863,97.2],[97.246,97.42],[97.467,98.14]],"start":92.31,"end":94.04,"video_start":96.41,"video_end":98.14,"sentence":22,"scene":"s7","show_from":96.36,"show_until":98.341},{"text":"fine-tune the architecture to generate more","words":["fine-tune","the","architecture","to","generate","more"],"word_times":[[98.361,98.964],[98.999,99.069],[99.127,99.707],[99.742,99.812],[99.882,100.265],[100.311,100.497]],"start":94.261,"end":96.397,"video_start":98.361,"video_end":100.497,"sentence":22,"scene":"s7","show_from":98.311,"show_until":100.535},{"text":"useful sentence-level representations.","words":["useful","sentence-level","representations."],"word_times":[[100.555,100.926],[101.008,101.693],[101.762,102.772]],"start":96.455,"end":98.672,"video_start":100.555,"video_end":102.772,"sentence":22,"scene":"s7","show_from":100.505,"show_until":103.372},{"text":"And that's the key idea:","words":["And","that's","the","key","idea:"],"word_times":[[103.567,103.695],[103.741,103.939],[103.985,104.055],[104.101,104.252],[104.31,104.809]],"start":99.067,"end":100.309,"video_start":103.567,"video_end":104.809,"sentence":23,"scene":"s8","show_from":103.517,"show_until":105.08},{"text":"BERT doesn't simply look up","words":["BERT","doesn't","simply","look","up"],"word_times":[[105.1,105.297],[105.343,105.622],[105.669,105.959],[106.005,106.191],[106.237,106.33]],"start":100.6,"end":101.83,"video_start":105.1,"video_end":106.33,"sentence":23,"scene":"s8","show_from":105.05,"show_until":106.357},{"text":"a word's meaning.","words":["a","word's","meaning."],"word_times":[[106.377,106.412],[106.47,106.771],[106.818,107.259]],"start":101.877,"end":102.759,"video_start":106.377,"video_end":107.259,"sentence":23,"scene":"s8","show_from":106.327,"show_until":107.529},{"text":"It constructs representations using","words":["It","constructs","representations","using"],"word_times":[[107.549,107.665],[107.712,108.165],[108.223,109.059],[109.128,109.407]],"start":103.049,"end":104.907,"video_start":107.549,"video_end":109.407,"sentence":24,"scene":"s8","show_from":107.499,"show_until":109.433},{"text":"the surrounding context.","words":["the","surrounding","context."],"word_times":[[109.453,109.523],[109.569,110.034],[110.104,111.172]],"start":104.953,"end":106.672,"video_start":109.453,"video_end":111.172,"sentence":24,"scene":"s8","show_from":109.403,"show_until":111.772}],"cues":{"vectors0":{"phrase":"vectors that actually understand context","char_start":38,"start":2.543,"end":4.841,"video_start":3.543,"video_end":5.841},"two":{"phrase":"two sentences","char_start":91,"start":6.014,"end":6.792,"video_start":7.014,"video_end":7.792},"sentA":{"phrase":"I deposited money at the bank","char_start":107,"start":7.43,"end":9.021,"video_start":8.43,"video_end":10.021},"sentB":{"phrase":"I sat by the river bank","char_start":145,"start":10.054,"end":11.378,"video_start":11.054,"video_end":12.378},"word_bank":{"phrase":"The word 'bank'","char_start":171,"start":12.016,"end":12.841,"video_start":13.016,"video_end":13.841},"different":{"phrase":"clearly means different things","char_start":208,"start":14.431,"end":15.964,"video_start":15.431,"video_end":16.964},"handles":{"phrase":"Here's how BERT handles that","char_start":240,"start":16.509,"end":17.879,"video_start":17.509,"video_end":18.879},"splits":{"phrase":"it splits each sentence","char_start":277,"start":19.029,"end":20.178,"video_start":20.329,"video_end":21.478},"tokens":{"phrase":"called tokens","char_start":320,"start":21.107,"end":21.873,"video_start":22.407,"video_end":23.173},"whole":{"phrase":"Some words remain whole","char_start":335,"start":22.361,"end":23.58,"video_start":23.661,"video_end":24.88},"subwords":{"phrase":"broken into subwords","char_start":377,"start":24.474,"end":25.6,"video_start":25.774,"video_end":26.9},"mapped":{"phrase":"Each token is mapped","char_start":399,"start":26.041,"end":27.225,"video_start":27.741,"video_end":28.925},"learned_vec":{"phrase":"a learned vector","char_start":423,"start":27.516,"end":28.34,"video_start":29.216,"video_end":30.04},"positional":{"phrase":"positional information","char_start":456,"start":29.733,"end":30.859,"video_start":31.433,"video_end":32.559},"tokentype":{"phrase":"token-type information","char_start":484,"start":31.405,"end":32.566,"video_start":33.105,"video_end":34.266},"applicable":{"phrase":"when applicable","char_start":507,"start":32.612,"end":33.378,"video_start":34.312,"video_end":35.078},"stack":{"phrase":"a stack of Transformer encoder layers","char_start":544,"start":34.992,"end":36.977,"video_start":37.192,"video_end":39.177},"inside":{"phrase":"Inside each layer","char_start":583,"start":37.419,"end":38.429,"video_start":39.619,"video_end":40.629},"interesting":{"phrase":"something interesting happens","char_start":602,"start":38.684,"end":40.008,"video_start":40.884,"video_end":42.208},"bidir":{"phrase":"bidirectional self-attention","char_start":633,"start":40.611,"end":42.144,"video_start":42.811,"video_end":44.344},"every":{"phrase":"Every token can attend","char_start":663,"start":42.748,"end":43.885,"video_start":45.248,"video_end":46.385},"both_sides":{"phrase":"on both sides of the sentence","char_start":702,"start":44.698,"end":46.137,"video_start":47.198,"video_end":48.637},"ex_bank":{"phrase":"For example, 'bank' can attend","char_start":733,"start":46.451,"end":48.32,"video_start":48.951,"video_end":50.82},"deposited":{"phrase":"'deposited'","char_start":767,"start":48.564,"end":49.144,"video_start":51.064,"video_end":51.644},"money":{"phrase":"'money'","char_start":783,"start":49.4,"end":49.644,"video_start":51.9,"video_end":52.144},"second":{"phrase":"But in the second","char_start":814,"start":51.06,"end":51.873,"video_start":53.96,"video_end":54.773},"river":{"phrase":"'river'","char_start":850,"start":53.103,"end":53.359,"video_start":56.003,"video_end":56.259},"sat":{"phrase":"and 'sat'","char_start":858,"start":53.521,"end":54.044,"video_start":56.421,"video_end":56.944},"qkv":{"phrase":"query, key, and value projections","char_start":892,"start":55.925,"end":58.293,"video_start":59.225,"video_end":61.593},"flows":{"phrase":"how information flows between tokens","char_start":939,"start":58.966,"end":60.731,"video_start":62.266,"video_end":64.031},"heads":{"phrase":"multiple attention heads","char_start":984,"start":61.567,"end":62.635,"video_start":64.867,"video_end":65.935},"layers2":{"phrase":"and encoder layers","char_start":1009,"start":62.682,"end":63.657,"video_start":65.982,"video_end":66.957},"updated":{"phrase":"progressively updated","char_start":1060,"start":65.48,"end":66.583,"video_start":68.78,"video_end":69.883},"identical":{"phrase":"the original word is identical","char_start":1098,"start":67.639,"end":69.113,"video_start":71.239,"video_end":72.713},"different_vec":{"phrase":"different contextual vectors","char_start":1144,"start":70.332,"end":71.644,"video_start":73.932,"video_end":75.244},"one_vec":{"phrase":"one vector for the entire sentence","char_start":1228,"start":75.092,"end":77.066,"video_start":79.192,"video_end":81.166},"pool":{"phrase":"pool the token representations","char_start":1271,"start":77.74,"end":79.342,"video_start":81.84,"video_end":83.442},"mean":{"phrase":"taking their mean","char_start":1318,"start":80.375,"end":81.281,"video_start":84.475,"video_end":85.381},"cls":{"phrase":"the special CLS token","char_start":1385,"start":84.497,"end":85.878,"video_start":88.597,"video_end":89.978},"vanilla":{"phrase":"vanilla BERT wasn't specifically trained","char_start":1417,"start":87.109,"end":89.048,"video_start":91.209,"video_end":93.148},"similarity":{"phrase":"sentence similarity embeddings","char_start":1477,"start":90.151,"end":91.741,"video_start":94.251,"video_end":95.841},"sbert":{"phrase":"Sentence-BERT","char_start":1532,"start":93.367,"end":94.04,"video_start":97.467,"video_end":98.14},"sbert_useful":{"phrase":"more useful sentence-level representations","char_start":1585,"start":96.211,"end":98.533,"video_start":100.311,"video_end":102.633},"key_idea":{"phrase":"And that's the key idea","char_start":1629,"start":99.067,"end":100.17,"video_start":103.567,"video_end":104.67},"lookup":{"phrase":"doesn't simply look up a word's meaning","char_start":1659,"start":100.843,"end":102.643,"video_start":105.343,"video_end":107.143},"constructs":{"phrase":"It constructs representations","char_start":1700,"start":103.049,"end":104.559,"video_start":107.549,"video_end":109.059},"surrounding":{"phrase":"the surrounding context","char_start":1736,"start":104.953,"end":106.254,"video_start":109.453,"video_end":110.754}},"keywords":["BERT","Sentence-BERT","vectors","vector","context","contextual","tokens","token","subwords","learned","positional","token-type","Transformer","encoder","bidirectional","self-attention","attend","query,","key,","value","projections","attention","heads","representation","representations","bank","pool","mean","CLS","similarity","sentence-level","fine-tune"],"words":[{"w":"How","char_start":0,"char_end":3,"start":0,"end":0.29,"video_start":1,"video_end":1.29},{"w":"does","char_start":4,"char_end":8,"start":0.337,"end":0.511,"video_start":1.337,"video_end":1.511},{"w":"BERT","char_start":9,"char_end":13,"start":0.592,"end":0.859,"video_start":1.592,"video_end":1.859},{"w":"turn","char_start":14,"char_end":18,"start":0.917,"end":1.265,"video_start":1.917,"video_end":2.265},{"w":"ordinary","char_start":19,"char_end":27,"start":1.347,"end":1.846,"video_start":2.347,"video_end":2.846},{"w":"text","char_start":28,"char_end":32,"start":1.904,"end":2.264,"video_start":2.904,"video_end":3.264},{"w":"into","char_start":33,"char_end":37,"start":2.31,"end":2.473,"video_start":3.31,"video_end":3.473},{"w":"vectors","char_start":38,"char_end":45,"start":2.543,"end":2.926,"video_start":3.543,"video_end":3.926},{"w":"that","char_start":46,"char_end":50,"start":2.972,"end":3.111,"video_start":3.972,"video_end":4.111},{"w":"actually","char_start":51,"char_end":59,"start":3.158,"end":3.587,"video_start":4.158,"video_end":4.587},{"w":"understand","char_start":60,"char_end":70,"start":3.646,"end":4.18,"video_start":4.646,"video_end":5.18},{"w":"context?","char_start":71,"char_end":79,"start":4.249,"end":5.027,"video_start":5.249,"video_end":6.027},{"w":"Let's","char_start":80,"char_end":85,"start":5.561,"end":5.77,"video_start":6.561,"video_end":6.77},{"w":"take","char_start":86,"char_end":90,"start":5.805,"end":5.979,"video_start":6.805,"video_end":6.979},{"w":"two","char_start":91,"char_end":94,"start":6.014,"end":6.153,"video_start":7.014,"video_end":7.153},{"w":"sentences.","char_start":95,"char_end":105,"start":6.223,"end":6.943,"video_start":7.223,"video_end":7.943},{"w":"'I","char_start":106,"char_end":108,"start":7.43,"end":7.535,"video_start":8.43,"video_end":8.535},{"w":"deposited","char_start":109,"char_end":118,"start":7.639,"end":8.15,"video_start":8.639,"video_end":9.15},{"w":"money","char_start":119,"char_end":124,"start":8.208,"end":8.452,"video_start":9.208,"video_end":9.452},{"w":"at","char_start":125,"char_end":127,"start":8.499,"end":8.58,"video_start":9.499,"video_end":9.58},{"w":"the","char_start":128,"char_end":131,"start":8.626,"end":8.696,"video_start":9.626,"video_end":9.696},{"w":"bank.'","char_start":132,"char_end":138,"start":8.742,"end":9.16,"video_start":9.742,"video_end":10.16},{"w":"And,","char_start":139,"char_end":143,"start":9.427,"end":9.81,"video_start":10.427,"video_end":10.81},{"w":"'I","char_start":144,"char_end":146,"start":10.054,"end":10.159,"video_start":11.054,"video_end":11.159},{"w":"sat","char_start":147,"char_end":150,"start":10.275,"end":10.519,"video_start":11.275,"video_end":11.519},{"w":"by","char_start":151,"char_end":153,"start":10.577,"end":10.681,"video_start":11.577,"video_end":11.681},{"w":"the","char_start":154,"char_end":157,"start":10.728,"end":10.797,"video_start":11.728,"video_end":11.797},{"w":"river","char_start":158,"char_end":163,"start":10.855,"end":11.064,"video_start":11.855,"video_end":12.064},{"w":"bank.'","char_start":164,"char_end":170,"start":11.111,"end":11.517,"video_start":12.111,"video_end":12.517},{"w":"The","char_start":171,"char_end":174,"start":12.016,"end":12.144,"video_start":13.016,"video_end":13.144},{"w":"word","char_start":175,"char_end":179,"start":12.19,"end":12.434,"video_start":13.19,"video_end":13.434},{"w":"'bank'","char_start":180,"char_end":186,"start":12.504,"end":12.841,"video_start":13.504,"video_end":13.841},{"w":"appears","char_start":187,"char_end":194,"start":13.026,"end":13.479,"video_start":14.026,"video_end":14.479},{"w":"in","char_start":195,"char_end":197,"start":13.537,"end":13.618,"video_start":14.537,"video_end":14.618},{"w":"both,","char_start":198,"char_end":203,"start":13.688,"end":14.141,"video_start":14.688,"video_end":15.141},{"w":"but","char_start":204,"char_end":207,"start":14.245,"end":14.385,"video_start":15.245,"video_end":15.385},{"w":"clearly","char_start":208,"char_end":215,"start":14.431,"end":14.779,"video_start":15.431,"video_end":15.779},{"w":"means","char_start":216,"char_end":221,"start":14.838,"end":15.093,"video_start":15.838,"video_end":16.093},{"w":"different","char_start":222,"char_end":231,"start":15.151,"end":15.476,"video_start":16.151,"video_end":16.476},{"w":"things.","char_start":232,"char_end":239,"start":15.523,"end":16.115,"video_start":16.523,"video_end":17.115},{"w":"Here's","char_start":240,"char_end":246,"start":16.509,"end":16.753,"video_start":17.509,"video_end":17.753},{"w":"how","char_start":247,"char_end":250,"start":16.8,"end":16.927,"video_start":17.8,"video_end":17.927},{"w":"BERT","char_start":251,"char_end":255,"start":17.009,"end":17.241,"video_start":18.009,"video_end":18.241},{"w":"handles","char_start":256,"char_end":263,"start":17.287,"end":17.601,"video_start":18.287,"video_end":18.601},{"w":"that.","char_start":264,"char_end":269,"start":17.647,"end":18.019,"video_start":18.647,"video_end":19.019},{"w":"First,","char_start":270,"char_end":276,"start":18.413,"end":18.843,"video_start":19.713,"video_end":20.143},{"w":"it","char_start":277,"char_end":279,"start":19.029,"end":19.133,"video_start":20.329,"video_end":20.433},{"w":"splits","char_start":280,"char_end":286,"start":19.18,"end":19.482,"video_start":20.48,"video_end":20.782},{"w":"each","char_start":287,"char_end":291,"start":19.54,"end":19.725,"video_start":20.84,"video_end":21.025},{"w":"sentence","char_start":292,"char_end":300,"start":19.772,"end":20.178,"video_start":21.072,"video_end":21.478},{"w":"into","char_start":301,"char_end":305,"start":20.213,"end":20.364,"video_start":21.513,"video_end":21.664},{"w":"smaller","char_start":306,"char_end":313,"start":20.422,"end":20.747,"video_start":21.722,"video_end":22.047},{"w":"units","char_start":314,"char_end":319,"start":20.817,"end":21.061,"video_start":22.117,"video_end":22.361},{"w":"called","char_start":320,"char_end":326,"start":21.107,"end":21.351,"video_start":22.407,"video_end":22.651},{"w":"tokens.","char_start":327,"char_end":334,"start":21.386,"end":22.024,"video_start":22.686,"video_end":23.324},{"w":"Some","char_start":335,"char_end":339,"start":22.361,"end":22.558,"video_start":23.661,"video_end":23.858},{"w":"words","char_start":340,"char_end":345,"start":22.593,"end":22.814,"video_start":23.893,"video_end":24.114},{"w":"remain","char_start":346,"char_end":352,"start":22.86,"end":23.127,"video_start":24.16,"video_end":24.427},{"w":"whole,","char_start":353,"char_end":359,"start":23.174,"end":23.615,"video_start":24.474,"video_end":24.915},{"w":"while","char_start":360,"char_end":365,"start":23.754,"end":23.986,"video_start":25.054,"video_end":25.286},{"w":"others","char_start":366,"char_end":372,"start":24.033,"end":24.3,"video_start":25.333,"video_end":25.6},{"w":"are","char_start":373,"char_end":376,"start":24.335,"end":24.439,"video_start":25.635,"video_end":25.739},{"w":"broken","char_start":377,"char_end":383,"start":24.474,"end":24.752,"video_start":25.774,"video_end":26.052},{"w":"into","char_start":384,"char_end":388,"start":24.799,"end":24.938,"video_start":26.099,"video_end":26.238},{"w":"subwords.","char_start":389,"char_end":398,"start":24.996,"end":25.751,"video_start":26.296,"video_end":27.051},{"w":"Each","char_start":399,"char_end":403,"start":26.041,"end":26.25,"video_start":27.741,"video_end":27.95},{"w":"token","char_start":404,"char_end":409,"start":26.297,"end":26.633,"video_start":27.997,"video_end":28.333},{"w":"is","char_start":410,"char_end":412,"start":26.703,"end":26.819,"video_start":28.403,"video_end":28.519},{"w":"mapped","char_start":413,"char_end":419,"start":26.9,"end":27.225,"video_start":28.6,"video_end":28.925},{"w":"to","char_start":420,"char_end":422,"start":27.283,"end":27.411,"video_start":28.983,"video_end":29.111},{"w":"a","char_start":423,"char_end":424,"start":27.516,"end":27.539,"video_start":29.216,"video_end":29.239},{"w":"learned","char_start":425,"char_end":432,"start":27.609,"end":27.91,"video_start":29.309,"video_end":29.61},{"w":"vector.","char_start":433,"char_end":440,"start":27.968,"end":28.491,"video_start":29.668,"video_end":30.191},{"w":"BERT","char_start":441,"char_end":445,"start":28.944,"end":29.141,"video_start":30.644,"video_end":30.841},{"w":"then","char_start":446,"char_end":450,"start":29.176,"end":29.326,"video_start":30.876,"video_end":31.026},{"w":"adds","char_start":451,"char_end":455,"start":29.396,"end":29.686,"video_start":31.096,"video_end":31.386},{"w":"positional","char_start":456,"char_end":466,"start":29.733,"end":30.232,"video_start":31.433,"video_end":31.932},{"w":"information,","char_start":467,"char_end":479,"start":30.29,"end":30.998,"video_start":31.99,"video_end":32.698},{"w":"and","char_start":480,"char_end":483,"start":31.114,"end":31.323,"video_start":32.814,"video_end":33.023},{"w":"token-type","char_start":484,"char_end":494,"start":31.405,"end":32.008,"video_start":33.105,"video_end":33.708},{"w":"information","char_start":495,"char_end":506,"start":32.055,"end":32.566,"video_start":33.755,"video_end":34.266},{"w":"when","char_start":507,"char_end":511,"start":32.612,"end":32.775,"video_start":34.312,"video_end":34.475},{"w":"applicable.","char_start":512,"char_end":523,"start":32.821,"end":33.436,"video_start":34.521,"video_end":35.136},{"w":"These","char_start":524,"char_end":529,"start":34.063,"end":34.296,"video_start":36.263,"video_end":36.496},{"w":"vectors","char_start":530,"char_end":537,"start":34.342,"end":34.679,"video_start":36.542,"video_end":36.879},{"w":"enter","char_start":538,"char_end":543,"start":34.725,"end":34.934,"video_start":36.925,"video_end":37.134},{"w":"a","char_start":544,"char_end":545,"start":34.992,"end":35.015,"video_start":37.192,"video_end":37.215},{"w":"stack","char_start":546,"char_end":551,"start":35.073,"end":35.387,"video_start":37.273,"video_end":37.587},{"w":"of","char_start":552,"char_end":554,"start":35.433,"end":35.491,"video_start":37.633,"video_end":37.691},{"w":"Transformer","char_start":555,"char_end":566,"start":35.549,"end":36.141,"video_start":37.749,"video_end":38.341},{"w":"encoder","char_start":567,"char_end":574,"start":36.2,"end":36.583,"video_start":38.4,"video_end":38.783},{"w":"layers.","char_start":575,"char_end":582,"start":36.629,"end":37.128,"video_start":38.829,"video_end":39.328},{"w":"Inside","char_start":583,"char_end":589,"start":37.419,"end":37.895,"video_start":39.619,"video_end":40.095},{"w":"each","char_start":590,"char_end":594,"start":37.929,"end":38.104,"video_start":40.129,"video_end":40.304},{"w":"layer,","char_start":595,"char_end":601,"start":38.162,"end":38.545,"video_start":40.362,"video_end":40.745},{"w":"something","char_start":602,"char_end":611,"start":38.684,"end":39.021,"video_start":40.884,"video_end":41.221},{"w":"interesting","char_start":612,"char_end":623,"start":39.079,"end":39.532,"video_start":41.279,"video_end":41.732},{"w":"happens:","char_start":624,"char_end":632,"start":39.601,"end":40.159,"video_start":41.801,"video_end":42.359},{"w":"bidirectional","char_start":633,"char_end":646,"start":40.611,"end":41.378,"video_start":42.811,"video_end":43.578},{"w":"self-attention.","char_start":647,"char_end":662,"start":41.447,"end":42.295,"video_start":43.647,"video_end":44.495},{"w":"Every","char_start":663,"char_end":668,"start":42.748,"end":43.026,"video_start":45.248,"video_end":45.526},{"w":"token","char_start":669,"char_end":674,"start":43.073,"end":43.374,"video_start":45.573,"video_end":45.874},{"w":"can","char_start":675,"char_end":678,"start":43.421,"end":43.537,"video_start":45.921,"video_end":46.037},{"w":"attend","char_start":679,"char_end":685,"start":43.583,"end":43.885,"video_start":46.083,"video_end":46.385},{"w":"to","char_start":686,"char_end":688,"start":43.943,"end":44.013,"video_start":46.443,"video_end":46.513},{"w":"other","char_start":689,"char_end":694,"start":44.082,"end":44.268,"video_start":46.582,"video_end":46.768},{"w":"tokens","char_start":695,"char_end":701,"start":44.315,"end":44.651,"video_start":46.815,"video_end":47.151},{"w":"on","char_start":702,"char_end":704,"start":44.698,"end":44.791,"video_start":47.198,"video_end":47.291},{"w":"both","char_start":705,"char_end":709,"start":44.849,"end":45.035,"video_start":47.349,"video_end":47.535},{"w":"sides","char_start":710,"char_end":715,"start":45.081,"end":45.394,"video_start":47.581,"video_end":47.894},{"w":"of","char_start":716,"char_end":718,"start":45.418,"end":45.464,"video_start":47.918,"video_end":47.964},{"w":"the","char_start":719,"char_end":722,"start":45.511,"end":45.58,"video_start":48.011,"video_end":48.08},{"w":"sentence.","char_start":723,"char_end":732,"start":45.627,"end":46.161,"video_start":48.127,"video_end":48.661},{"w":"For","char_start":733,"char_end":736,"start":46.451,"end":46.602,"video_start":48.951,"video_end":49.102},{"w":"example,","char_start":737,"char_end":745,"start":46.648,"end":47.136,"video_start":49.148,"video_end":49.636},{"w":"'bank'","char_start":746,"char_end":752,"start":47.426,"end":47.716,"video_start":49.926,"video_end":50.216},{"w":"can","char_start":753,"char_end":756,"start":47.844,"end":48.007,"video_start":50.344,"video_end":50.507},{"w":"attend","char_start":757,"char_end":763,"start":48.053,"end":48.32,"video_start":50.553,"video_end":50.82},{"w":"to","char_start":764,"char_end":766,"start":48.367,"end":48.459,"video_start":50.867,"video_end":50.959},{"w":"'deposited'","char_start":767,"char_end":778,"start":48.564,"end":49.144,"video_start":51.064,"video_end":51.644},{"w":"and","char_start":779,"char_end":782,"start":49.214,"end":49.319,"video_start":51.714,"video_end":51.819},{"w":"'money'","char_start":783,"char_end":790,"start":49.4,"end":49.644,"video_start":51.9,"video_end":52.144},{"w":"in","char_start":791,"char_end":793,"start":49.713,"end":49.783,"video_start":52.213,"video_end":52.283},{"w":"the","char_start":794,"char_end":797,"start":49.829,"end":49.899,"video_start":52.329,"video_end":52.399},{"w":"first","char_start":798,"char_end":803,"start":49.946,"end":50.178,"video_start":52.446,"video_end":52.678},{"w":"sentence.","char_start":804,"char_end":813,"start":50.247,"end":50.77,"video_start":52.747,"video_end":53.27},{"w":"But","char_start":814,"char_end":817,"start":51.06,"end":51.199,"video_start":53.96,"video_end":54.099},{"w":"in","char_start":818,"char_end":820,"start":51.246,"end":51.316,"video_start":54.146,"video_end":54.216},{"w":"the","char_start":821,"char_end":824,"start":51.362,"end":51.432,"video_start":54.262,"video_end":54.332},{"w":"second,","char_start":825,"char_end":832,"start":51.478,"end":51.954,"video_start":54.378,"video_end":54.854},{"w":"it","char_start":833,"char_end":835,"start":52.105,"end":52.221,"video_start":55.005,"video_end":55.121},{"w":"can","char_start":836,"char_end":839,"start":52.268,"end":52.395,"video_start":55.168,"video_end":55.295},{"w":"attend","char_start":840,"char_end":846,"start":52.442,"end":52.709,"video_start":55.342,"video_end":55.609},{"w":"to","char_start":847,"char_end":849,"start":52.767,"end":52.894,"video_start":55.667,"video_end":55.794},{"w":"'river'","char_start":850,"char_end":857,"start":53.103,"end":53.359,"video_start":56.003,"video_end":56.259},{"w":"and","char_start":858,"char_end":861,"start":53.521,"end":53.719,"video_start":56.421,"video_end":56.619},{"w":"'sat'.","char_start":862,"char_end":868,"start":53.8,"end":54.241,"video_start":56.7,"video_end":57.141},{"w":"Attention","char_start":869,"char_end":878,"start":54.636,"end":55.1,"video_start":57.936,"video_end":58.4},{"w":"uses","char_start":879,"char_end":883,"start":55.17,"end":55.495,"video_start":58.47,"video_end":58.795},{"w":"learned","char_start":884,"char_end":891,"start":55.565,"end":55.878,"video_start":58.865,"video_end":59.178},{"w":"query,","char_start":892,"char_end":898,"start":55.925,"end":56.412,"video_start":59.225,"video_end":59.712},{"w":"key,","char_start":899,"char_end":903,"start":56.563,"end":56.935,"video_start":59.863,"video_end":60.235},{"w":"and","char_start":904,"char_end":907,"start":56.97,"end":57.178,"video_start":60.27,"video_end":60.478},{"w":"value","char_start":908,"char_end":913,"start":57.283,"end":57.689,"video_start":60.583,"video_end":60.989},{"w":"projections","char_start":914,"char_end":925,"start":57.724,"end":58.293,"video_start":61.024,"video_end":61.593},{"w":"to","char_start":926,"char_end":928,"start":58.339,"end":58.409,"video_start":61.639,"video_end":61.709},{"w":"calculate","char_start":929,"char_end":938,"start":58.467,"end":58.932,"video_start":61.767,"video_end":62.232},{"w":"how","char_start":939,"char_end":942,"start":58.966,"end":59.082,"video_start":62.266,"video_end":62.382},{"w":"information","char_start":943,"char_end":954,"start":59.141,"end":59.605,"video_start":62.441,"video_end":62.905},{"w":"flows","char_start":955,"char_end":960,"start":59.663,"end":59.918,"video_start":62.963,"video_end":63.218},{"w":"between","char_start":961,"char_end":968,"start":59.965,"end":60.255,"video_start":63.265,"video_end":63.555},{"w":"tokens.","char_start":969,"char_end":976,"start":60.302,"end":60.87,"video_start":63.602,"video_end":64.17},{"w":"Across","char_start":977,"char_end":983,"start":61.161,"end":61.509,"video_start":64.461,"video_end":64.809},{"w":"multiple","char_start":984,"char_end":992,"start":61.567,"end":61.939,"video_start":64.867,"video_end":65.239},{"w":"attention","char_start":993,"char_end":1002,"start":61.973,"end":62.356,"video_start":65.273,"video_end":65.656},{"w":"heads","char_start":1003,"char_end":1008,"start":62.415,"end":62.635,"video_start":65.715,"video_end":65.935},{"w":"and","char_start":1009,"char_end":1012,"start":62.682,"end":62.798,"video_start":65.982,"video_end":66.098},{"w":"encoder","char_start":1013,"char_end":1020,"start":62.867,"end":63.25,"video_start":66.167,"video_end":66.55},{"w":"layers,","char_start":1021,"char_end":1028,"start":63.297,"end":63.761,"video_start":66.597,"video_end":67.061},{"w":"each","char_start":1029,"char_end":1033,"start":63.947,"end":64.144,"video_start":67.247,"video_end":67.444},{"w":"token's","char_start":1034,"char_end":1041,"start":64.191,"end":64.539,"video_start":67.491,"video_end":67.839},{"w":"representation","char_start":1042,"char_end":1056,"start":64.586,"end":65.294,"video_start":67.886,"video_end":68.594},{"w":"is","char_start":1057,"char_end":1059,"start":65.352,"end":65.433,"video_start":68.652,"video_end":68.733},{"w":"progressively","char_start":1060,"char_end":1073,"start":65.48,"end":66.048,"video_start":68.78,"video_end":69.348},{"w":"updated.","char_start":1074,"char_end":1082,"start":66.095,"end":66.699,"video_start":69.395,"video_end":69.999},{"w":"So","char_start":1083,"char_end":1085,"start":67.035,"end":67.163,"video_start":70.635,"video_end":70.763},{"w":"even","char_start":1086,"char_end":1090,"start":67.233,"end":67.395,"video_start":70.833,"video_end":70.995},{"w":"though","char_start":1091,"char_end":1097,"start":67.43,"end":67.604,"video_start":71.03,"video_end":71.204},{"w":"the","char_start":1098,"char_end":1101,"start":67.639,"end":67.709,"video_start":71.239,"video_end":71.309},{"w":"original","char_start":1102,"char_end":1110,"start":67.767,"end":68.138,"video_start":71.367,"video_end":71.738},{"w":"word","char_start":1111,"char_end":1115,"start":68.185,"end":68.382,"video_start":71.785,"video_end":71.982},{"w":"is","char_start":1116,"char_end":1118,"start":68.428,"end":68.51,"video_start":72.028,"video_end":72.11},{"w":"identical,","char_start":1119,"char_end":1129,"start":68.568,"end":69.264,"video_start":72.168,"video_end":72.864},{"w":"BERT","char_start":1130,"char_end":1134,"start":69.45,"end":69.74,"video_start":73.05,"video_end":73.34},{"w":"produces","char_start":1135,"char_end":1143,"start":69.822,"end":70.274,"video_start":73.422,"video_end":73.874},{"w":"different","char_start":1144,"char_end":1153,"start":70.332,"end":70.657,"video_start":73.932,"video_end":74.257},{"w":"contextual","char_start":1154,"char_end":1164,"start":70.704,"end":71.261,"video_start":74.304,"video_end":74.861},{"w":"vectors","char_start":1165,"char_end":1172,"start":71.319,"end":71.644,"video_start":74.919,"video_end":75.244},{"w":"for","char_start":1173,"char_end":1176,"start":71.691,"end":71.818,"video_start":75.291,"video_end":75.418},{"w":"'bank'","char_start":1177,"char_end":1183,"start":71.9,"end":72.178,"video_start":75.5,"video_end":75.778},{"w":"in","char_start":1184,"char_end":1186,"start":72.434,"end":72.55,"video_start":76.034,"video_end":76.15},{"w":"these","char_start":1187,"char_end":1192,"start":72.596,"end":72.782,"video_start":76.196,"video_end":76.382},{"w":"two","char_start":1193,"char_end":1196,"start":72.817,"end":72.945,"video_start":76.417,"video_end":76.545},{"w":"sentences.","char_start":1197,"char_end":1207,"start":73.003,"end":73.746,"video_start":76.603,"video_end":77.346},{"w":"But","char_start":1208,"char_end":1211,"start":74.199,"end":74.349,"video_start":78.299,"video_end":78.449},{"w":"what","char_start":1212,"char_end":1216,"start":74.384,"end":74.524,"video_start":78.484,"video_end":78.624},{"w":"if","char_start":1217,"char_end":1219,"start":74.558,"end":74.628,"video_start":78.658,"video_end":78.728},{"w":"we","char_start":1220,"char_end":1222,"start":74.675,"end":74.767,"video_start":78.775,"video_end":78.867},{"w":"need","char_start":1223,"char_end":1227,"start":74.837,"end":75.034,"video_start":78.937,"video_end":79.134},{"w":"one","char_start":1228,"char_end":1231,"start":75.092,"end":75.301,"video_start":79.192,"video_end":79.401},{"w":"vector","char_start":1232,"char_end":1238,"start":75.348,"end":75.65,"video_start":79.448,"video_end":79.75},{"w":"for","char_start":1239,"char_end":1242,"start":75.708,"end":75.812,"video_start":79.808,"video_end":79.912},{"w":"the","char_start":1243,"char_end":1246,"start":75.859,"end":75.94,"video_start":79.959,"video_end":80.04},{"w":"entire","char_start":1247,"char_end":1253,"start":75.998,"end":76.428,"video_start":80.098,"video_end":80.528},{"w":"sentence?","char_start":1254,"char_end":1263,"start":76.474,"end":77.101,"video_start":80.574,"video_end":81.201},{"w":"We","char_start":1264,"char_end":1266,"start":77.438,"end":77.531,"video_start":81.538,"video_end":81.631},{"w":"can","char_start":1267,"char_end":1270,"start":77.577,"end":77.693,"video_start":81.677,"video_end":81.793},{"w":"pool","char_start":1271,"char_end":1275,"start":77.74,"end":77.972,"video_start":81.84,"video_end":82.072},{"w":"the","char_start":1276,"char_end":1279,"start":78.03,"end":78.099,"video_start":82.13,"video_end":82.199},{"w":"token","char_start":1280,"char_end":1285,"start":78.146,"end":78.425,"video_start":82.246,"video_end":82.525},{"w":"representations,","char_start":1286,"char_end":1302,"start":78.471,"end":79.446,"video_start":82.571,"video_end":83.546},{"w":"for","char_start":1303,"char_end":1306,"start":79.551,"end":79.69,"video_start":83.651,"video_end":83.79},{"w":"example","char_start":1307,"char_end":1314,"start":79.748,"end":80.143,"video_start":83.848,"video_end":84.243},{"w":"by","char_start":1315,"char_end":1317,"start":80.189,"end":80.305,"video_start":84.289,"video_end":84.405},{"w":"taking","char_start":1318,"char_end":1324,"start":80.375,"end":80.665,"video_start":84.475,"video_end":84.765},{"w":"their","char_start":1325,"char_end":1330,"start":80.723,"end":80.897,"video_start":84.823,"video_end":84.997},{"w":"mean.","char_start":1331,"char_end":1336,"start":80.944,"end":81.432,"video_start":85.044,"video_end":85.532},{"w":"Another","char_start":1337,"char_end":1344,"start":82.058,"end":82.418,"video_start":86.158,"video_end":86.518},{"w":"approach","char_start":1345,"char_end":1353,"start":82.465,"end":82.813,"video_start":86.565,"video_end":86.913},{"w":"uses","char_start":1354,"char_end":1358,"start":82.871,"end":83.15,"video_start":86.971,"video_end":87.25},{"w":"the","char_start":1359,"char_end":1362,"start":83.196,"end":83.266,"video_start":87.296,"video_end":87.366},{"w":"final","char_start":1363,"char_end":1368,"start":83.312,"end":83.638,"video_start":87.412,"video_end":87.738},{"w":"hidden","char_start":1369,"char_end":1375,"start":83.707,"end":83.974,"video_start":87.807,"video_end":88.074},{"w":"state","char_start":1376,"char_end":1381,"start":84.032,"end":84.346,"video_start":88.132,"video_end":88.446},{"w":"of","char_start":1382,"char_end":1384,"start":84.381,"end":84.45,"video_start":88.481,"video_end":88.55},{"w":"the","char_start":1385,"char_end":1388,"start":84.497,"end":84.566,"video_start":88.597,"video_end":88.666},{"w":"special","char_start":1389,"char_end":1396,"start":84.613,"end":84.961,"video_start":88.713,"video_end":89.061},{"w":"CLS","char_start":1397,"char_end":1400,"start":85.019,"end":85.449,"video_start":89.119,"video_end":89.549},{"w":"token.","char_start":1401,"char_end":1407,"start":85.507,"end":86.018,"video_start":89.607,"video_end":90.118},{"w":"However,","char_start":1408,"char_end":1416,"start":86.412,"end":86.958,"video_start":90.512,"video_end":91.058},{"w":"vanilla","char_start":1417,"char_end":1424,"start":87.109,"end":87.422,"video_start":91.209,"video_end":91.522},{"w":"BERT","char_start":1425,"char_end":1429,"start":87.469,"end":87.678,"video_start":91.569,"video_end":91.778},{"w":"wasn't","char_start":1430,"char_end":1436,"start":87.724,"end":87.991,"video_start":91.824,"video_end":92.091},{"w":"specifically","char_start":1437,"char_end":1449,"start":88.038,"end":88.572,"video_start":92.138,"video_end":92.672},{"w":"trained","char_start":1450,"char_end":1457,"start":88.618,"end":89.048,"video_start":92.718,"video_end":93.148},{"w":"to","char_start":1458,"char_end":1460,"start":89.152,"end":89.268,"video_start":93.252,"video_end":93.368},{"w":"produce","char_start":1461,"char_end":1468,"start":89.326,"end":89.628,"video_start":93.426,"video_end":93.728},{"w":"optimal","char_start":1469,"char_end":1476,"start":89.675,"end":90.093,"video_start":93.775,"video_end":94.193},{"w":"sentence","char_start":1477,"char_end":1485,"start":90.151,"end":90.557,"video_start":94.251,"video_end":94.657},{"w":"similarity","char_start":1486,"char_end":1496,"start":90.592,"end":91.126,"video_start":94.692,"video_end":95.226},{"w":"embeddings.","char_start":1497,"char_end":1508,"start":91.172,"end":91.857,"video_start":95.272,"video_end":95.957},{"w":"That's","char_start":1509,"char_end":1515,"start":92.31,"end":92.531,"video_start":96.41,"video_end":96.631},{"w":"why","char_start":1516,"char_end":1519,"start":92.566,"end":92.693,"video_start":96.666,"video_end":96.793},{"w":"models","char_start":1520,"char_end":1526,"start":92.763,"end":93.1,"video_start":96.863,"video_end":97.2},{"w":"like","char_start":1527,"char_end":1531,"start":93.146,"end":93.32,"video_start":97.246,"video_end":97.42},{"w":"Sentence-BERT","char_start":1532,"char_end":1545,"start":93.367,"end":94.04,"video_start":97.467,"video_end":98.14},{"w":"fine-tune","char_start":1546,"char_end":1555,"start":94.261,"end":94.864,"video_start":98.361,"video_end":98.964},{"w":"the","char_start":1556,"char_end":1559,"start":94.899,"end":94.969,"video_start":98.999,"video_end":99.069},{"w":"architecture","char_start":1560,"char_end":1572,"start":95.027,"end":95.607,"video_start":99.127,"video_end":99.707},{"w":"to","char_start":1573,"char_end":1575,"start":95.642,"end":95.712,"video_start":99.742,"video_end":99.812},{"w":"generate","char_start":1576,"char_end":1584,"start":95.782,"end":96.165,"video_start":99.882,"video_end":100.265},{"w":"more","char_start":1585,"char_end":1589,"start":96.211,"end":96.397,"video_start":100.311,"video_end":100.497},{"w":"useful","char_start":1590,"char_end":1596,"start":96.455,"end":96.826,"video_start":100.555,"video_end":100.926},{"w":"sentence-level","char_start":1597,"char_end":1611,"start":96.908,"end":97.593,"video_start":101.008,"video_end":101.693},{"w":"representations.","char_start":1612,"char_end":1628,"start":97.662,"end":98.672,"video_start":101.762,"video_end":102.772},{"w":"And","char_start":1629,"char_end":1632,"start":99.067,"end":99.195,"video_start":103.567,"video_end":103.695},{"w":"that's","char_start":1633,"char_end":1639,"start":99.241,"end":99.439,"video_start":103.741,"video_end":103.939},{"w":"the","char_start":1640,"char_end":1643,"start":99.485,"end":99.555,"video_start":103.985,"video_end":104.055},{"w":"key","char_start":1644,"char_end":1647,"start":99.601,"end":99.752,"video_start":104.101,"video_end":104.252},{"w":"idea:","char_start":1648,"char_end":1653,"start":99.81,"end":100.309,"video_start":104.31,"video_end":104.809},{"w":"BERT","char_start":1654,"char_end":1658,"start":100.6,"end":100.797,"video_start":105.1,"video_end":105.297},{"w":"doesn't","char_start":1659,"char_end":1666,"start":100.843,"end":101.122,"video_start":105.343,"video_end":105.622},{"w":"simply","char_start":1667,"char_end":1673,"start":101.169,"end":101.459,"video_start":105.669,"video_end":105.959},{"w":"look","char_start":1674,"char_end":1678,"start":101.505,"end":101.691,"video_start":106.005,"video_end":106.191},{"w":"up","char_start":1679,"char_end":1681,"start":101.737,"end":101.83,"video_start":106.237,"video_end":106.33},{"w":"a","char_start":1682,"char_end":1683,"start":101.877,"end":101.912,"video_start":106.377,"video_end":106.412},{"w":"word's","char_start":1684,"char_end":1690,"start":101.97,"end":102.271,"video_start":106.47,"video_end":106.771},{"w":"meaning.","char_start":1691,"char_end":1699,"start":102.318,"end":102.759,"video_start":106.818,"video_end":107.259},{"w":"It","char_start":1700,"char_end":1702,"start":103.049,"end":103.165,"video_start":107.549,"video_end":107.665},{"w":"constructs","char_start":1703,"char_end":1713,"start":103.212,"end":103.665,"video_start":107.712,"video_end":108.165},{"w":"representations","char_start":1714,"char_end":1729,"start":103.723,"end":104.559,"video_start":108.223,"video_end":109.059},{"w":"using","char_start":1730,"char_end":1735,"start":104.628,"end":104.907,"video_start":109.128,"video_end":109.407},{"w":"the","char_start":1736,"char_end":1739,"start":104.953,"end":105.023,"video_start":109.453,"video_end":109.523},{"w":"surrounding","char_start":1740,"char_end":1751,"start":105.069,"end":105.534,"video_start":109.569,"video_end":110.034},{"w":"context.","char_start":1752,"char_end":1760,"start":105.604,"end":106.672,"video_start":110.104,"video_end":111.172}]};</script>
+<!-- DATA:END -->
+
+<script>
+'use strict';
+// =============================================================================
+//  How BERT embeddings work. draw(t) renders the frame at video time t (seconds).
+//  It keeps no state between frames and uses no timers. Every value is a pure function
+//  of t and of the ElevenLabs alignment (window.TIMING, from alignment.json).
+// =============================================================================
+const W = 1080, H = 1920;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+if (window.__RENDERING) document.body.classList.add('render');
+
+const C = {
+  bg: '#FAF9F6', ink: '#2B2925', terra: '#C46A47', terraLight: '#E8B9A2', beige: '#EFE8DC', sand: '#E4D9C7',
+  card: '#FFFEFB', border: '#E7DFD2', muted: '#8A8175', soft: '#F4EFE6', slate: '#5F8299', slateLight: '#B9CCD8',
+  sage: '#7E9474', sageLight: '#C9D4C1', gold: '#C99A4B'
+};
+const SERIF = '"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif';
+const SANS = '-apple-system, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif';
+const MONO = '"SF Mono", Menlo, Consolas, monospace';
+
+// ------------------------------------------------------------------ utilities
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const easeOut = k => 1 - Math.pow(1 - k, 3);
+const easeOutBack = k => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+const ein = (t, a, d = .5) => easeOut(prog(t, a, a + d));            // eased fade-in from a
+const eio = (t, a, d = .6) => easeInOut(prog(t, a, a + d));           // eased in-out from a
+const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+const mix = (a, b, k) => { const A = hex(a), B = hex(b); k = clamp(k); return `rgb(${lerp(A[0], B[0], k) | 0},${lerp(A[1], B[1], k) | 0},${lerp(A[2], B[2], k) | 0})`; };
+const rgba = (h, a) => { const c = hex(h); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; };
+const rnd = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };   // deterministic hash
+const srnd = i => rnd(i) * 2 - 1;
+const frac = x => x - Math.floor(x);
+const pulse = (t, a, d = .9) => { const k = prog(t, a, a + d); return k > 0 && k < 1 ? Math.sin(k * Math.PI) : 0; };
+
+// ------------------------------------------------------------------ the data
+// Real bert-base-uncased WordPiece tokens and vocabulary IDs (checked against vocab.txt).
+const TOK_A = ['[CLS]', 'i', 'deposited', 'money', 'at', 'the', 'bank', '.', '[SEP]'];
+const IDS_A = [101, 1045, 14140, 2769, 2012, 1996, 2924, 1012, 102];
+const TOK_B = ['[CLS]', 'i', 'sat', 'by', 'the', 'river', 'bank', '.', '[SEP]'];
+const IDS_B = [101, 1045, 2938, 2011, 1996, 2314, 2924, 1012, 102];
+const SUB = ['em', '##bed', '##ding', '##s'], SUB_IDS = [7861, 8270, 4667, 2015];   // "embeddings"
+const BANK = 6;   // "bank" sits at position 6 in BOTH sentences, so its input embedding is identical
+// Illustrative attention weights from "bank" (softmax row, each sums to 1). Not taken from a trained model.
+const ATT_A = [.05, .03, .30, .26, .04, .06, .14, .04, .08];
+const ATT_B = [.05, .03, .17, .07, .06, .38, .14, .03, .07];
+// Illustrative 6-d slices of the three input embeddings for "bank" (real BERT-base: 768-d)
+const E_TOK = [0.42, -0.17, 0.08, 0.61, -0.33, 0.25];
+const E_POS = [0.05, 0.12, -0.09, 0.03, 0.07, -0.04];
+const E_SEG = [0.02, -0.01, 0.03, 0.00, -0.02, 0.01];
+const E_SUM = E_TOK.map((v, i) => +(v + E_POS[i] + E_SEG[i]).toFixed(2));   // exact element-wise sum
+
+// Contextual vectors (illustrative). 16 shown dims; layer L blends from the shared input toward each context.
+const DIM = 16;
+const BANK_IN = Array.from({ length: DIM }, (_, i) => srnd(i + 3) * .55);
+const CTX_A = Array.from({ length: DIM }, (_, i) => srnd(i + 101) * .75);
+const CTX_B = Array.from({ length: DIM }, (_, i) => srnd(i + 211) * .75);
+const bankAt = (L, which) => BANK_IN.map((v, i) => clamp(v + Math.pow(L / 12, 1.15) * (which === 'A' ? CTX_A : CTX_B)[i], -1, 1));
+// Final-layer token vectors for sentence A (8 shown dims), for pooling
+const HID = TOK_A.map((_, j) => Array.from({ length: 8 }, (_, d) => clamp(srnd(j * 31 + d * 7 + 5) * .9 + (j === BANK ? .1 : 0), -1, 1)));
+const MEAN = HID[0].map((_, d) => HID.reduce((s, h) => s + h[d], 0) / HID.length);
+
+// Illustrative 9x9 attention matrix for sentence A: softmax over logits (rows sum to 1), bank row = ATT_A
+const ATTM = TOK_A.map((_, i) => {
+  if (i === BANK) return ATT_A.slice();
+  const lg = TOK_A.map((_, j) => -Math.abs(i - j) * .55 + (i === j ? 1.1 : 0) + (j === 8 || j === 0 ? .5 : 0) + rnd(i * 9 + j) * .6);
+  const ex = lg.map(Math.exp), s = ex.reduce((a, b) => a + b, 0);
+  return ex.map(v => v / s);
+});
+// self-checks: fail loudly if the maths drawn on screen were wrong
+const sum = a => a.reduce((x, y) => x + y, 0);
+console.assert(Math.abs(sum(ATT_A) - 1) < 1e-9 && Math.abs(sum(ATT_B) - 1) < 1e-9, 'attention rows must sum to 1');
+console.assert(ATTM.every(r => Math.abs(sum(r) - 1) < 1e-9), 'attention matrix rows must sum to 1');
+console.assert(E_SUM.every((v, i) => Math.abs(v - (E_TOK[i] + E_POS[i] + E_SEG[i])) < 0.006), 'embedding sum');
+console.assert(TOK_A[BANK] === 'bank' && TOK_B[BANK] === 'bank' && IDS_A[BANK] === IDS_B[BANK], 'bank position/id');
+window.CHECKS = { E_SUM, ATT_A, ATT_B, MEAN };
+
+// ------------------------------------------------------------------ timeline / time warp
+let TM, TOTAL, SC, CUE, SEN, CAPS, KW;
+function warp(n) {                 // narration time -> video time (lead-in + inserted pauses)
+  let v = TM.warp.lead_in + n;
+  for (const ins of TM.warp.inserts) if (ins.at <= n) v += ins.dur;
+  return v;
+}
+const Q = k => warp(TM.cues[k].start);        // cue start (video time)
+const QE = k => warp(TM.cues[k].end);         // cue end (video time)
+const SS = p => { const s = TM.sentences.find(x => x.text.startsWith(p)); return { s: warp(s.start), e: warp(s.end) }; };
+function setup() {
+  TM = window.TIMING;
+  // scene windows come from alignment.json, which maps each sentence to a scene
+  SC = {};
+  for (const s of TM.scenes) SC[s.scene] = { s: s.start, e: s.end };
+  TOTAL = TM.warp.total; window.TOTAL = TOTAL;
+  KW = new Set(TM.keywords.map(k => k.toLowerCase().replace(/[^a-z\-]/g, '')));
+  CAPS = TM.subtitles.map(p => ({ s: p.show_from, e: p.show_until,
+    words: p.words.map((w, i) => ({ w, s: p.word_times[i][0], e: p.word_times[i][1] })) }));
+  const seek = document.getElementById('seek'); if (seek) seek.max = TOTAL;
+}
+const isKW = w => {
+  const b = w.replace(/^['"(]+|['".,:;?!)]+$/g, '').replace(/'s$/, '');
+  return KW.has(b.toLowerCase()) && !/^(a|the)$/i.test(b);
+};
+// scene envelope: crossfade around the scene window boundaries
+function env(t, sc, fi = .35, fo = .35) {
+  const w = SC[sc];
+  return Math.min(easeInOut(prog(t, w.s - fi * .4, w.s + fi)), 1 - easeInOut(prog(t, w.e - fo, w.e + fo * .4)));
+}
+
+// ------------------------------------------------------------------ primitives
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function card(x, y, w, h, a = 1, o = {}) {
+  if (a <= 0.001) return;
+  ctx.save(); ctx.globalAlpha *= a;
+  ctx.shadowColor = 'rgba(80,55,30,0.07)'; ctx.shadowBlur = 34; ctx.shadowOffsetY = 12;
+  rr(x, y, w, h, o.r || 34); ctx.fillStyle = o.fill || C.card; ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.lineWidth = o.lw || 2; ctx.strokeStyle = o.stroke || C.border; ctx.stroke();
+  ctx.restore();
+}
+function text(s, x, y, { font = SANS, size = 36, weight = 400, color = C.ink, align = 'left', base = 'alphabetic', alpha = 1, spacing = 0, italic = false } = {}) {
+  if (alpha <= 0.001) return;
+  ctx.save(); ctx.globalAlpha *= alpha;
+  ctx.font = `${italic ? 'italic ' : ''}${weight} ${size}px ${font}`; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = base;
+  if (spacing) ctx.letterSpacing = spacing + 'px';
+  ctx.fillText(s, x, y); ctx.restore();
+}
+function measure(s, size, weight = 400, font = SANS) { ctx.save(); ctx.font = `${weight} ${size}px ${font}`; const w = ctx.measureText(s).width; ctx.restore(); return w; }
+function chip(label, cx, cy, { size = 30, weight = 600, fill = C.card, color = C.ink, stroke = C.border, alpha = 1, scale = 1, h = 60, font = SANS, padX = 26, minW = 0, r = null } = {}) {
+  if (alpha <= 0.001) return 0;
+  const w = Math.max(minW, measure(label, size, weight, font) + padX * 2);
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.translate(cx, cy); ctx.scale(scale, scale);
+  rr(-w / 2, -h / 2, w, h, r == null ? h / 2 : r); ctx.fillStyle = fill; ctx.fill();
+  if (stroke) { ctx.lineWidth = 2; ctx.strokeStyle = stroke; ctx.stroke(); }
+  ctx.font = `${weight} ${size}px ${font}`; ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(label, 0, 2); ctx.restore();
+  return w;
+}
+function asterisk(cx, cy, r, rot, color = C.terra, alpha = 1) {   // Claude-inspired mark
+  if (alpha <= 0.001) return;
+  const L = [1, .8, .94, .76, 1, .84, .9, .78, .97, .82, .92, .8];
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.translate(cx, cy); ctx.rotate(rot);
+  ctx.strokeStyle = color; ctx.lineCap = 'round'; ctx.lineWidth = r * .2;
+  for (let i = 0; i < L.length; i++) {
+    const a = i / L.length * Math.PI * 2;
+    ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * .16, Math.sin(a) * r * .16); ctx.lineTo(Math.cos(a) * r * L[i], Math.sin(a) * r * L[i]); ctx.stroke();
+  }
+  ctx.restore();
+}
+function arrow(x1, y1, x2, y2, k = 1, color = C.muted, lw = 4, head = 16, alpha = 1) {
+  if (k <= 0.001 || alpha <= .001) return;
+  const xe = lerp(x1, x2, k), ye = lerp(y1, y2, k);
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round';
+  const a = Math.atan2(y2 - y1, x2 - x1);
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(xe - Math.cos(a) * head * .6, ye - Math.sin(a) * head * .6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(xe, ye);
+  ctx.lineTo(xe - Math.cos(a - .42) * head, ye - Math.sin(a - .42) * head);
+  ctx.lineTo(xe - Math.cos(a + .42) * head, ye - Math.sin(a + .42) * head); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+// diverging colour for a vector component: negative -> slate, 0 -> beige, positive -> terracotta
+const vcol = v => v >= 0 ? mix(C.beige, C.terra, Math.min(1, v * 1.25)) : mix(C.beige, C.slate, Math.min(1, -v * 1.25));
+// vector as a strip of rounded cells. dir 'h' or 'v'.
+function vec(x, y, vals, { cs = 30, gap = 5, dir = 'h', alpha = 1, reveal = 1, r = 7, stroke = null, nums = false, numSize = 0, tint = null, tintK = 0 } = {}) {
+  if (alpha <= 0.001) return;
+  ctx.save(); ctx.globalAlpha *= alpha;
+  const n = vals.length;
+  for (let i = 0; i < n; i++) {
+    const k = clamp(reveal * n - i);
+    if (k <= 0) continue;
+    const px = dir === 'h' ? x + i * (cs + gap) : x, py = dir === 'h' ? y : y + i * (cs + gap);
+    const s = cs * (0.4 + 0.6 * easeOutBack(k));
+    ctx.save(); ctx.globalAlpha *= easeOut(k);
+    rr(px + (cs - s) / 2, py + (cs - s) / 2, s, s, r);
+    ctx.fillStyle = tint ? mix(vcol(vals[i]).replace(/rgb\((\d+),(\d+),(\d+)\)/, (m, a, b, c) => '#' + [a, b, c].map(z => (+z).toString(16).padStart(2, '0')).join('')), tint, tintK) : vcol(vals[i]);
+    ctx.fill();
+    if (stroke) { ctx.lineWidth = 2; ctx.strokeStyle = stroke; ctx.stroke(); }
+    if (nums) text(vals[i].toFixed(2), px + cs / 2, py + cs / 2 + 1, { font: MONO, size: numSize || cs * .3, weight: 600, align: 'center', base: 'middle',
+      color: Math.abs(vals[i]) > .45 ? '#fff' : C.ink });
+    ctx.restore();
+  }
+  ctx.restore();
+}
+const vecLen = (n, cs = 30, gap = 5) => n * cs + (n - 1) * gap;
+// row of labelled positions with label-aware spacing; returns centre xs
+function layoutRow(labels, size, weight, minW, gap, cx) {
+  const ws = labels.map(l => Math.max(minW, measure(l, size, weight) + 22));
+  const tot = ws.reduce((a, b) => a + b, 0) + gap * (labels.length - 1);
+  let x = cx - tot / 2; const xs = [];
+  ws.forEach(w => { xs.push(x + w / 2); x += w + gap; });
+  return { xs, ws, tot };
+}
+// token block
+function token(label, cx, cy, { alpha = 1, hi = 0, size = 30, h = 64, minW = 0, special = false, color = null, scale = 1, w = null } = {}) {
+  if (alpha <= .001) return;
+  const fill = special ? mix(C.soft, C.sand, .5) : mix(C.card, C.terra, hi);
+  const col = hi > .5 ? '#fff' : (color || (special ? C.muted : C.ink));
+  const stroke = hi > .05 ? rgba(C.terra, .9) : (special ? C.sand : C.border);
+  chip(label, cx, cy, { size, h, minW: w || minW, padX: w ? 0 : 20, fill, color: col, stroke, alpha, r: 16, scale, font: special ? MONO : SANS, weight: special ? 600 : 600 });
+}
+// partial cubic Bézier (for growing connections)
+function bez(p0, p1, p2, p3, k) {
+  const u = 1 - k;
+  return [u * u * u * p0[0] + 3 * u * u * k * p1[0] + 3 * u * k * k * p2[0] + k * k * k * p3[0],
+          u * u * u * p0[1] + 3 * u * u * k * p1[1] + 3 * u * k * k * p2[1] + k * k * k * p3[1]];
+}
+function bezPath(p0, p1, p2, p3, k) {
+  ctx.beginPath(); ctx.moveTo(p0[0], p0[1]);
+  const n = 40;
+  for (let i = 1; i <= n * k; i++) { const p = bez(p0, p1, p2, p3, i / n); ctx.lineTo(p[0], p[1]); }
+  const e = bez(p0, p1, p2, p3, k); ctx.lineTo(e[0], e[1]);
+}
+function sentenceWords(str, cx, y, size, { weight = 500, font = SERIF, hi = -1, hiK = 0, hiColor = C.terra, alpha = 1, colorFn = null } = {}) {
+  const ws = str.split(' '), sp = measure(' ', size, weight, font);
+  const widths = ws.map(w => measure(w, size, weight, font));
+  const tot = widths.reduce((a, b) => a + b, 0) + sp * (ws.length - 1);
+  let x = cx - tot / 2; const pos = [];
+  ws.forEach((w, i) => {
+    if (i === hi && hiK > 0) {
+      ctx.save(); ctx.globalAlpha *= alpha * hiK;
+      rr(x - 7, y - size * .8, widths[i] + 14, size * 1.1, 12); ctx.fillStyle = rgba(hiColor, .14); ctx.fill();
+      ctx.lineWidth = 2.5; ctx.strokeStyle = rgba(hiColor, .75); ctx.stroke(); ctx.restore();
+    }
+    const col = i === hi ? mix(C.ink, hiColor, hiK) : (colorFn ? colorFn(i) : C.ink);
+    text(w, x, y, { font, size, weight: i === hi && hiK > .5 ? 700 : weight, color: col, alpha });
+    pos.push({ x, w: widths[i], cx: x + widths[i] / 2 });
+    x += widths[i] + sp;
+  });
+  return pos;
+}
+function label(s, x, y, o = {}) { text(s, x, y, { size: 24, weight: 700, color: C.muted, spacing: 2.5, ...o }); }
+function note(s, x, y, a = 1, o = {}) { text(s, x, y, { size: 24, italic: true, color: C.muted, alpha: a, align: 'center', ...o }); }
+
+// ------------------------------------------------------------------ header
+const TITLES = { s1: 'The context problem', s2: 'Tokenization', s3: 'Input embeddings', s4: 'Transformer encoder',
+  s5: 'Bidirectional self-attention', s6: 'Contextual embeddings', s7: 'Sentence embeddings', s8: 'The key idea' };
+const ORDER = ['s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8'];
+function drawHeader(t) {
+  const a = ein(t, .1, .7);
+  asterisk(92, 132, 24, t * .2, C.terra, a);
+  text('HOW BERT EMBEDDINGS WORK', 132, 142, { size: 25, weight: 700, color: C.terra, spacing: 3.5, alpha: a });
+  for (const sc of ORDER) {
+    const k = env(t, sc, .45, .3);
+    if (k <= 0) continue;
+    text(TITLES[sc], 72, 222 + (1 - k) * 14, { font: SERIF, size: 56, weight: 600, alpha: a * k });
+  }
+  // progress: 8 scene dots
+  const cur = ORDER.findIndex(s => t < SC[s].e);
+  ORDER.forEach((s, i) => {
+    const x = 760 + i * 34, y = 133;
+    const k = clamp((t - SC[s].s) / (SC[s].e - SC[s].s));
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.fillStyle = C.sand; ctx.fill();
+    if (k > 0) { ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, 9, -Math.PI / 2, -Math.PI / 2 + k * Math.PI * 2); ctx.closePath(); ctx.fillStyle = i === cur ? C.terra : mix(C.terra, C.sand, .35); ctx.fill(); }
+    ctx.restore();
+  });
+}
+
+// ------------------------------------------------------------------ Scene 1: the context problem
+function iconBank(cx, cy, s, col, a) {
+  ctx.save(); ctx.globalAlpha *= a; ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = s * .07; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(cx - s * .5, cy - s * .18); ctx.lineTo(cx, cy - s * .5); ctx.lineTo(cx + s * .5, cy - s * .18); ctx.closePath(); ctx.stroke();
+  for (let i = 0; i < 4; i++) { const x = cx - s * .33 + i * s * .22; ctx.beginPath(); ctx.moveTo(x, cy - s * .08); ctx.lineTo(x, cy + s * .3); ctx.stroke(); }
+  ctx.beginPath(); ctx.moveTo(cx - s * .52, cy + s * .42); ctx.lineTo(cx + s * .52, cy + s * .42); ctx.stroke();
+  ctx.restore();
+}
+function iconRiver(cx, cy, s, col, a, t) {
+  ctx.save(); ctx.globalAlpha *= a; ctx.strokeStyle = col; ctx.lineWidth = s * .07; ctx.lineCap = 'round';
+  for (let r = 0; r < 3; r++) {
+    ctx.beginPath();
+    for (let i = 0; i <= 30; i++) {
+      const x = cx - s * .5 + i / 30 * s, y = cy - s * .26 + r * s * .26 + Math.sin(i / 30 * Math.PI * 2.2 + t * 2.2 + r) * s * .07;
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function scene1(t) {
+  const A = env(t, 's1'); if (A <= 0) return;
+  ctx.save(); ctx.globalAlpha = A;
+  // --- intro: ordinary text -> a vector that should carry context
+  const introOut = 1 - eio(t, Q('two') - .4, .6);
+  if (introOut > 0) {
+    ctx.save(); ctx.globalAlpha *= introOut;
+    const k1 = ein(t, 1.0, .7);
+    chip('ordinary text', 540, 620 - (1 - k1) * 20, { size: 44, weight: 600, h: 96, alpha: k1, font: SERIF });
+    arrow(540, 690, 540, 820, eio(t, 2.2, .8), C.muted, 4, 18);
+    const vals = Array.from({ length: 12 }, (_, i) => srnd(i + 40) * .9);
+    vec(540 - vecLen(12, 54, 8) / 2, 850, vals, { cs: 54, gap: 8, reveal: eio(t, Q('vectors0') - .3, 1.2), r: 12 });
+    note('a vector of numbers', 540, 960, ein(t, Q('vectors0') + .3), { size: 28 });
+    const kc = ein(t, QE('vectors0') - .5, .6);
+    chip('… that understands context?', 540, 1080, { size: 32, weight: 600, h: 72, color: C.terra, stroke: rgba(C.terra, .4), alpha: kc, scale: .9 + .1 * easeOutBack(kc) });
+    ctx.restore();
+  }
+  // --- the two sentences
+  const sa = ein(t, Q('sentA') - .3, .6), sb = ein(t, Q('sentB') - .3, .6);
+  const hb = eio(t, Q('word_bank') + .2, .6);
+  const dk = eio(t, Q('different') - .1, 1.0);
+  const out = eio(t, Q('handles'), .9);
+  const rows = [
+    { y: 420, str: 'I deposited money at the bank.', k: sa, col: C.terra, meaning: 'a financial institution', icon: 'bank' },
+    { y: 860, str: 'I sat by the river bank.', k: sb, col: C.slate, meaning: 'the land beside a river', icon: 'river' },
+  ];
+  rows.forEach((r, ri) => {
+    if (r.k <= 0) return;
+    const yy = r.y + (1 - r.k) * 30 - out * 40;
+    ctx.save(); ctx.globalAlpha *= r.k * (1 - out * .85);
+    card(70, yy - 100, 940, 190, 1);
+    label(ri ? 'SENTENCE 2' : 'SENTENCE 1', 110, yy - 50, { size: 22 });
+    const pos = sentenceWords(r.str, 540, yy + 40, 54, { hi: r.str.split(' ').length - 1, hiK: hb, hiColor: r.col });
+    // meaning emerging from the same word
+    if (dk > 0) {
+      const b = pos[pos.length - 1];
+      const mx = 540, my = yy + 230;
+      ctx.save(); ctx.globalAlpha *= dk; ctx.strokeStyle = rgba(r.col, .8); ctx.lineWidth = 3.5; ctx.setLineDash([2, 9]); ctx.lineCap = 'round';
+      bezPath([b.cx, yy + 66], [b.cx, yy + 150], [mx + 260, my - 60], [mx + 230, my - 10], dk); ctx.stroke(); ctx.restore();
+      const kk = ein(t, Q('different') + .5, .7);
+      card(240, my - 60, 600, 120, kk, { stroke: rgba(r.col, .5), r: 60 });
+      if (r.icon === 'bank') iconBank(320, my, 64, r.col, kk); else iconRiver(320, my, 64, r.col, kk, t);
+      text(r.meaning, 380, my + 12, { font: SERIF, size: 38, weight: 500, color: r.col, alpha: kk, italic: true });
+    }
+    ctx.restore();
+  });
+  // same word, two meanings
+  const kq = ein(t, Q('different') + 1.0, .6) * (1 - out);
+  if (kq > 0) {
+    chip('same word  ·  different meaning', 540, 1290, { size: 30, weight: 600, h: 70, color: C.terra, fill: rgba(C.terra, .08), stroke: rgba(C.terra, .35), alpha: kq });
+  }
+  ctx.restore();
+}
+
+// ------------------------------------------------------------------ Scene 2: tokenization
+function tokGrid(tokens, cx, y0, size, rowH, maxW, gap = 14) {
+  // wrap tokens into rows; returns centre positions
+  const ws = tokens.map(s => measure(s, size, 600, s.startsWith('[') ? MONO : SANS) + 44);
+  const rows = [[]]; let w = 0;
+  ws.forEach((wi, i) => { if (rows[rows.length - 1].length && w + gap + wi > maxW) { rows.push([]); w = 0; } w += (rows[rows.length - 1].length ? gap : 0) + wi; rows[rows.length - 1].push(i); });
+  const pos = [];
+  rows.forEach((r, ri) => {
+    const tot = r.reduce((s, i) => s + ws[i], 0) + gap * (r.length - 1);
+    let x = cx - tot / 2;
+    r.forEach(i => { pos[i] = { x: x + ws[i] / 2, y: y0 + ri * rowH, w: ws[i] }; x += ws[i] + gap; });
+  });
+  return pos;
+}
+function scene2(t) {
+  const A = env(t, 's2'); if (A <= 0) return;
+  ctx.save(); ctx.globalAlpha = A;
+  const s0 = SC.s2.s;
+  card(50, 320, 980, 640, ein(t, s0, .5));
+  label('INPUT TEXT', 100, 380, { alpha: ein(t, s0, .5) });
+  const split = eio(t, Q('splits') - .1, 1.1);
+  const str = 'I deposited money at the bank.';
+  // source sentence (fades as tokens fly out)
+  const srcPos = (() => { ctx.save(); ctx.globalAlpha *= 1 - split; const p = sentenceWords(str, 540, 470, 52); ctx.restore(); return p; })();
+  const grid = tokGrid(TOK_A, 540, 560, 34, 120, 900);
+  const srcIdx = [null, 0, 1, 2, 3, 4, 5, 5, null];   // which source word each token comes from
+  TOK_A.forEach((tk, i) => {
+    const special = tk.startsWith('[');
+    const k = special ? ein(t, Q('splits') + .6 + (i ? .25 : 0), .5) : split;
+    if (k <= 0) return;
+    let sx, sy;
+    if (srcIdx[i] != null) { const p = srcPos[srcIdx[i]]; sx = i === 7 ? p.x + p.w - 6 : p.cx - (i === 6 ? 6 : 0); sy = 455; }
+    else { sx = grid[i].x; sy = grid[i].y - 30; }
+    const x = lerp(sx, grid[i].x, easeInOut(k)), y = lerp(sy, grid[i].y, easeInOut(k));
+    const whole = ein(t, Q('whole'), .5) * (1 - ein(t, Q('subwords') - .2, .5));
+    token(tk, x, y, { alpha: special ? k : 1, size: 34, h: 72, special, hi: i === BANK ? .12 * whole : 0 });
+    // token ID
+    const ki = ein(t, Q('tokens') + .1 + i * .07, .4);
+    text(String(IDS_A[i]), grid[i].x, grid[i].y + 64, { font: MONO, size: 24, weight: 600, align: 'center', color: C.terra, alpha: ki });
+  });
+  note('lower-cased (bert-base-uncased)  ·  [CLS] starts, [SEP] ends', 540, 900, ein(t, Q('tokens') + .3, .6), { size: 25 });
+  // subwords
+  const ks = ein(t, Q('whole') + .2, .6);
+  card(50, 1000, 980, 340, ks);
+  label('SUBWORDS', 100, 1060, { alpha: ks });
+  const kw = ein(t, Q('whole') + .4, .5);
+  chip('deposited', 290, 1150, { size: 34, h: 72, r: 16, alpha: kw });
+  text('stays whole', 290, 1235, { size: 26, color: C.sage, weight: 600, align: 'center', alpha: kw });
+  text(String(14140), 290, 1275, { font: MONO, size: 22, color: C.terra, weight: 600, align: 'center', alpha: kw });
+  const kb = eio(t, Q('subwords') - .1, .9);
+  const subX = [610, 715, 840, 950];
+  text('embeddings', 780, 1162, { font: SANS, size: 34, weight: 600, align: 'center', alpha: ein(t, Q('whole') + .7, .5) * (1 - kb) });
+  SUB.forEach((s, i) => {
+    if (kb <= 0) return;
+    const x = lerp(780, subX[i], easeOutBack(kb));
+    chip(s, x, 1150, { size: 30, h: 66, r: 14, padX: 14, alpha: kb, fill: i ? rgba(C.terra, .08) : C.card, stroke: rgba(C.terra, .4) });
+    text(String(SUB_IDS[i]), subX[i], 1220, { font: MONO, size: 21, color: C.terra, weight: 600, align: 'center', alpha: ein(t, Q('subwords') + .6, .4) });
+  });
+  note('“##” = continues the previous piece', 780, 1290, ein(t, Q('subwords') + .8, .5), { size: 24 });
+  ctx.restore();
+}
+
+// ------------------------------------------------------------------ Scene 3: input embeddings
+function scene3(t) {
+  const A = env(t, 's3'); if (A <= 0) return;
+  ctx.save(); ctx.globalAlpha = A;
+  const s0 = SC.s3.s;
+  // --- top: every token ID -> lookup -> small learned vector
+  card(50, 320, 980, 430, ein(t, s0, .5));
+  label('TOKEN ID  →  LEARNED VECTOR', 90, 375, { alpha: ein(t, s0, .5), size: 22 });
+  const row = layoutRow(TOK_A, 24, 600, 86, 10, 540);
+  const look = eio(t, Q('mapped') + .3, 1.6);
+  TOK_A.forEach((tk, i) => {
+    const x = row.xs[i], ka = ein(t, s0 + .15 + i * .05, .4);
+    token(tk, x, 435, { size: 24, h: 52, special: tk.startsWith('['), alpha: ka, hi: i === BANK ? .15 : 0, w: row.ws[i] });
+    text(String(IDS_A[i]), x, 492, { font: MONO, size: 20, weight: 600, color: C.terra, align: 'center', alpha: ka });
+    const kv = clamp(look * 9 - i);
+    arrow(x, 505, x, 540, kv, C.sand, 3, 10);
+    const vals = Array.from({ length: 5 }, (_, d) => i === BANK ? E_TOK[d] : srnd(IDS_A[i] * 3 + d) * .8);
+    vec(x - 13, 552, vals, { cs: 26, gap: 4, dir: 'v', reveal: kv, r: 6 });
+  });
+  note('rows of a learned table: 30,522 tokens × 768 dims', 540, 728, ein(t, QE('learned_vec') - .2, .6), { size: 24 });
+
+  // --- bottom: token + position + segment for "bank"
+  const kb = ein(t, Q('positional') - .6, .6);
+  card(50, 770, 980, 580, kb);
+  label('INPUT REPRESENTATION OF “bank”', 90, 828, { alpha: kb, size: 22 });
+  const cs = 66, gx = 360, gap = 8;
+  const rows = [
+    { name: 'token', sub: 'E[bank]', v: E_TOK, k: kb, col: C.ink },
+    { name: 'position', sub: 'P[6]', v: E_POS, k: ein(t, Q('positional'), .6), col: C.ink },
+    { name: 'token type', sub: 'E[segment A]', v: E_SEG, k: ein(t, Q('tokentype'), .6), col: C.ink },
+  ];
+  rows.forEach((r, i) => {
+    const y = 870 + i * 96;
+    text(r.name, 90, y + 32, { size: 30, weight: 600, alpha: r.k });
+    text(r.sub, 90, y + 64, { font: MONO, size: 21, color: C.muted, alpha: r.k });
+    if (i) text('+', gx - 34, y + 46, { size: 46, weight: 300, color: C.terra, alpha: r.k, align: 'center' });
+    vec(gx, y + 4, r.v, { cs, gap, reveal: r.k, nums: true, numSize: 18, r: 12 });
+  });
+  const ksum = eio(t, Q('tokentype') + .9, .8);
+  ctx.save(); ctx.globalAlpha *= ksum; ctx.strokeStyle = C.ink; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(gx - 50, 1160); ctx.lineTo(gx + vecLen(6, cs, gap), 1160); ctx.stroke(); ctx.restore();
+  text('=', gx - 34, 1222, { size: 46, weight: 300, color: C.terra, alpha: ksum, align: 'center' });
+  text('input', 90, 1216, { size: 30, weight: 700, color: C.terra, alpha: ksum });
+  text('→ LayerNorm', 90, 1248, { font: MONO, size: 20, color: C.muted, alpha: ksum });
+  vec(gx, 1178, E_SUM, { cs, gap, reveal: ksum, nums: true, numSize: 18, r: 12, stroke: rgba(C.terra, .7) });
+  // element-wise guides for one column
+  const kc = pulse(t, Q('tokentype') + 1.6, 1.6);
+  if (kc > 0) { ctx.save(); ctx.globalAlpha *= kc; rr(gx + 3 * (cs + gap) - 6, 868, cs + 12, 382, 16); ctx.strokeStyle = C.terra; ctx.lineWidth = 3; ctx.stroke(); ctx.restore(); }
+  // segment explanation: token type marks WHICH SENTENCE (segment A or B), nothing semantic
+  const kt = ein(t, Q('tokentype') + .1, .6);
+  ctx.save(); ctx.globalAlpha *= kt;
+  rr(838, 956, 172, 208, 22); ctx.fillStyle = C.soft; ctx.fill();
+  text('segment', 924, 994, { size: 22, weight: 700, color: C.muted, align: 'center' });
+  [['A', 'sentence 1', C.terra], ['B', 'sentence 2', C.slate]].forEach((sg, i) => {
+    const y = 1040 + i * 64;
+    rr(852, y - 24, 144, 50, 14); ctx.fillStyle = rgba(sg[2], i === 0 ? .2 : .1); ctx.fill();
+    if (i === 0) { ctx.lineWidth = 2.5; ctx.strokeStyle = sg[2]; ctx.stroke(); }
+    text(sg[0], 874, y + 9, { size: 26, weight: 800, color: sg[2], align: 'center' });
+    text(sg[1], 940, y + 7, { size: 19, weight: 600, color: C.ink, align: 'center' });
+  });
+  ctx.restore();
+  const kn = ein(t, Q('applicable') - .1, .6);
+  note('element-wise sum · illustrative values · 6 of 768 dims', 540, 1316, ksum * (1 - kn), { size: 23 });
+  chip('token type = which segment (A/B) · not part of speech', 540, 1306, { size: 25, h: 56, color: C.terra, fill: rgba(C.terra, .08), stroke: rgba(C.terra, .35), alpha: kn });
+  ctx.restore();
+}
+
+// ------------------------------------------------------------------ Scene 4: encoder stack
+function scene4(t) {
+  const A = env(t, 's4'); if (A <= 0) return;
+  ctx.save(); ctx.globalAlpha = A;
+  const s0 = SC.s4.s;
+  const zoom = eio(t, Q('inside') - .2, 1.2);
+  const ks = ein(t, s0, .6);
+  // inputs at the bottom
+  const row = layoutRow(TOK_A, 22, 600, 88, 8, 540);
+  const stackTop = 400, stackBot = 1080, nL = 12, lh = (stackBot - stackTop) / nL;
+  ctx.save(); ctx.globalAlpha *= 1 - zoom * .85;
+  TOK_A.forEach((tk, i) => {
+    const x = row.xs[i];
+    const vals = Array.from({ length: 3 }, (_, d) => i === BANK ? E_SUM[d] : srnd(IDS_A[i] * 3 + d) * .8);
+    vec(x - 12, 1196, vals, { cs: 24, gap: 4, dir: 'v', reveal: ks, r: 6 });
+    text(tk, x, 1320, { size: 22, weight: 600, align: 'center', color: tk.startsWith('[') ? C.muted : C.ink, alpha: ks });
+  });
+  label('INPUT VECTORS', 540, 1176, { size: 19, align: 'center', alpha: ks });
+  // the 12 layers
+  for (let L = 0; L < nL; L++) {
+    const y = stackBot - (L + 1) * lh;
+    const k = ein(t, Q('stack') + L * .1, .5);
+    ctx.save(); ctx.globalAlpha *= k;
+    rr(140 + (1 - k) * 30, y + 6, 800 - (1 - k) * 60, lh - 12, 14);
+    ctx.fillStyle = L === 5 ? mix(C.card, C.terra, .1 * zoom) : C.card; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.border; ctx.stroke();
+    text(`encoder layer ${L + 1}`, 170, y + lh / 2 + 8, { size: 22, weight: 600, color: C.muted });
+    ctx.restore();
+  }
+  text('× 12 layers  (BERT-base)', 540, 380, { size: 26, weight: 700, color: C.terra, align: 'center', alpha: ein(t, QE('stack') - .4, .5) });
+  // vectors flowing upward through the stack (deterministic particles)
+  const flow = ein(t, Q('stack') + .6, .8);
+  if (flow > 0) {
+    TOK_A.forEach((_, i) => {
+      for (let p = 0; p < 2; p++) {
+        const u = frac(t * .32 + i * .137 + p * .5);
+        const y = lerp(1170, stackTop - 10, u), x = lerp(row.xs[i], 300 + i * 60, Math.sin(u * Math.PI) * .25);
+        ctx.save(); ctx.globalAlpha *= flow * Math.sin(u * Math.PI) * .9;
+        rr(x - 8, y - 8, 16, 16, 5); ctx.fillStyle = i === BANK ? C.terra : C.terraLight; ctx.fill(); ctx.restore();
+      }
+    });
+  }
+  ctx.restore();
+  // --- zoom into one layer
+  if (zoom > 0) {
+    const y5 = stackBot - 6 * lh;
+    const x = lerp(140, 60, zoom), y = lerp(y5 + 6, 330, zoom), w = lerp(800, 960, zoom), h = lerp(lh - 12, 1020, zoom);
+    card(x, y, w, h, zoom, { stroke: rgba(C.terra, .5) });
+    const kz = ein(t, Q('inside') + .7, .6);
+    ctx.save(); ctx.globalAlpha *= kz;
+    label('INSIDE ONE ENCODER LAYER', 110, 395, { size: 22 });
+    const bid = eio(t, Q('bidir') - .2, .7);
+    // sublayers (bottom -> top)
+    const blocks = [
+      { y: 1150, h: 84, t: 'Add & Norm', c: C.soft, f: 28 },
+      { y: 960, h: 170, t: 'Multi-head self-attention', c: mix(C.card, C.terra, .12 + .25 * bid), f: 34, att: true },
+      { y: 860, h: 84, t: 'Add & Norm', c: C.soft, f: 28 },
+      { y: 650, h: 190, t: 'Feed-forward network', c: mix(C.card, C.sage, .2), f: 34, ffn: true },
+      { y: 550, h: 84, t: 'Add & Norm', c: C.soft, f: 28 },
+    ];
+    // flip: attention first (bottom), FFN above. y listed already bottom-up visually
+    const order = [blocks[1], blocks[2], blocks[3], blocks[4]];
+    order.forEach(b => {
+      rr(160, b.y, 640, b.h, 20); ctx.fillStyle = b.c; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = b.att ? rgba(C.terra, .4 + .6 * bid) : C.border; ctx.stroke();
+      text(b.t, 480, b.y + (b.att || b.ffn ? 50 : b.h / 2 + 10), { size: b.f, weight: 600, align: 'center', color: b.att ? mix(C.ink, C.terra, bid) : C.ink });
+    });
+    // flow arrows + residual connections
+    arrow(480, 1290, 480, 1132, ein(t, Q('inside') + .9, .5), C.muted, 4, 16);
+    arrow(480, 958, 480, 946, 1, C.muted, 4, 14);
+    arrow(480, 858, 480, 842, 1, C.muted, 4, 14);
+    arrow(480, 648, 480, 636, 1, C.muted, 4, 14);
+    arrow(480, 548, 480, 470, 1, C.muted, 4, 16);
+    text('to the next layer', 500, 490, { size: 22, color: C.muted });
+    text('from the layer below', 500, 1286, { size: 22, color: C.muted });
+    ctx.save(); ctx.strokeStyle = C.sand; ctx.lineWidth = 4; ctx.setLineDash([3, 10]); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(480, 1250); ctx.lineTo(860, 1250); ctx.lineTo(860, 902); ctx.lineTo(805, 902); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(480, 850); ctx.lineTo(880, 850); ctx.lineTo(880, 592); ctx.lineTo(805, 592); ctx.stroke(); ctx.restore();
+    text('residual', 874, 1080, { size: 20, color: C.muted, align: 'left' });
+    // FFN: tiny MLP drawing
+    const fx = [260, 480, 700];
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 6; j++) { ctx.beginPath(); ctx.moveTo(300 + i * 40, 790); ctx.lineTo(380 + j * 40, 735); ctx.strokeStyle = rgba(C.sage, .25); ctx.lineWidth = 1.5; ctx.stroke(); }
+    for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(300 + i * 40, 790, 8, 0, 7); ctx.fillStyle = C.sage; ctx.fill(); }
+    for (let j = 0; j < 6; j++) { ctx.beginPath(); ctx.arc(380 + j * 40, 735, 8, 0, 7); ctx.fillStyle = C.sage; ctx.fill(); }
+    text('applied to each token separately', 790, 820, { size: 19, color: C.muted, italic: true, align: 'right' });
+    // attention block: bidirectional mini-arcs
+    const mx = [220, 290, 360, 430, 500, 570, 640, 710];
+    mx.forEach((x, i) => { ctx.beginPath(); ctx.arc(x, 1090, 9, 0, 7); ctx.fillStyle = i === 4 ? C.terra : C.sand; ctx.fill(); });
+    if (bid > 0) {
+      mx.forEach((x, i) => {
+        if (i === 4) return;
+        const k = clamp(bid * 1.4 - Math.abs(i - 4) * .08);
+        ctx.save(); ctx.globalAlpha *= k; ctx.strokeStyle = C.terra; ctx.lineWidth = 3;
+        bezPath([500, 1080], [500, 1080 - 30 - Math.abs(x - 500) * .2], [x, 1080 - 30 - Math.abs(x - 500) * .2], [x, 1080], k); ctx.stroke(); ctx.restore();
+      });
+    }
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+// ------------------------------------------------------------------ Scene 5: bidirectional self-attention
+function attPanel(t, y0, toks, weights, col, kIn, kW, focus, title) {
+  // y0 = top of card. nodes row at y0 + 300
+  if (kIn <= 0) return;
+  ctx.save(); ctx.globalAlpha *= kIn;
+  card(40, y0, 1000, 470, 1);
+  label(title, 80, y0 + 52, { size: 21 });
+  const row = layoutRow(toks, 26, 600, 84, 12, 540);
+  const ny = y0 + 300, bx = row.xs[BANK];
+  // connections
+  toks.forEach((_, j) => {
+    const uniform = 1 / toks.length;
+    const w = lerp(uniform, weights[j], kW);
+    const x = row.xs[j];
+    const grow = clamp(kIn * 1.6 - .3 - Math.abs(j - BANK) * .06);
+    if (grow <= 0) return;
+    const hgt = 46 + Math.abs(x - bx) * .42;
+    const wmax = Math.max(...weights);
+    const strong = kW * (w / wmax);
+    ctx.save(); ctx.globalAlpha *= .22 + .78 * lerp(.4, strong, kW);
+    ctx.strokeStyle = mix(C.sand, col, .35 + .65 * strong); ctx.lineWidth = 2 + 22 * w * (kW ? 1 : .8); ctx.lineCap = 'round';
+    if (j === BANK) { ctx.beginPath(); ctx.arc(bx, ny - 50, 22, 0, Math.PI * 2 * grow); ctx.stroke(); }
+    else { bezPath([bx, ny - 26], [bx, ny - 26 - hgt], [x, ny - 26 - hgt], [x, ny - 26], grow); ctx.stroke(); }
+    ctx.restore();
+    // information flowing from context word into "bank"
+    if (j !== BANK && kW > .5 && strong > .5) {
+      for (let p = 0; p < 3; p++) {
+        const u = frac(t * .55 + p / 3 + j * .1);
+        const pt = bez([x, ny - 26], [x, ny - 26 - hgt], [bx, ny - 26 - hgt], [bx, ny - 26], u);
+        ctx.save(); ctx.globalAlpha *= Math.sin(u * Math.PI) * (kW - .5) * 2; ctx.beginPath(); ctx.arc(pt[0], pt[1], 7, 0, 7); ctx.fillStyle = col; ctx.fill(); ctx.restore();
+      }
+    }
+  });
+  // nodes + labels + weight bars
+  toks.forEach((tk, j) => {
+    const x = row.xs[j], isB = j === BANK;
+    const pz = focus[j] || 0;
+    ctx.beginPath(); ctx.arc(x, ny, 18 + 6 * pz + (isB ? 4 : 0), 0, Math.PI * 2);
+    ctx.fillStyle = isB ? C.terra : mix(C.card, col, .15 + .55 * kW * weights[j] / Math.max(...weights)); ctx.fill();
+    ctx.lineWidth = 2.5; ctx.strokeStyle = isB ? C.terra : rgba(col, .55); ctx.stroke();
+    text(tk, x, ny + 58, { size: 26, weight: isB || pz > .1 ? 700 : 600, align: 'center', color: isB ? C.terra : (tk.startsWith('[') ? C.muted : mix(C.ink, col, pz)) });
+    const bw = 34, bh = 64 * weights[j] / .38 * kW;
+    if (kW > 0) {
+      ctx.save(); ctx.globalAlpha *= kW; rr(x - bw / 2, ny + 140 - bh, bw, Math.max(bh, 2), 6); ctx.fillStyle = rgba(col, .75); ctx.fill(); ctx.restore();
+      text(weights[j].toFixed(2), x, ny + 162, { font: MONO, size: 20, weight: 600, align: 'center', color: C.muted, alpha: kW });
+    }
+  });
+  ctx.restore();
+}
+function scene5(t) {
+  const A = env(t, 's5'); if (A <= 0) return;
+  ctx.save(); ctx.globalAlpha = A;
+  const s0 = SC.s5.s;
+  const pQKV = SS('Attention uses').s - .35, pHeads = SS('Across multiple').s - .3;
+  const out1 = eio(t, pQKV - .3, .6), out2 = eio(t, pHeads - .3, .6);
+  // ---- phase 1: attention from "bank" in both sentences
+  if (out1 < 1) {
+    ctx.save(); ctx.globalAlpha *= 1 - out1;
+    const kA = ein(t, s0 + .1, .7), kWA = eio(t, Q('ex_bank') + .3, 1.2);
+    const fA = []; fA[2] = pulse(t, Q('deposited') - .1, 1.2); fA[3] = pulse(t, Q('money') - .1, 1.2);
+    attPanel(t, 320, TOK_A, ATT_A, C.terra, kA, kWA, fA, 'SENTENCE 1  ·  ATTENTION FROM “bank”');
+    // both sides indicator
+    const kbs = ein(t, Q('both_sides') - .2, .5) * (1 - eio(t, Q('ex_bank') - .2, .4));
+    if (kbs > 0) {
+      const row = layoutRow(TOK_A, 26, 600, 84, 12, 540);
+      arrow(row.xs[BANK] - 40, 700, row.xs[1] - 30, 700, kbs, C.terra, 4, 16);
+      arrow(row.xs[BANK] + 40, 700, row.xs[8] + 30, 700, kbs, C.terra, 4, 16);
+      text('left context', (row.xs[1] + row.xs[BANK]) / 2, 740, { size: 24, weight: 700, color: C.terra, align: 'center', alpha: kbs });
+      text('right', (row.xs[BANK] + row.xs[8]) / 2 + 10, 740, { size: 24, weight: 700, color: C.terra, align: 'center', alpha: kbs });
+    }
+    const kB = ein(t, Q('second') - .3, .7), kWB = eio(t, Q('second') + .6, 1.2);
+    const fB = []; fB[5] = pulse(t, Q('river') - .1, 1.2); fB[2] = pulse(t, Q('sat') - .05, 1.2);
+    // sentence 2 card; before it arrives, a note about the weights
+    attPanel(t, 820, TOK_B, ATT_B, C.slate, kB, kWB, fB, 'SENTENCE 2  ·  ATTENTION FROM “bank”');
+    const kn = ein(t, Q('ex_bank') + .8, .6) * (1 - kB);
+    if (kn > 0) {
+      card(140, 880, 800, 210, kn, { fill: C.soft });
+      text('Every token attends to every token —', 540, 960, { size: 30, weight: 600, align: 'center', alpha: kn });
+      text('left and right, in one step.', 540, 1006, { size: 30, weight: 600, align: 'center', alpha: kn });
+      note('line width = attention weight (each row sums to 1)', 540, 1056, kn);
+    }
+    note('illustrative weights · not measured from a trained model', 540, 1340, ein(t, Q('ex_bank') + .5, .6), { size: 23 });
+    ctx.restore();
+  }
+  // ---- phase 2: Q, K, V projections + attention matrix + weighted sum
+  if (out1 > 0 && out2 < 1) {
+    ctx.save(); ctx.globalAlpha *= out1 * (1 - out2);
+    const kq = eio(t, Q('qkv') - .2, 1.0);
+    card(40, 320, 1000, 470, 1);
+    label('LEARNED PROJECTIONS (per head)', 80, 372, { size: 21 });
+    const xb = E_SUM;
+    vec(110, 425, xb, { cs: 40, gap: 6, dir: 'v', r: 9 });
+    text('x', 130, 728, { font: SERIF, size: 34, italic: true, weight: 600, align: 'center' });
+    text('bank', 130, 760, { size: 20, color: C.muted, align: 'center' });
+    const P = [
+      { n: 'Q', name: 'query', d: 'what am I looking for?', c: C.terra, s: 701 },
+      { n: 'K', name: 'key', d: 'what do I offer to match?', c: C.gold, s: 703 },
+      { n: 'V', name: 'value', d: 'what information do I pass?', c: C.sage, s: 707 },
+    ];
+    P.forEach((p, i) => {
+      const y = 455 + i * 112, k = clamp(kq * 3 - i * .6);
+      arrow(170, 560, 270, y, k, C.sand, 3, 12);
+      ctx.save(); ctx.globalAlpha *= k;
+      rr(280, y - 40, 120, 80, 14); ctx.fillStyle = rgba(p.c, .14); ctx.fill(); ctx.strokeStyle = rgba(p.c, .6); ctx.lineWidth = 2; ctx.stroke();
+      for (let a = 0; a < 3; a++) for (let b = 0; b < 5; b++) { rr(292 + b * 21, y - 30 + a * 21, 17, 17, 4); ctx.fillStyle = vcol(srnd(p.s + a * 5 + b) * .8); ctx.fill(); }
+      ctx.restore();
+      text('W', 418, y - 18, { font: SERIF, italic: true, size: 26, weight: 600, color: p.c, alpha: k });
+      text(p.n, 440, y - 8, { font: SERIF, size: 18, weight: 700, color: p.c, alpha: k });
+      arrow(460, y, 520, y, k, C.sand, 3, 12);
+      const v = Array.from({ length: 6 }, (_, d) => srnd(p.s * 3 + d) * .85);
+      vec(535, y - 20, v, { cs: 40, gap: 5, reveal: k, r: 9 });
+      text(p.n.toLowerCase(), 818, y + 10, { font: SERIF, size: 36, italic: true, weight: 700, color: p.c, alpha: k });
+      text(p.name, 850, y - 2, { size: 23, weight: 700, color: p.c, alpha: k });
+      text(p.d, 850, y + 26, { size: 18, color: C.muted, alpha: k });
+    });
+    const kf = ein(t, QE('qkv') - .3, .6);
+    text('softmax( q · kᵀ / √d )  →  weights for v', 540, 760, { font: MONO, size: 25, weight: 600, align: 'center', color: C.ink, alpha: kf });
+    // attention matrix
+    card(40, 820, 1000, 530, ein(t, Q('qkv') + .3, .5));
+    const km = ein(t, Q('qkv') + .5, .8);
+    label('ATTENTION MATRIX · SENTENCE 1', 80, 872, { size: 21, alpha: km });
+    const mx = 190, my = 975, cs = 38;
+    TOK_A.forEach((tk, i) => {
+      text(tk, mx - 12, my + i * cs + cs / 2 + 7, { size: 19, weight: i === BANK ? 800 : 500, align: 'right', color: i === BANK ? C.terra : C.ink, alpha: km });
+      ctx.save(); ctx.globalAlpha *= km; ctx.translate(mx + i * cs + cs / 2 + 4, my - 10); ctx.rotate(-Math.PI / 4);
+      text(tk, 0, 0, { size: 17, weight: 500, color: C.muted }); ctx.restore();
+    });
+    const hiRow = eio(t, Q('flows') - .6, .6);
+    for (let i = 0; i < 9; i++) for (let j = 0; j < 9; j++) {
+      const k = clamp(km * 2.2 - (i + j) * .07);
+      const v = ATTM[i][j];
+      ctx.save(); ctx.globalAlpha *= k * (i === BANK ? 1 : 1 - .55 * hiRow);
+      rr(mx + j * cs + 2, my + i * cs + 2, cs - 4, cs - 4, 6); ctx.fillStyle = mix(C.soft, i === BANK ? C.terra : C.slate, Math.min(1, v * 2.4)); ctx.fill(); ctx.restore();
+    }
+    if (hiRow > 0) { ctx.save(); ctx.globalAlpha *= hiRow; rr(mx - 3, my + BANK * cs - 3, cs * 9 + 6, cs + 6, 9); ctx.strokeStyle = C.terra; ctx.lineWidth = 3; ctx.stroke(); ctx.restore(); }
+    text('rows: queries  ·  columns: keys  ·  each row sums to 1', 540, 1330, { size: 20, color: C.muted, italic: true, align: 'center', alpha: km });
+    // weighted sum of values -> new "bank"
+    const kw = eio(t, Q('flows') - .2, 1.2);
+    const items = [[2, 'deposited'], [3, 'money'], [6, 'bank']];
+    const sx = 600;
+    text('new “bank” = Σ weight × value', sx, 935, { size: 22, weight: 700, color: C.terra, alpha: kw });
+    items.forEach(([j, nm], n) => {
+      const y = 975 + n * 66, k = clamp(kw * 3 - n * .5);
+      text(ATT_A[j].toFixed(2) + ' ×', sx, y + 26, { font: MONO, size: 21, weight: 600, alpha: k });
+      const v = Array.from({ length: 6 }, (_, d) => srnd(IDS_A[j] * 7 + d) * .85);
+      vec(sx + 92, y, v.map(z => z * (0.4 + ATT_A[j] * 2)), { cs: 32, gap: 4, reveal: k, r: 7 });
+      text('v·' + nm, sx + 312, y + 24, { size: 18, color: C.muted, alpha: k });
+    });
+    text('+ … (all 9 tokens)', sx, 1190, { size: 20, color: C.muted, alpha: clamp(kw * 3 - 1.6) });
+    const kz = clamp(kw * 3 - 2);
+    const z = Array.from({ length: 6 }, (_, d) => ATT_A.reduce((s, a, j) => s + a * srnd(IDS_A[j] * 7 + d) * .85, 0) * 2.2);
+    text('=', sx + 6, 1252, { size: 36, color: C.terra, alpha: kz });
+    vec(sx + 92, 1222, z.map(v => clamp(v, -1, 1)), { cs: 32, gap: 4, reveal: kz, r: 7, stroke: rgba(C.terra, .8) });
+    // particles from the matrix row to the sum
+    if (kw > .1 && kw < 1) for (let p = 0; p < 5; p++) {
+      const u = frac(t * .9 + p / 5);
+      const x0 = mx + cs * 9, y0 = my + BANK * cs + cs / 2;
+      const pt = bez([x0, y0], [x0 + 60, y0], [sx + 60, 1240], [sx + 90, 1238], u);
+      ctx.save(); ctx.globalAlpha *= Math.sin(u * Math.PI) * .8; ctx.beginPath(); ctx.arc(pt[0], pt[1], 6, 0, 7); ctx.fillStyle = C.terra; ctx.fill(); ctx.restore();
+    }
+    ctx.restore();
+  }
+  // ---- phase 3: many heads, many layers, progressive updates
+  if (out2 > 0) {
+    ctx.save(); ctx.globalAlpha *= out2;
+    card(40, 320, 1000, 440, 1);
+    label('12 HEADS PER LAYER · EACH LEARNS ITS OWN PATTERN', 80, 372, { size: 21 });
+    for (let h = 0; h < 12; h++) {
+      const gx = 92 + (h % 6) * 152, gy = 410 + Math.floor(h / 6) * 168, k = ein(t, Q('heads') - .3 + h * .06, .4);
+      ctx.save(); ctx.globalAlpha *= k;
+      for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) {
+        let v;
+        const pat = h % 6;
+        if (pat === 0) v = i === j + 1 ? 1 : .08;              // previous token
+        else if (pat === 1) v = j === i + 1 ? 1 : .08;         // next token
+        else if (pat === 2) v = j === 5 ? .9 : .1;             // [SEP]-like sink
+        else if (pat === 3) v = .3 + .5 * rnd(h * 40 + i * 6 + j);  // broad
+        else if (pat === 4) v = i === j ? 1 : .1;              // self
+        else v = Math.abs(i - j) <= 1 ? .6 : .08;              // local window
+        if (h >= 6) v = clamp(v * .7 + rnd(h * 77 + i * 6 + j) * .35);
+        rr(gx + j * 21, gy + i * 21, 18, 18, 4); ctx.fillStyle = mix(C.soft, h % 2 ? C.slate : C.terra, v); ctx.fill();
+      }
+      text('head ' + (h + 1), gx + 62, gy + 148, { size: 17, color: C.muted, align: 'center' });
+      ctx.restore();
+    }
+    // layer-by-layer evolution of "bank"
+    const kL = ein(t, Q('layers2') - .3, .6);
+    card(40, 790, 1000, 590, kL);
+    label('“bank” AFTER EACH LAYER', 80, 842, { size: 21, alpha: kL });
+    const grow = eio(t, Q('layers2'), Math.max(1.5, QE('updated') - Q('layers2')));
+    for (let L = 0; L <= 12; L++) {
+      const k = clamp(grow * 13 - L);
+      const x = 110 + L * 66;
+      vec(x, 885, bankAt(L, 'A').slice(0, 8), { cs: 22, gap: 3, dir: 'v', reveal: k, r: 6, alpha: kL });
+      vec(x, 1130, bankAt(L, 'B').slice(0, 8), { cs: 22, gap: 3, dir: 'v', reveal: k, r: 6, alpha: kL });
+      text(L === 0 ? 'in' : String(L), x + 11, 1112, { font: MONO, size: 18, weight: 600, color: C.muted, align: 'center', alpha: kL * ein(k, .2, .5) });
+    }
+    text('S1', 1005, 990, { size: 22, weight: 800, color: C.terra, align: 'center', alpha: kL });
+    text('S2', 1005, 1235, { size: 22, weight: 800, color: C.slate, align: 'center', alpha: kL });
+    note('identical at the input · drifting apart layer by layer (illustrative)', 540, 1362, ein(t, Q('updated'), .6), { size: 22 });
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+// ------------------------------------------------------------------ Scene 6: contextual embeddings
+function scene6(t) {
+  const A = env(t, 's6'); if (A <= 0) return;
+  ctx.save(); ctx.globalAlpha = A;
+  const s0 = SC.s6.s;
+  const k0 = ein(t, s0, .6);
+  card(40, 320, 1000, 470, k0);
+  label('SAME INPUT, DIFFERENT OUTPUT', 80, 372, { size: 21, alpha: k0 });
+  const cs = 40, gap = 6, n = 14, len = vecLen(n, cs, gap), x0 = 540 - len / 2;
+  const kin = ein(t, Q('identical') - .4, .7);
+  text('input embedding of “bank”  (identical in both sentences)', 540, 425, { size: 23, weight: 600, align: 'center', color: C.muted, alpha: kin });
+  vec(x0, 445, BANK_IN.slice(0, n), { cs, gap, reveal: kin, r: 9 });
+  const kd = eio(t, Q('different_vec') - .5, 1.0);
+  arrow(540 - 40, 500, 300, 560, kd, C.sand, 3, 12);
+  arrow(540 + 40, 500, 780, 560, kd, C.sand, 3, 12);
+  text('BERT (12 layers)', 540, 560, { size: 21, weight: 700, color: C.muted, align: 'center', alpha: kd });
+  const fa = bankAt(12, 'A').slice(0, n), fb = bankAt(12, 'B').slice(0, n);
+  text('“bank” in “…deposited money at the bank.”', 80, 615, { size: 22, weight: 700, color: C.terra, alpha: kd });
+  vec(x0, 630, fa, { cs, gap, reveal: kd, r: 9 });
+  text('“bank” in “…by the river bank.”', 80, 712, { size: 22, weight: 700, color: C.slate, alpha: kd });
+  vec(x0, 727, fb, { cs, gap, reveal: kd, r: 9 });
+  // ----- 2-D projection
+  const kp = ein(t, Q('different_vec') - .2, .6);
+  card(40, 820, 1000, 530, kp);
+  label('2-D PROJECTION', 80, 872, { size: 21, alpha: kp });
+  const px = 540, py = 1100, sx = 400, sy = 190;
+  ctx.save(); ctx.globalAlpha *= kp; ctx.strokeStyle = C.border; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(px - sx - 20, py); ctx.lineTo(px + sx + 20, py); ctx.moveTo(px, py - sy - 20); ctx.lineTo(px, py + sy + 10); ctx.stroke(); ctx.restore();
+  const P = (u, v) => [px + u * sx, py - v * sy];
+  const fin = [['money', -.62, .55], ['cash', -.82, .3], ['loan', -.5, .82], ['account', -.88, .66]];
+  const riv = [['river', .62, -.5], ['shore', .85, -.2], ['water', .48, -.82], ['stream', .9, -.62]];
+  const kc = ein(t, Q('different_vec'), .8);
+  [[fin, C.terra], [riv, C.slate]].forEach(([g, col]) => g.forEach(([w, u, v], i) => {
+    const [x, y] = P(u, v), k = clamp(kc * 2 - i * .2);
+    ctx.save(); ctx.globalAlpha *= k; ctx.beginPath(); ctx.arc(x, y, 10, 0, 7); ctx.fillStyle = rgba(col, .45); ctx.fill(); ctx.restore();
+    text(w, x + 16, y + 7, { size: 21, color: col, alpha: k * .9 });
+  }));
+  // static "bank" input point -> two contextual points
+  const [cx0, cy0] = P(0, .05);
+  ctx.save(); ctx.globalAlpha *= kp; ctx.beginPath(); ctx.arc(cx0, cy0, 13, 0, 7); ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.setLineDash([4, 5]); ctx.stroke(); ctx.restore();
+  text('input “bank”', cx0 + 20, cy0 - 14, { size: 20, color: C.muted, alpha: kp });
+  const km = eio(t, Q('different_vec') + .4, 1.4);
+  const ta = P(-.38, .28), tb = P(.32, -.24);
+  [[ta, C.terra, 'bank (finance)', -1], [tb, C.slate, 'bank (river)', 1]].forEach(([p, col, nm, side]) => {
+    if (km <= 0) return;
+    const x = lerp(cx0, p[0], km), y = lerp(cy0, p[1], km);
+    ctx.save(); ctx.globalAlpha *= km * .6; ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.setLineDash([2, 7]); ctx.beginPath(); ctx.moveTo(cx0, cy0); ctx.lineTo(x, y); ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.globalAlpha *= km; ctx.beginPath(); ctx.arc(x, y, 16, 0, 7); ctx.fillStyle = col; ctx.fill(); ctx.restore();
+    text(nm, x + (side < 0 ? -26 : -26), y + (side < 0 ? 40 : -26), { size: 24, weight: 700, color: col, align: 'right', alpha: km });
+  });
+  note('illustrative projection · not actual model output', 540, 1330, kp, { size: 22 });
+  ctx.restore();
+}
+
+// ------------------------------------------------------------------ Scene 7: sentence embeddings
+function scene7(t) {
+  const A = env(t, 's7'); if (A <= 0) return;
+  ctx.save(); ctx.globalAlpha = A;
+  const s0 = SC.s7.s;
+  const pVan = SS('However, vanilla').s - .4, pSB = SS("That's why").s - .35;
+  const outA = eio(t, pVan - .3, .6), outB = eio(t, pSB - .3, .6);
+  // ---- pooling
+  if (outA < 1) {
+    ctx.save(); ctx.globalAlpha *= 1 - outA;
+    const k0 = ein(t, s0, .6);
+    card(40, 320, 1000, 470, k0);
+    label('FINAL-LAYER TOKEN VECTORS · SENTENCE 1', 80, 372, { size: 21, alpha: k0 });
+    const row = layoutRow(TOK_A, 23, 600, 88, 10, 540);
+    const conv = eio(t, Q('mean') - .3, 1.4);
+    const clsK = eio(t, Q('cls') - .3, 1.2);
+    TOK_A.forEach((tk, j) => {
+      const x = row.xs[j], k = ein(t, s0 + .2 + j * .06, .5);
+      text(tk, x, 432, { size: 23, weight: 600, align: 'center', color: j === 0 ? mix(C.muted, C.terra, clsK) : (tk.startsWith('[') ? C.muted : C.ink), alpha: k });
+      text('h' + (j + 1), x, 768, { font: SERIF, size: 20, italic: true, color: C.muted, align: 'center', alpha: k });
+      vec(x - 13, 450, HID[j], { cs: 26, gap: 4, dir: 'v', reveal: k, r: 6, stroke: j === 0 && clsK > .1 ? rgba(C.terra, clsK) : null });
+    });
+    const kOne = ein(t, Q('one_vec'), .6);
+    // bottom card: two pooling strategies
+    card(40, 820, 1000, 530, kOne);
+    label('ONE VECTOR FOR THE WHOLE SENTENCE', 80, 872, { size: 21, alpha: kOne });
+    chip('?', 540, 1080, { size: 54, h: 110, r: 55, minW: 110, alpha: kOne * (1 - ein(t, Q('pool'), .5)), color: C.terra, stroke: rgba(C.terra, .4) });
+    // mean pooling: copies of each column travel to one location and merge
+    const mx = 290, my = 950;
+    const kPool = ein(t, Q('pool') - .1, .6);
+    text('mean pooling', mx, 912, { size: 28, weight: 700, color: C.terra, align: 'center', alpha: kPool });
+    if (conv > 0 && conv < 1) {
+      TOK_A.forEach((_, j) => {
+        const u = clamp(conv * 1.4 - j * .045);
+        const x = lerp(row.xs[j] - 13, mx - 13, easeInOut(u)), y = lerp(450, my, easeInOut(u));
+        vec(x, y, HID[j], { cs: 26, gap: 4, dir: 'v', r: 6, alpha: .55 * (1 - u * .6) });
+      });
+    }
+    vec(mx - 13, my, MEAN, { cs: 26, gap: 4, dir: 'v', r: 6, reveal: eio(t, Q('mean') + .7, .8), stroke: rgba(C.terra, .9) });
+    text('s = (1/n) Σ hᵢ', mx, 1300, { font: SERIF, size: 32, italic: true, weight: 600, align: 'center', alpha: ein(t, Q('mean'), .6) });
+    text('average over all tokens', mx, 1250 - 0, { size: 20, color: C.muted, align: 'center', alpha: ein(t, Q('mean') + .5, .6) });
+    // CLS
+    const cx = 790;
+    ctx.save(); ctx.globalAlpha *= clsK; ctx.strokeStyle = C.border; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(540, 905); ctx.lineTo(540, 1320); ctx.stroke(); ctx.restore();
+    text('[CLS] token', cx, 912, { size: 28, weight: 700, color: C.slate, align: 'center', alpha: clsK });
+    if (clsK > 0) {
+      const x = lerp(row.xs[0] - 13, cx - 13, easeInOut(clsK)), y = lerp(450, my, easeInOut(clsK));
+      vec(x, y, HID[0], { cs: 26, gap: 4, dir: 'v', r: 6, stroke: rgba(C.slate, .9) });
+    }
+    text('s = h[CLS]', cx, 1300, { font: SERIF, size: 32, italic: true, weight: 600, align: 'center', alpha: ein(t, Q('cls') + .6, .6) });
+    text('final hidden state of [CLS]', cx, 1250, { size: 20, color: C.muted, align: 'center', alpha: ein(t, Q('cls') + .9, .6) });
+    ctx.restore();
+  }
+  // ---- caveat: vanilla BERT's objectives
+  if (outA > 0 && outB < 1) {
+    ctx.save(); ctx.globalAlpha *= outA * (1 - outB);
+    card(40, 320, 1000, 470, 1);
+    label('WHAT VANILLA BERT WAS PRE-TRAINED ON', 80, 372, { size: 21 });
+    const k1 = ein(t, pVan + .3, .5), k2 = ein(t, pVan + .7, .5);
+    card(90, 420, 430, 190, k1, { fill: C.soft });
+    text('Masked language', 305, 495, { size: 30, weight: 700, align: 'center', alpha: k1 });
+    text('modeling', 305, 535, { size: 30, weight: 700, align: 'center', alpha: k1 });
+    text('predict hidden tokens', 305, 580, { size: 20, color: C.muted, align: 'center', alpha: k1 });
+    card(560, 420, 430, 190, k2, { fill: C.soft });
+    text('Next sentence', 775, 495, { size: 30, weight: 700, align: 'center', alpha: k2 });
+    text('prediction', 775, 535, { size: 30, weight: 700, align: 'center', alpha: k2 });
+    text('does B follow A?', 775, 580, { size: 20, color: C.muted, align: 'center', alpha: k2 });
+    const k3 = ein(t, Q('similarity') - .3, .6);
+    chip('not a sentence-similarity objective', 540, 700, { size: 30, h: 70, color: C.terra, fill: rgba(C.terra, .08), stroke: rgba(C.terra, .4), alpha: k3 });
+    card(40, 820, 1000, 530, ein(t, pVan + .5, .5));
+    label('RAW COSINE SIMILARITY (ILLUSTRATIVE)', 80, 872, { size: 21, alpha: ein(t, pVan + .5, .5) });
+    const kb = eio(t, Q('vanilla') + .4, 1.2);
+    const bars = [['paraphrase pair', .86, C.sage], ['unrelated pair', .79, C.muted]];
+    bars.forEach(([nm, v, col], i) => {
+      const y = 950 + i * 130;
+      text(nm, 90, y + 10, { size: 26, weight: 600, alpha: kb });
+      rr(360, y - 22, 560, 44, 22); ctx.save(); ctx.globalAlpha *= kb; ctx.fillStyle = C.soft; ctx.fill(); ctx.restore();
+      ctx.save(); ctx.globalAlpha *= kb; rr(360, y - 22, 560 * v * kb, 44, 22); ctx.fillStyle = col; ctx.fill(); ctx.restore();
+    });
+    note('scores can bunch together, so similar and unrelated pairs separate poorly', 540, 1240, ein(t, Q('similarity') + .2, .6), { size: 22 });
+    note('(Reimers & Gurevych, 2019)', 540, 1280, ein(t, Q('similarity') + .4, .6), { size: 20 });
+    ctx.restore();
+  }
+  // ---- Sentence-BERT
+  if (outB > 0) {
+    ctx.save(); ctx.globalAlpha *= outB;
+    card(40, 320, 1000, 1030, 1);
+    label('SENTENCE-BERT (SIAMESE FINE-TUNING)', 80, 372, { size: 21 });
+    const k = eio(t, Q('sbert') - .1, 2.4);
+    const cols = [{ x: 300, s: 'sentence A', c: C.terra, n: 'u' }, { x: 780, s: 'sentence B', c: C.slate, n: 'v' }];
+    cols.forEach((c, i) => {
+      const kk = clamp(k * 1.3 - i * .15);
+      chip(c.s, c.x, 450, { size: 28, h: 64, alpha: ein(kk, 0, .25), stroke: rgba(c.c, .5) });
+      arrow(c.x, 490, c.x, 540, clamp(kk * 4 - .4), C.sand, 3, 12);
+      ctx.save(); ctx.globalAlpha *= ein(kk, .15, .3);
+      rr(c.x - 150, 550, 300, 150, 22); ctx.fillStyle = C.soft; ctx.fill(); ctx.strokeStyle = C.border; ctx.lineWidth = 2; ctx.stroke();
+      ctx.restore();
+      text('BERT', c.x, 640, { font: SERIF, size: 44, weight: 700, align: 'center', alpha: ein(kk, .15, .3) });
+      arrow(c.x, 710, c.x, 760, clamp(kk * 4 - 1.4), C.sand, 3, 12);
+      chip('mean pool', c.x, 795, { size: 24, h: 54, alpha: ein(kk, .4, .3) });
+      arrow(c.x, 830, c.x, 880, clamp(kk * 4 - 2.2), C.sand, 3, 12);
+      vec(c.x - vecLen(6, 34, 5) / 2, 895, bankAt(12, i ? 'B' : 'A').slice(0, 6), { cs: 34, gap: 5, reveal: clamp(kk * 3 - 1.8), r: 8, stroke: rgba(c.c, .7) });
+      text(c.n, c.x, 975, { font: SERIF, size: 40, italic: true, weight: 700, color: c.c, align: 'center', alpha: clamp(kk * 3 - 2) });
+    });
+    const kw = ein(t, Q('sbert') + 1.0, .6);
+    ctx.save(); ctx.globalAlpha *= kw; ctx.strokeStyle = C.terra; ctx.lineWidth = 3; ctx.setLineDash([6, 8]);
+    ctx.beginPath(); ctx.moveTo(452, 625); ctx.lineTo(628, 625); ctx.stroke(); ctx.restore();
+    text('shared weights', 540, 612, { size: 20, weight: 700, color: C.terra, align: 'center', alpha: kw });
+    const kc = eio(t, Q('sbert_useful') - .8, 1.0);
+    arrow(330, 1000, 500, 1080, kc, C.muted, 3, 12); arrow(750, 1000, 580, 1080, kc, C.muted, 3, 12);
+    chip('cosine( u , v )', 540, 1120, { size: 34, h: 76, font: SERIF, weight: 700, alpha: kc, stroke: rgba(C.terra, .5) });
+    note('fine-tuned on sentence pairs (e.g. NLI, STS) so that', 540, 1220, ein(t, Q('sbert_useful'), .6), { size: 24 });
+    note('similar meanings → nearby vectors', 540, 1256, ein(t, Q('sbert_useful'), .6), { size: 24, color: C.terra, weight: 600 });
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+// ------------------------------------------------------------------ Scene 8: takeaway
+function scene8(t) {
+  const A = env(t, 's8', .35, .0001); if (A <= 0) return;
+  ctx.save(); ctx.globalAlpha = A;
+  const s0 = SC.s8.s;
+  const sides = [
+    { x: 40, lines: ['I deposited money', 'at the bank.'], col: C.terra, v: bankAt(12, 'A'), m: 'finance' },
+    { x: 560, lines: ['I sat by the', 'river bank.'], col: C.slate, v: bankAt(12, 'B'), m: 'riverside' },
+  ];
+  sides.forEach((s, i) => {
+    const k = ein(t, s0 + .1 + i * .25, .6);
+    card(s.x, 330, 480, 560, k, { stroke: rgba(s.col, .35) });
+    ctx.save(); ctx.globalAlpha *= k;
+    label('SENTENCE ' + (i + 1), s.x + 40, 390, { size: 20 });
+    s.lines.forEach((ln, li) => {
+      const ws = ln.split(' '), hi = ws.indexOf('bank.');
+      sentenceWords(ln, s.x + 240, 470 + li * 62, 42, { hi, hiK: ein(t, s0 + .6, .6), hiColor: s.col });
+    });
+    const kv = eio(t, s0 + .9 + i * .2, 1.0);
+    text('contextual “bank” vector', s.x + 240, 640, { size: 21, weight: 600, color: C.muted, align: 'center', alpha: kv });
+    vec(s.x + 240 - vecLen(8, 44, 6) / 2, 660, s.v.slice(0, 8), { cs: 44, gap: 6, reveal: kv, r: 10 });
+    vec(s.x + 240 - vecLen(8, 44, 6) / 2, 714, s.v.slice(8, 16), { cs: 44, gap: 6, reveal: kv, r: 10 });
+    chip(s.m, s.x + 240, 830, { size: 26, h: 58, color: s.col, fill: rgba(s.col, .08), stroke: rgba(s.col, .4), alpha: eio(t, s0 + 1.5 + i * .2, .5) });
+    ctx.restore();
+  });
+  chip('≠', 540, 690, { size: 44, h: 76, minW: 76, r: 38, color: C.terra, alpha: eio(t, s0 + 1.8, .5), stroke: rgba(C.terra, .5) });
+  const k = ein(t, Q('constructs') - .2, .9);
+  asterisk(540, 990, 38, t * .18, C.terra, k);
+  text('BERT embeddings are', 540, 1135 + (1 - k) * 20, { font: SERIF, size: 66, weight: 600, align: 'center', alpha: k });
+  text('context-dependent.', 540, 1220 + (1 - k) * 20, { font: SERIF, size: 78, weight: 700, align: 'center', color: C.terra, alpha: k });
+  note('same token, same input vector, different output', 540, 1300, ein(t, Q('constructs') + .6, .7), { size: 25 });
+  ctx.restore();
+}
+
+// ------------------------------------------------------------------ subtitles (drawn on canvas)
+const CAP_TOP = 1430, CAP_SIZE = 44, CAP_LH = 58, CAP_MAXW = 860, CAP_CX = 520;
+function drawCaption(t) {
+  let ci = -1;
+  for (let i = 0; i < CAPS.length; i++) if (t >= CAPS[i].s && t < CAPS[i].e) { ci = i; break; }
+  if (ci < 0) return;
+  const cap = CAPS[ci], nx = CAPS[ci + 1], pv = CAPS[ci - 1];
+  const contIn = pv && cap.s - pv.e < .08, contOut = nx && nx.s - cap.e < .08;
+  const a = Math.min(contIn ? 1 : easeOut(prog(t, cap.s, cap.s + .14)), contOut ? 1 : 1 - prog(t, cap.e - .2, cap.e));
+  const items = cap.words.map(w => ({ ...w, width: measure(w.w, CAP_SIZE, 600) }));
+  const sp = measure(' ', CAP_SIZE, 600);
+  // greedy wrap, then rebalance into 2 lines when it overflows
+  const totalW = items.reduce((s, w) => s + w.width, 0) + sp * (items.length - 1);
+  const lines = [[]];
+  if (totalW <= CAP_MAXW) lines[0] = items;
+  else {
+    let acc = 0, best = 1, bestD = 1e9;
+    for (let i = 1; i < items.length; i++) {
+      acc += items[i - 1].width + (i > 1 ? sp : 0);
+      const d = Math.abs(acc - (totalW - acc - sp));
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    lines[0] = items.slice(0, best); lines[1] = items.slice(best);
+  }
+  const widths = lines.map(l => l.reduce((s, w, i) => s + w.width + (i ? sp : 0), 0));
+  const boxW = Math.max(...widths) + 72, boxH = lines.length * CAP_LH + 36;
+  ctx.save(); ctx.globalAlpha = a;
+  ctx.shadowColor = 'rgba(80,55,30,.10)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 6;
+  rr(CAP_CX - boxW / 2, CAP_TOP, boxW, boxH, 28); ctx.fillStyle = 'rgba(255,254,251,0.97)'; ctx.fill();
+  ctx.shadowColor = 'transparent'; ctx.lineWidth = 2; ctx.strokeStyle = C.border; ctx.stroke();
+  lines.forEach((l, li) => {
+    let x = CAP_CX - widths[li] / 2;
+    const y = CAP_TOP + 18 + CAP_LH * li + CAP_LH / 2 + 2;
+    for (const w of l) {
+      const said = t >= w.s - .04;
+      const kw = isKW(w.w);
+      text(w.w, x, y, { size: CAP_SIZE, weight: kw ? 700 : 600, base: 'middle', color: kw ? C.terra : C.ink, alpha: said ? 1 : .38 });
+      x += w.width + sp;
+    }
+  });
+  ctx.restore();
+}
+function drawFades(t) {
+  const kin = 1 - prog(t, 0, .45);
+  if (kin > 0) { ctx.save(); ctx.globalAlpha = kin; ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+}
+
+// ------------------------------------------------------------------ draw(t)
+function draw(t) {
+  if (!SC) setup();
+  t = clamp(t, 0, TOTAL);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.setLineDash([]);
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  // soft warm vignette
+  const g = ctx.createRadialGradient(540, 820, 200, 540, 820, 1250);
+  g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(228,217,199,0.35)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  asterisk(985, 1800, 40, t * .05, C.sand, .5);
+  drawHeader(t);
+  scene1(t); scene2(t); scene3(t); scene4(t); scene5(t); scene6(t); scene7(t); scene8(t);
+  drawCaption(t);
+  drawFades(t);
+}
+window.draw = draw;
+
+// ------------------------------------------------------------------ live preview (play / pause / seek)
+async function ensureData() { if (!window.TIMING) window.TIMING = await fetch('alignment.json').then(r => r.json()); }
+window.ready = ensureData().then(setup);
+if (!window.__RENDERING) {
+  window.ready.then(() => {
+    const aud = document.getElementById('aud'), btn = document.getElementById('play'), seek = document.getElementById('seek');
+    const tl = document.getElementById('time'), snd = document.getElementById('sound');
+    let playing = false, base = 0, t0 = 0, sound = true, scrub = 0;
+    const now = () => playing ? (sound && !aud.paused ? aud.currentTime : base + (performance.now() - t0) / 1000) : scrub;
+    const start = () => {
+      playing = true; base = scrub >= TOTAL ? 0 : scrub; t0 = performance.now(); btn.textContent = '❚❚ Pause';
+      if (sound) { aud.currentTime = base; aud.play().catch(() => { sound = false; snd.textContent = 'Sound: n/a'; }); }
+    };
+    const stop = () => { scrub = now(); playing = false; aud.pause(); btn.textContent = '▶ Play'; };
+    btn.onclick = () => playing ? stop() : start();
+    snd.onclick = () => { const t = now(); const was = playing; if (was) stop(); sound = !sound; snd.textContent = 'Sound: ' + (sound ? 'on' : 'off'); scrub = t; if (was) start(); };
+    seek.oninput = () => { const was = playing; if (playing) stop(); scrub = +seek.value; if (was) start(); };
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') { e.preventDefault(); btn.onclick(); }
+      if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') { const was = playing; if (was) stop(); scrub = clamp(now() + (e.code === 'ArrowRight' ? 5 : -5), 0, TOTAL); if (was) start(); }
+    });
+    const loop = () => {
+      let t = now();
+      if (t >= TOTAL) { if (playing) stop(); scrub = t = TOTAL; }
+      draw(t); seek.value = t; tl.textContent = t.toFixed(2) + ' / ' + TOTAL.toFixed(1) + ' s';
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+    // autoplay attempt (Chrome may require a click for sound)
+    start();
+  });
+}
+</script>
+</body>
+</html>

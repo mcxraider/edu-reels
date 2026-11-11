@@ -1,0 +1,41 @@
+How does BERT turn ordinary text into vectors that actually understand context?
+
+Let's take two sentences.
+
+'I deposited money at the bank.'
+
+And, 'I sat by the river bank.'
+
+The word 'bank' appears in both, but clearly means different things.
+
+Here's how BERT handles that.
+
+First, it splits each sentence into smaller units called tokens. Some words remain whole, while others are broken into subwords.
+
+Each token is mapped to a learned vector. BERT then adds positional information, and token-type information when applicable.
+
+These vectors enter a stack of Transformer encoder layers.
+
+Inside each layer, something interesting happens: bidirectional self-attention.
+
+Every token can attend to other tokens on both sides of the sentence.
+
+For example, 'bank' can attend to 'deposited' and 'money' in the first sentence.
+
+But in the second, it can attend to 'river' and 'sat'.
+
+Attention uses learned query, key, and value projections to calculate how information flows between tokens.
+
+Across multiple attention heads and encoder layers, each token's representation is progressively updated.
+
+So even though the original word is identical, BERT produces different contextual vectors for 'bank' in these two sentences.
+
+But what if we need one vector for the entire sentence?
+
+We can pool the token representations, for example by taking their mean. Another approach uses the final hidden state of the special CLS token.
+
+However, vanilla BERT wasn't specifically trained to produce optimal sentence similarity embeddings.
+
+That's why models like Sentence-BERT fine-tune the architecture to generate more useful sentence-level representations.
+
+And that's the key idea: BERT doesn't simply look up a word's meaning. It constructs representations using the surrounding context.
