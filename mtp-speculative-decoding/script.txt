@@ -1,0 +1,67 @@
+Normally, a large language model generates text one token at a time.
+
+Imagine the model has written: The capital of France is.
+
+It predicts Paris. Then it needs another decoding step to predict the next token.
+
+Even if the next few tokens seem obvious, the model still processes them sequentially.
+
+This creates a bottleneck. Each new token depends on the previous token.
+
+Now, what if we could predict several future tokens before running the full model again?
+
+That's the idea behind Multi-Token Prediction, or MTP.
+
+Instead of predicting only the next token, auxiliary prediction heads or modules attempt to predict tokens further into the future.
+
+For example, given our sentence, an MTP system might propose Paris, followed by a period, and then another likely token.
+
+But there's a problem.
+
+These are only predictions. The main model hasn't confirmed that they're the tokens it would actually generate.
+
+This is where speculative decoding comes in.
+
+First, the MTP system produces a short sequence of draft tokens.
+
+Next, the main model verifies the draft sequence in a single forward pass.
+
+But how can it check several tokens simultaneously when transformers use causal attention?
+
+The key is that the draft tokens are already available as inputs.
+
+We place those tokens into a sequence, and apply a causal attention mask.
+
+Each position can attend only to the prompt and the draft tokens before it.
+
+That means the model can calculate the next-token predictions for all these positions in parallel, without leaking information from future positions.
+
+Now, compare the draft tokens with the target model's predictions.
+
+In a simple greedy decoding example, imagine the first two draft tokens match, but the third does not.
+
+We accept the first two tokens, reject the incorrect third token, and continue from the target model's correct prediction.
+
+For sampling-based decoding, acceptance requires a more careful probability-based procedure to preserve the target model's output distribution.
+
+Here's why this is powerful.
+
+Without speculation, generating several tokens requires several sequential decoding steps.
+
+With speculation, one verification pass can accept multiple tokens.
+
+We haven't necessarily reduced the total computation. In fact, drafting and verification introduce extra work.
+
+But we've reduced the number of expensive sequential steps.
+
+And on GPUs, verifying multiple tokens together can make better use of parallel computation.
+
+The actual speedup depends on draft accuracy, verification cost, memory bandwidth, and hardware efficiency.
+
+If too many draft tokens get rejected, the extra work may outweigh the benefit.
+
+So the central idea is simple.
+
+MTP proposes future tokens. Speculative decoding verifies them. And when enough predictions are accepted, the model can generate text faster without changing the target decoding result or distribution, provided the appropriate verification algorithm is used.
+
+That's how we turn multiple guesses into fewer sequential decoding steps.

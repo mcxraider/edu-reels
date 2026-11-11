@@ -1,0 +1,25 @@
+{
+  "model": "gpt-4o-mini-tts",
+  "voice": "cedar",
+  "speed": 1.1,
+  "instructions": "Speak like an engaging technical educator explaining an advanced machine learning concept. Use a natural conversational pace, clear pronunciation, and short pauses after important concepts. Avoid sounding robotic, theatrical, or overly excited. Emphasize technical terms naturally. Pronounce 'MTP' as the letters M T P, and 'GPUs' as G P U's.",
+  "requests": 1,
+  "sample_rate": 24000,
+  "raw_duration_s": 157.684,
+  "lead_in_s": 1.0,
+  "section_pause_s": 0.45,
+  "section_cuts_raw_s": [
+    20.24,
+    35.345,
+    54.67,
+    67.045,
+    81.595,
+    103.07,
+    127.26,
+    137.46
+  ],
+  "outro_hold_s": 4.0,
+  "measured_input_lufs": "-22.92",
+  "target_lufs": -16,
+  "final_duration_s": 166.284
+}

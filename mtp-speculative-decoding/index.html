@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MTP heads &amp; speculative decoding — Canvas reel</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #E9E4DB; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  #c { width: auto; height: calc(100vh - 70px); aspect-ratio: 9 / 16; box-shadow: 0 8px 40px rgba(60, 40, 20, .18); border-radius: 6px; background: #F8F5EF; }
+  #ui { display: flex; gap: 12px; align-items: center; width: min(92vw, 640px); color: #292524; font-size: 14px; }
+  #ui button { border: 1px solid #C46B4D; background: #FFFDF9; color: #C46B4D; border-radius: 18px; padding: 6px 16px; font-weight: 600; cursor: pointer; }
+  #ui input[type=range] { flex: 1; accent-color: #C46B4D; }
+  #ui .tc { font-variant-numeric: tabular-nums; min-width: 110px; text-align: right; }
+  body.rendering { display: block; background: #F8F5EF; }
+  body.rendering #ui { display: none; }
+  body.rendering #c { width: 1080px; height: 1920px; box-shadow: none; border-radius: 0; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<div id="ui">
+  <button id="play">▶ Play</button>
+  <input id="scrub" type="range" min="0" max="1000" step="1" value="0">
+  <span class="tc" id="tc">0.00 / 0.00 s</span>
+</div>
+<audio id="audio" src="assets/narration.wav" preload="auto"></audio>
+
+<!-- DATA:BEGIN (injected by `node render.mjs --inject` from timings.json) -->
+<script id="data">window.TIMING = {"duration":166.268,"fps":30,"scenes":[{"id":"s1_autoregressive","first_segment":"seg00","speech_start":1.02,"speech_end":20.89,"start":0,"end":21.465},{"id":"s2_mtp","first_segment":"seg05","speech_start":22.04,"speech_end":36.43,"start":21.465,"end":37.035},{"id":"s3_draft","first_segment":"seg08","speech_start":37.64,"speech_end":56.24,"start":37.035,"end":56.8},{"id":"s4_verify","first_segment":"seg13","speech_start":57.36,"speech_end":68.97,"start":56.8,"end":69.62},{"id":"s5_mask","first_segment":"seg16","speech_start":70.27,"speech_end":83.91,"start":69.62,"end":84.625},{"id":"s6_accept","first_segment":"seg19","speech_start":85.34,"speech_end":105.99,"start":84.625,"end":106.54},{"id":"s7_speedup","first_segment":"seg23","speech_start":107.09,"speech_end":130.52,"start":106.54,"end":131.19},{"id":"s8_failure","first_segment":"seg29","speech_start":131.86,"speech_end":141.16,"start":131.19,"end":141.86},{"id":"s9_takeaway","first_segment":"seg31","speech_start":142.56,"speech_end":161.75,"start":141.86,"end":166.268}],"segments":[{"id":"seg00","scene":"s1_autoregressive","text":"Normally, a large language model generates text one token at a time.","start":1.02,"end":4.71,"words":[{"w":"Normally,","start":1.02,"end":1.42},{"w":"a","start":1.58,"end":1.98},{"w":"large","start":1.98,"end":2.24},{"w":"language","start":2.24,"end":2.6},{"w":"model","start":2.6,"end":2.82},{"w":"generates","start":2.82,"end":3.26},{"w":"text","start":3.26,"end":3.58},{"w":"one","start":3.58,"end":3.98},{"w":"token","start":3.98,"end":4.18},{"w":"at","start":4.18,"end":4.38},{"w":"a","start":4.38,"end":4.72},{"w":"time.","start":4.72,"end":4.72}]},{"id":"seg01","scene":"s1_autoregressive","text":"Imagine the model has written: The capital of France is.","start":5.21,"end":7.76,"words":[{"w":"Imagine","start":5.46,"end":5.52},{"w":"the","start":5.52,"end":5.7},{"w":"model","start":5.7,"end":5.82},{"w":"has","start":5.82,"end":6.22},{"w":"written:","start":6.22,"end":6.22},{"w":"The","start":6.68,"end":6.76},{"w":"capital","start":6.76,"end":7},{"w":"of","start":7,"end":7.18},{"w":"France","start":7.18,"end":7.4},{"w":"is.","start":7.4,"end":7.74}]},{"id":"seg02","scene":"s1_autoregressive","text":"It predicts Paris. Then it needs another decoding step to predict the next token.","start":8.2,"end":12.2,"words":[{"w":"It","start":8.3,"end":8.38},{"w":"predicts","start":8.38,"end":8.88},{"w":"Paris.","start":9.2,"end":9.22},{"w":"Then","start":9.94,"end":10.06},{"w":"it","start":10.06,"end":10.2},{"w":"needs","start":10.2,"end":10.32},{"w":"another","start":10.32,"end":10.6},{"w":"decoding","start":10.6,"end":10.92},{"w":"step","start":10.92,"end":11.22},{"w":"to","start":11.22,"end":11.58},{"w":"predict","start":11.58,"end":11.58},{"w":"the","start":11.58,"end":11.74},{"w":"next","start":11.74,"end":11.98},{"w":"token.","start":11.98,"end":12.16}]},{"id":"seg03","scene":"s1_autoregressive","text":"Even if the next few tokens seem obvious, the model still processes them sequentially.","start":12.88,"end":16.91,"words":[{"w":"Even","start":12.88,"end":13.08},{"w":"if","start":13.08,"end":13.18},{"w":"the","start":13.18,"end":13.3},{"w":"next","start":13.3,"end":13.54},{"w":"few","start":13.54,"end":13.78},{"w":"tokens","start":13.78,"end":13.94},{"w":"seem","start":13.94,"end":14.22},{"w":"obvious,","start":14.22,"end":14.62},{"w":"the","start":15.06,"end":15.24},{"w":"model","start":15.24,"end":15.36},{"w":"still","start":15.36,"end":15.88},{"w":"processes","start":15.88,"end":16.1},{"w":"them","start":16.1,"end":16.36},{"w":"sequentially.","start":16.36,"end":16.78}]},{"id":"seg04","scene":"s1_autoregressive","text":"This creates a bottleneck. Each new token depends on the previous token.","start":17.41,"end":20.89,"words":[{"w":"This","start":17.44,"end":17.64},{"w":"creates","start":17.64,"end":17.9},{"w":"a","start":17.9,"end":18.08},{"w":"bottleneck.","start":18.08,"end":18.5},{"w":"Each","start":18.98,"end":19.2},{"w":"new","start":19.2,"end":19.62},{"w":"token","start":19.62,"end":19.62},{"w":"depends","start":19.62,"end":20.02},{"w":"on","start":20.02,"end":20.18},{"w":"the","start":20.18,"end":20.28},{"w":"previous","start":20.28,"end":20.6},{"w":"token.","start":20.6,"end":20.84}]},{"id":"seg05","scene":"s2_mtp","text":"Now, what if we could predict several future tokens before running the full model again?","start":22.04,"end":25.86,"words":[{"w":"Now,","start":22.04,"end":22.265},{"w":"what","start":22.325,"end":22.665},{"w":"if","start":22.665,"end":22.745},{"w":"we","start":22.745,"end":22.845},{"w":"could","start":22.845,"end":23.045},{"w":"predict","start":23.045,"end":23.225},{"w":"several","start":23.225,"end":23.585},{"w":"future","start":23.585,"end":23.965},{"w":"tokens","start":23.965,"end":24.165},{"w":"before","start":24.165,"end":24.745},{"w":"running","start":24.745,"end":24.965},{"w":"the","start":24.965,"end":25.145},{"w":"full","start":25.145,"end":25.405},{"w":"model","start":25.405,"end":25.505},{"w":"again?","start":25.505,"end":25.845}]},{"id":"seg06","scene":"s2_mtp","text":"That's the idea behind Multi-Token Prediction, or MTP.","start":26.56,"end":29.78,"words":[{"w":"That's","start":26.56,"end":26.825},{"w":"the","start":26.825,"end":27.065},{"w":"idea","start":27.065,"end":27.145},{"w":"behind","start":27.145,"end":27.465},{"w":"Multi-Token","start":27.465,"end":28.045},{"w":"Prediction,","start":28.045,"end":28.445},{"w":"or","start":28.925,"end":29.185},{"w":"MTP.","start":29.185,"end":29.665}]},{"id":"seg07","scene":"s2_mtp","text":"Instead of predicting only the next token, auxiliary prediction heads or modules attempt to predict tokens further into the future.","start":30.66,"end":36.43,"words":[{"w":"Instead","start":30.765,"end":30.885},{"w":"of","start":30.885,"end":31.085},{"w":"predicting","start":31.085,"end":31.325},{"w":"only","start":31.325,"end":31.705},{"w":"the","start":31.705,"end":31.865},{"w":"next","start":31.865,"end":32.145},{"w":"token,","start":32.145,"end":32.325},{"w":"auxiliary","start":32.965,"end":33.285},{"w":"prediction","start":33.285,"end":33.665},{"w":"heads","start":33.665,"end":33.905},{"w":"or","start":33.905,"end":34.705},{"w":"modules","start":34.705,"end":34.705},{"w":"attempt","start":34.705,"end":34.885},{"w":"to","start":34.885,"end":35.245},{"w":"predict","start":35.245,"end":35.245},{"w":"tokens","start":35.245,"end":35.545},{"w":"further","start":35.545,"end":35.885},{"w":"into","start":35.885,"end":36.065},{"w":"the","start":36.065,"end":36.165},{"w":"future.","start":36.165,"end":36.385}]},{"id":"seg08","scene":"s3_draft","text":"For example, given our sentence, an MTP system might propose Paris, followed by a period, and then another likely token.","start":37.64,"end":43.5,"words":[{"w":"For","start":37.64,"end":37.825},{"w":"example,","start":37.825,"end":38.025},{"w":"given","start":38.445,"end":38.525},{"w":"our","start":38.525,"end":38.745},{"w":"sentence,","start":38.745,"end":39.045},{"w":"an","start":39.465,"end":39.625},{"w":"MTP","start":39.625,"end":40.025},{"w":"system","start":40.025,"end":40.385},{"w":"might","start":40.385,"end":40.585},{"w":"propose","start":40.585,"end":40.885},{"w":"Paris,","start":40.885,"end":41.325},{"w":"followed","start":41.5,"end":41.84},{"w":"by","start":41.84,"end":41.98},{"w":"a","start":41.98,"end":42.22},{"w":"period,","start":42.22,"end":42.34},{"w":"and","start":42.34,"end":42.54},{"w":"then","start":42.54,"end":42.72},{"w":"another","start":42.72,"end":42.98},{"w":"likely","start":42.98,"end":43.24},{"w":"token.","start":43.24,"end":43.44}]},{"id":"seg09","scene":"s3_draft","text":"But there's a problem.","start":44.11,"end":44.84,"words":[{"w":"But","start":44.12,"end":44.24},{"w":"there's","start":44.24,"end":44.42},{"w":"a","start":44.42,"end":44.64},{"w":"problem.","start":44.64,"end":44.78}]},{"id":"seg10","scene":"s3_draft","text":"These are only predictions. The main model hasn't confirmed that they're the tokens it would actually generate.","start":45.31,"end":49.87,"words":[{"w":"These","start":45.54,"end":45.56},{"w":"are","start":45.56,"end":45.7},{"w":"only","start":45.7,"end":46},{"w":"predictions.","start":45.9,"end":46.38},{"w":"The","start":47.02,"end":47.18},{"w":"main","start":47.18,"end":47.4},{"w":"model","start":47.4,"end":47.54},{"w":"hasn't","start":47.54,"end":47.84},{"w":"confirmed","start":47.84,"end":48.2},{"w":"that","start":48.2,"end":48.44},{"w":"they're","start":48.44,"end":48.56},{"w":"the","start":48.56,"end":48.98},{"w":"tokens","start":48.98,"end":48.98},{"w":"it","start":48.98,"end":49.08},{"w":"would","start":49.08,"end":49.18},{"w":"actually","start":49.18,"end":49.62},{"w":"generate.","start":49.62,"end":49.84}]},{"id":"seg11","scene":"s3_draft","text":"This is where speculative decoding comes in.","start":50.49,"end":52.26,"words":[{"w":"This","start":50.52,"end":50.7},{"w":"is","start":50.7,"end":50.84},{"w":"where","start":50.84,"end":50.98},{"w":"speculative","start":50.98,"end":51.46},{"w":"decoding","start":51.46,"end":51.8},{"w":"comes","start":51.8,"end":52.06},{"w":"in.","start":52.06,"end":52.4}]},{"id":"seg12","scene":"s3_draft","text":"First, the MTP system produces a short sequence of draft tokens.","start":52.95,"end":56.24,"words":[{"w":"First,","start":53.08,"end":53.24},{"w":"the","start":53.6,"end":53.76},{"w":"MTP","start":53.76,"end":54.16},{"w":"system","start":54.16,"end":54.5},{"w":"produces","start":54.5,"end":54.78},{"w":"a","start":54.78,"end":55.02},{"w":"short","start":55.02,"end":55.24},{"w":"sequence","start":55.24,"end":55.52},{"w":"of","start":55.52,"end":55.74},{"w":"draft","start":55.74,"end":55.88},{"w":"tokens.","start":55.88,"end":56.16}]},{"id":"seg13","scene":"s4_verify","text":"Next, the main model verifies the draft sequence in a single forward pass.","start":57.36,"end":60.685,"words":[{"w":"Next,","start":57.54,"end":57.64},{"w":"the","start":57.82,"end":58.14},{"w":"main","start":58.14,"end":58.38},{"w":"model","start":58.38,"end":58.52},{"w":"verifies","start":58.52,"end":58.94},{"w":"the","start":58.94,"end":59.2},{"w":"draft","start":59.2,"end":59.34},{"w":"sequence","start":59.34,"end":59.66},{"w":"in","start":59.66,"end":59.84},{"w":"a","start":59.84,"end":60},{"w":"single","start":60,"end":60.24},{"w":"forward","start":60.24,"end":60.54},{"w":"pass.","start":60.54,"end":60.54}]},{"id":"seg14","scene":"s4_verify","text":"But how can it check several tokens simultaneously when transformers use causal attention?","start":60.685,"end":65.49,"words":[{"w":"But","start":60.54,"end":61.6},{"w":"how","start":61.6,"end":61.78},{"w":"can","start":61.78,"end":61.92},{"w":"it","start":61.92,"end":62},{"w":"check","start":62,"end":62.2},{"w":"several","start":62.2,"end":62.54},{"w":"tokens","start":62.54,"end":62.82},{"w":"simultaneously","start":62.82,"end":63.52},{"w":"when","start":63.52,"end":64.04},{"w":"transformers","start":64.04,"end":64.62},{"w":"use","start":64.62,"end":64.76},{"w":"causal","start":64.76,"end":65.06},{"w":"attention?","start":65.06,"end":65.44}]},{"id":"seg15","scene":"s4_verify","text":"The key is that the draft tokens are already available as inputs.","start":66.3,"end":68.97,"words":[{"w":"The","start":66.3,"end":66.415},{"w":"key","start":66.415,"end":66.595},{"w":"is","start":66.595,"end":66.735},{"w":"that","start":66.735,"end":66.875},{"w":"the","start":66.875,"end":67.115},{"w":"draft","start":67.115,"end":67.195},{"w":"tokens","start":67.195,"end":67.415},{"w":"are","start":67.415,"end":67.615},{"w":"already","start":67.615,"end":68.035},{"w":"available","start":68.035,"end":68.335},{"w":"as","start":68.335,"end":68.675},{"w":"inputs.","start":68.675,"end":68.915}]},{"id":"seg16","scene":"s5_mask","text":"We place those tokens into a sequence, and apply a causal attention mask.","start":70.27,"end":73.39,"words":[{"w":"We","start":70.335,"end":70.435},{"w":"place","start":70.435,"end":70.635},{"w":"those","start":70.635,"end":70.935},{"w":"tokens","start":70.935,"end":71.075},{"w":"into","start":71.075,"end":71.315},{"w":"a","start":71.315,"end":71.735},{"w":"sequence,","start":71.735,"end":71.735},{"w":"and","start":71.735,"end":72.175},{"w":"apply","start":72.175,"end":72.395},{"w":"a","start":72.395,"end":72.615},{"w":"causal","start":72.615,"end":72.795},{"w":"attention","start":72.795,"end":73.155},{"w":"mask.","start":73.155,"end":73.475}]},{"id":"seg17","scene":"s5_mask","text":"Each position can attend only to the prompt and the draft tokens before it.","start":74.08,"end":77.14,"words":[{"w":"Each","start":74.155,"end":74.295},{"w":"position","start":74.295,"end":74.535},{"w":"can","start":74.535,"end":74.755},{"w":"attend","start":74.755,"end":75.015},{"w":"only","start":75.015,"end":75.355},{"w":"to","start":75.355,"end":75.495},{"w":"the","start":75.495,"end":75.815},{"w":"prompt","start":75.815,"end":75.815},{"w":"and","start":75.815,"end":76.075},{"w":"the","start":76.075,"end":76.375},{"w":"draft","start":76.375,"end":76.395},{"w":"tokens","start":76.395,"end":76.675},{"w":"before","start":76.675,"end":77.035},{"w":"it.","start":77.035,"end":77.335}]},{"id":"seg18","scene":"s5_mask","text":"That means the model can calculate the next-token predictions for all these positions in parallel, without leaking information from future positions.","start":77.89,"end":83.91,"words":[{"w":"That","start":77.89,"end":78.035},{"w":"means","start":78.035,"end":78.195},{"w":"the","start":78.195,"end":78.475},{"w":"model","start":78.475,"end":78.475},{"w":"can","start":78.475,"end":78.755},{"w":"calculate","start":78.755,"end":79.035},{"w":"the","start":79.035,"end":79.235},{"w":"next-token","start":79.235,"end":79.675},{"w":"predictions","start":79.675,"end":80.015},{"w":"for","start":80.015,"end":80.515},{"w":"all","start":80.515,"end":80.755},{"w":"these","start":80.755,"end":80.955},{"w":"positions","start":80.955,"end":81.175},{"w":"in","start":81.175,"end":81.675},{"w":"parallel,","start":81.675,"end":81.675},{"w":"without","start":82.135,"end":82.355},{"w":"leaking","start":82.355,"end":82.555},{"w":"information","start":82.555,"end":82.975},{"w":"from","start":82.975,"end":83.195},{"w":"future","start":83.195,"end":83.475},{"w":"positions.","start":83.475,"end":83.895}]},{"id":"seg19","scene":"s6_accept","text":"Now, compare the draft tokens with the target model's predictions.","start":85.34,"end":87.76,"words":[{"w":"Now,","start":85.34,"end":85.695},{"w":"compare","start":85.695,"end":85.895},{"w":"the","start":85.895,"end":86.095},{"w":"draft","start":86.095,"end":86.295},{"w":"tokens","start":86.295,"end":86.495},{"w":"with","start":86.495,"end":86.695},{"w":"the","start":86.695,"end":86.875},{"w":"target","start":86.875,"end":87.015},{"w":"model's","start":87.015,"end":87.695},{"w":"predictions.","start":87.695,"end":87.695}]},{"id":"seg20","scene":"s6_accept","text":"In a simple greedy decoding example, imagine the first two draft tokens match, but the third does not.","start":88.39,"end":92.96,"words":[{"w":"In","start":88.39,"end":88.455},{"w":"a","start":88.455,"end":88.635},{"w":"simple","start":88.635,"end":88.915},{"w":"greedy","start":88.915,"end":89.095},{"w":"decoding","start":89.095,"end":89.415},{"w":"example,","start":89.415,"end":89.815},{"w":"imagine","start":90.335,"end":90.495},{"w":"the","start":90.495,"end":90.695},{"w":"first","start":90.695,"end":90.895},{"w":"two","start":90.895,"end":91.095},{"w":"draft","start":91.095,"end":91.275},{"w":"tokens","start":91.275,"end":91.475},{"w":"match,","start":91.475,"end":91.795},{"w":"but","start":92.155,"end":92.255},{"w":"the","start":92.255,"end":92.535},{"w":"third","start":92.535,"end":92.535},{"w":"does","start":92.535,"end":92.695},{"w":"not.","start":92.695,"end":92.975}]},{"id":"seg21","scene":"s6_accept","text":"We accept the first two tokens, reject the incorrect third token, and continue from the target model's correct prediction.","start":93.64,"end":98.93,"words":[{"w":"We","start":93.675,"end":93.815},{"w":"accept","start":93.815,"end":94.035},{"w":"the","start":94.035,"end":94.195},{"w":"first","start":94.195,"end":94.355},{"w":"two","start":94.355,"end":94.815},{"w":"tokens,","start":94.815,"end":94.815},{"w":"reject","start":95.535,"end":95.535},{"w":"the","start":95.535,"end":95.775},{"w":"incorrect","start":95.775,"end":96.055},{"w":"third","start":96.055,"end":96.315},{"w":"token,","start":96.315,"end":96.515},{"w":"and","start":96.755,"end":97.115},{"w":"continue","start":97.115,"end":97.395},{"w":"from","start":97.395,"end":97.615},{"w":"the","start":97.615,"end":97.895},{"w":"target","start":97.895,"end":97.935},{"w":"model's","start":97.935,"end":98.255},{"w":"correct","start":98.255,"end":98.535},{"w":"prediction.","start":98.535,"end":98.895}]},{"id":"seg22","scene":"s6_accept","text":"For sampling-based decoding, acceptance requires a more careful probability-based procedure to preserve the target model's output distribution.","start":99.98,"end":105.99,"words":[{"w":"For","start":99.995,"end":100.135},{"w":"sampling-based","start":100.135,"end":100.655},{"w":"decoding,","start":100.655,"end":100.935},{"w":"acceptance","start":101.475,"end":101.695},{"w":"requires","start":101.695,"end":102.055},{"w":"a","start":102.055,"end":102.215},{"w":"more","start":102.215,"end":102.435},{"w":"careful","start":102.435,"end":102.655},{"w":"probability-based","start":102.655,"end":103.495},{"w":"procedure","start":103.495,"end":103.815},{"w":"to","start":103.815,"end":104.255},{"w":"preserve","start":104.255,"end":104.495},{"w":"the","start":104.495,"end":104.715},{"w":"target","start":104.715,"end":104.895},{"w":"model's","start":104.895,"end":105.315},{"w":"output","start":105.315,"end":105.475},{"w":"distribution.","start":105.475,"end":105.915}]},{"id":"seg23","scene":"s7_speedup","text":"Here's why this is powerful.","start":107.09,"end":108.1,"words":[{"w":"Here's","start":107.09,"end":107.315},{"w":"why","start":107.315,"end":107.455},{"w":"this","start":107.455,"end":107.595},{"w":"is","start":107.595,"end":107.775},{"w":"powerful.","start":107.775,"end":108.055}]},{"id":"seg24","scene":"s7_speedup","text":"Without speculation, generating several tokens requires several sequential decoding steps.","start":108.71,"end":112.76,"words":[{"w":"Without","start":108.71,"end":109.025},{"w":"speculation,","start":109.025,"end":109.485},{"w":"generating","start":110.285,"end":110.325},{"w":"several","start":110.325,"end":110.705},{"w":"tokens","start":110.705,"end":110.925},{"w":"requires","start":110.925,"end":111.345},{"w":"several","start":111.345,"end":111.725},{"w":"sequential","start":111.725,"end":112.085},{"w":"decoding","start":112.085,"end":112.425},{"w":"steps.","start":112.425,"end":112.725}]},{"id":"seg25","scene":"s7_speedup","text":"With speculation, one verification pass can accept multiple tokens.","start":113.59,"end":117.04,"words":[{"w":"With","start":113.685,"end":113.785},{"w":"speculation,","start":113.785,"end":114.225},{"w":"one","start":114.745,"end":114.885},{"w":"verification","start":114.885,"end":115.345},{"w":"pass","start":115.345,"end":115.665},{"w":"can","start":115.665,"end":116.005},{"w":"accept","start":116.005,"end":116.265},{"w":"multiple","start":116.265,"end":116.645},{"w":"tokens.","start":116.645,"end":116.945}]},{"id":"seg26","scene":"s7_speedup","text":"We haven't necessarily reduced the total computation. In fact, drafting and verification introduce extra work.","start":117.66,"end":122.51,"words":[{"w":"We","start":117.745,"end":117.785},{"w":"haven't","start":117.785,"end":118.005},{"w":"necessarily","start":118.005,"end":118.545},{"w":"reduced","start":118.545,"end":118.765},{"w":"the","start":118.765,"end":119.125},{"w":"total","start":119.125,"end":119.185},{"w":"computation.","start":119.185,"end":119.545},{"w":"In","start":120.085,"end":120.405},{"w":"fact,","start":120.405,"end":120.405},{"w":"drafting","start":120.885,"end":120.885},{"w":"and","start":120.885,"end":121.105},{"w":"verification","start":121.105,"end":121.485},{"w":"introduce","start":121.485,"end":121.945},{"w":"extra","start":121.945,"end":122.285},{"w":"work.","start":122.285,"end":122.505}]},{"id":"seg27","scene":"s7_speedup","text":"But we've reduced the number of expensive sequential steps.","start":123.19,"end":125.32,"words":[{"w":"But","start":123.225,"end":123.305},{"w":"we've","start":123.305,"end":123.765},{"w":"reduced","start":123.765,"end":123.765},{"w":"the","start":123.765,"end":123.965},{"w":"number","start":123.965,"end":124.085},{"w":"of","start":124.085,"end":124.325},{"w":"expensive","start":124.325,"end":124.625},{"w":"sequential","start":124.625,"end":124.965},{"w":"steps.","start":124.965,"end":125.265}]},{"id":"seg28","scene":"s7_speedup","text":"And on GPUs, verifying multiple tokens together can make better use of parallel computation.","start":125.97,"end":130.52,"words":[{"w":"And","start":125.97,"end":126.105},{"w":"on","start":126.105,"end":126.265},{"w":"GPUs,","start":126.265,"end":127.025},{"w":"verifying","start":127.245,"end":127.485},{"w":"multiple","start":127.485,"end":127.845},{"w":"tokens","start":127.845,"end":128.105},{"w":"together","start":128.105,"end":128.505},{"w":"can","start":128.505,"end":128.885},{"w":"make","start":128.885,"end":129.025},{"w":"better","start":129.025,"end":129.285},{"w":"use","start":129.285,"end":129.485},{"w":"of","start":129.485,"end":129.965},{"w":"parallel","start":129.965,"end":129.965},{"w":"computation.","start":129.965,"end":130.405}]},{"id":"seg29","scene":"s8_failure","text":"The actual speedup depends on draft accuracy, verification cost, memory bandwidth, and hardware efficiency.","start":131.86,"end":136.83,"words":[{"w":"The","start":131.86,"end":131.95},{"w":"actual","start":131.95,"end":132.31},{"w":"speedup","start":132.31,"end":132.61},{"w":"depends","start":132.61,"end":132.85},{"w":"on","start":132.85,"end":133.21},{"w":"draft","start":133.21,"end":133.25},{"w":"accuracy,","start":133.25,"end":133.67},{"w":"verification","start":134.19,"end":134.53},{"w":"cost,","start":134.53,"end":134.87},{"w":"memory","start":135.37,"end":135.43},{"w":"bandwidth,","start":135.43,"end":135.71},{"w":"and","start":136.03,"end":136.39},{"w":"hardware","start":136.39,"end":136.39},{"w":"efficiency.","start":136.25,"end":136.77}]},{"id":"seg30","scene":"s8_failure","text":"If too many draft tokens get rejected, the extra work may outweigh the benefit.","start":137.66,"end":141.16,"words":[{"w":"If","start":137.67,"end":137.81},{"w":"too","start":137.81,"end":137.97},{"w":"many","start":137.97,"end":138.15},{"w":"draft","start":138.15,"end":138.41},{"w":"tokens","start":138.41,"end":138.57},{"w":"get","start":138.57,"end":138.81},{"w":"rejected,","start":138.81,"end":139.11},{"w":"the","start":139.53,"end":139.67},{"w":"extra","start":139.67,"end":139.91},{"w":"work","start":139.91,"end":140.13},{"w":"may","start":140.13,"end":140.43},{"w":"outweigh","start":140.43,"end":140.67},{"w":"the","start":140.67,"end":141.15},{"w":"benefit.","start":141.15,"end":141.15}]},{"id":"seg31","scene":"s9_takeaway","text":"So the central idea is simple.","start":142.56,"end":143.81,"words":[{"w":"So","start":142.57,"end":142.67},{"w":"the","start":142.67,"end":142.83},{"w":"central","start":142.83,"end":143.13},{"w":"idea","start":143.13,"end":143.35},{"w":"is","start":143.35,"end":143.57},{"w":"simple.","start":143.57,"end":143.81}]},{"id":"seg32","scene":"s9_takeaway","text":"MTP proposes future tokens. Speculative decoding verifies them. And when enough predictions are accepted, the model can generate text faster without changing the target decoding result or distribution, provided the appropriate verification algorithm is used.","start":144.29,"end":157.71,"words":[{"w":"MTP","start":144.51,"end":144.77},{"w":"proposes","start":144.77,"end":145.17},{"w":"future","start":145.17,"end":145.57},{"w":"tokens.","start":145.57,"end":145.83},{"w":"Speculative","start":146.61,"end":146.93},{"w":"decoding","start":146.93,"end":147.27},{"w":"verifies","start":147.27,"end":147.71},{"w":"them.","start":147.71,"end":147.87},{"w":"And","start":148.21,"end":148.59},{"w":"when","start":148.59,"end":148.67},{"w":"enough","start":148.67,"end":148.91},{"w":"predictions","start":148.91,"end":149.17},{"w":"are","start":149.17,"end":149.41},{"w":"accepted,","start":149.41,"end":149.67},{"w":"the","start":150.07,"end":150.23},{"w":"model","start":150.23,"end":150.33},{"w":"can","start":150.33,"end":150.59},{"w":"generate","start":150.59,"end":150.83},{"w":"text","start":150.83,"end":151.09},{"w":"faster","start":151.09,"end":151.47},{"w":"without","start":151.81,"end":151.95},{"w":"changing","start":151.95,"end":152.21},{"w":"the","start":152.21,"end":152.45},{"w":"target","start":152.45,"end":152.61},{"w":"decoding","start":152.61,"end":152.91},{"w":"result","start":152.91,"end":153.21},{"w":"or","start":153.21,"end":153.45},{"w":"distribution,","start":153.45,"end":153.81},{"w":"provided","start":154.415,"end":155.315},{"w":"the","start":155.315,"end":155.755},{"w":"appropriate","start":155.755,"end":156.215},{"w":"verification","start":156.215,"end":156.795},{"w":"algorithm","start":156.795,"end":157.195},{"w":"is","start":157.195,"end":157.435},{"w":"used.","start":157.435,"end":157.675}]},{"id":"seg33","scene":"s9_takeaway","text":"That's how we turn multiple guesses into fewer sequential decoding steps.","start":158.43,"end":161.75,"words":[{"w":"That's","start":158.615,"end":158.695},{"w":"how","start":158.695,"end":158.775},{"w":"we","start":158.775,"end":158.915},{"w":"turn","start":158.915,"end":159.075},{"w":"multiple","start":159.075,"end":159.455},{"w":"guesses","start":159.455,"end":159.755},{"w":"into","start":159.755,"end":160.295},{"w":"fewer","start":160.295,"end":160.695},{"w":"sequential","start":160.695,"end":161.015},{"w":"decoding","start":161.015,"end":161.395},{"w":"steps.","start":161.395,"end":161.675}]}]};</script>
+<!-- DATA:END -->
+
+<script>
+'use strict';
+// =====================================================================================
+//  MTP heads & speculative decoding — deterministic Canvas 2D animation.
+//  draw(t) renders the exact frame for global time t (seconds). There is no accumulated
+//  state: every element is a pure function of t and of the measured narration timings
+//  (window.TIMING, produced by align_audio.py). Keyframes are expressed as narration cues
+//  ("the word 'Paris' in segment 8"), which the time-warp resolves to measured seconds.
+// =====================================================================================
+const W = 1080, H = 1920, FPS = 30;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const SANS = '-apple-system, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
+const MONO = '"SF Mono", "JetBrains Mono", Menlo, Consolas, monospace';
+const C = {
+  bg: '#F8F5EF', ink: '#292524', ink2: '#57534E', muted: '#A39B92', faint: '#D8D0C4', beige: '#EAE3D8',
+  card: '#FFFDF9', border: '#DCD2C4', terra: '#C46B4D', terra2: '#D6845F', orange: '#E49B6B',
+  terraLight: '#F4DED4', amber: '#D49A55', amberFill: '#F8E7CF', amberInk: '#85561F',
+  green: '#6D9B7B', greenLight: '#DCEADF', red: '#C76D6D', redLight: '#F3DCDC',
+};
+const DEPTH = [C.terra, C.terra2, C.orange];   // prediction depth t+1, t+2, t+3
+
+// ---------- easing / interpolation ----------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeInOutCubic = k => k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const easeOutExpo = k => k >= 1 ? 1 : 1 - Math.pow(2, -10 * k);
+const easeOutCubic = k => 1 - Math.pow(1 - k, 3);
+const easeOutBack = k => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+const ep = (t, a, d = 0.5, f = easeInOutCubic) => f(prog(t, a, a + d));         // eased progress from a over d
+const win = (t, a, b, fi = 0.35, fo = 0.35) => Math.min(ep(t, a, fi), 1 - ep(t, b - fo, fo));
+const hash = i => { const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
+function hex(c) { const n = parseInt(c.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function mix(a, b, k) { if (k <= 0) return a; if (k >= 1) return b; const x = hex(a), y = hex(b);
+  return `rgb(${x.map((v, i) => Math.round(lerp(v, y[i], k))).join(',')})`; }
+
+// ---------- time-warp: narration cues -> measured seconds ----------
+const T = window.TIMING;
+const SEG = T.segments;
+const SC = Object.fromEntries(T.scenes.map(s => [s.id, s]));
+window.TOTAL = T.duration;
+window.CUE_MISSES = [];
+const norm = w => w.toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]/g, '');
+// cue(8, 'paris')     -> start of the first word in segment 8 starting with "paris"
+// cue(8, 'the#2')     -> the 2nd such word;  cue(8) -> segment start;  cue(8, null, 'end') -> segment end
+function cue(i, word = null, edge = 'start') {
+  const s = SEG[i];
+  if (word === null) return edge === 'end' ? s.end : s.start;
+  let [w, nth] = String(word).split('#'); nth = +(nth || 1); const n = norm(w);
+  const hits = s.words.filter(x => norm(x.w).startsWith(n));
+  if (hits.length < nth) { window.CUE_MISSES.push(`${i}:${word}`); return s.start; }
+  return hits[nth - 1][edge];
+}
+
+// ---------- drawing primitives ----------
+let A = 1;  // global alpha multiplier (scene fade)
+function rr(x, y, w, h, r, { fill = null, stroke = null, lw = 2, alpha = 1, shadow = 0, dash = null } = {}) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+  if (fill) {
+    if (shadow) { ctx.shadowColor = 'rgba(70,45,25,0.13)'; ctx.shadowBlur = shadow; ctx.shadowOffsetY = shadow * 0.35; }
+    ctx.fillStyle = fill; ctx.fill(); ctx.shadowColor = 'transparent';
+  }
+  if (stroke) { ctx.lineWidth = lw; ctx.strokeStyle = stroke; if (dash) ctx.setLineDash(dash); ctx.stroke(); }
+  ctx.restore();
+}
+function font(size, weight = 500, f = SANS, italic = false) { return `${italic ? 'italic ' : ''}${weight} ${size}px ${f}`; }
+function measure(s, size, weight = 500, f = SANS) { ctx.save(); ctx.font = font(size, weight, f); const w = ctx.measureText(s).width; ctx.restore(); return w; }
+// text with automatic shrink-to-fit (maxW) so nothing is ever clipped
+function text(s, x, y, { size = 34, weight = 500, color = C.ink, align = 'center', base = 'middle', alpha = 1, f = SANS, maxW = 0, italic = false } = {}) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = A * alpha; let sz = size; ctx.font = font(sz, weight, f, italic);
+  if (maxW) { const w = ctx.measureText(s).width; if (w > maxW) { sz = size * maxW / w; ctx.font = font(sz, weight, f, italic); } }
+  ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(s, x, y); ctx.restore();
+}
+// mixed-style single line: parts = [[str, color, weight], ...], centred on cx unless align='left'
+function rich(parts, x, y, { size = 30, alpha = 1, align = 'center', f = SANS, maxW = 0 } = {}) {
+  if (alpha <= 0) return;
+  let total = parts.reduce((s, [str, , wt = 500]) => s + measure(str, size, wt, f), 0);
+  let sz = size; if (maxW && total > maxW) { sz = size * maxW / total; total = maxW; }
+  let cx = align === 'center' ? x - total / 2 : x;
+  for (const [str, col, wt = 500] of parts) {
+    text(str, cx, y, { size: sz, weight: wt, color: col, align: 'left', alpha, f });
+    cx += measure(str, sz, wt, f);
+  }
+}
+function line(x1, y1, x2, y2, { color = C.faint, lw = 2, alpha = 1, dash = null, k = 1 } = {}) {
+  if (alpha <= 0 || k <= 0) return;
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round';
+  if (dash) ctx.setLineDash(dash);
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(lerp(x1, x2, k), lerp(y1, y2, k)); ctx.stroke(); ctx.restore();
+}
+function arrow(x1, y1, x2, y2, { color = C.ink2, lw = 3, alpha = 1, head = 13, dash = null, k = 1 } = {}) {
+  if (alpha <= 0 || k <= 0) return;
+  const ex = lerp(x1, x2, k), ey = lerp(y1, y2, k), a = Math.atan2(ey - y1, ex - x1);
+  line(x1, y1, ex - Math.cos(a) * head * 0.6, ey - Math.sin(a) * head * 0.6, { color, lw, alpha, dash });
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.fillStyle = color; ctx.beginPath();
+  ctx.moveTo(ex, ey); ctx.lineTo(ex - Math.cos(a - 0.45) * head, ey - Math.sin(a - 0.45) * head);
+  ctx.lineTo(ex - Math.cos(a + 0.45) * head, ey - Math.sin(a + 0.45) * head); ctx.closePath(); ctx.fill(); ctx.restore();
+}
+function qbez(p0, p1, p2, k) { const u = 1 - k; return [u * u * p0[0] + 2 * u * k * p1[0] + k * k * p2[0], u * u * p0[1] + 2 * u * k * p1[1] + k * k * p2[1]]; }
+function curveArrow(p0, p1, p2, { color = C.ink2, lw = 3, alpha = 1, head = 12, k = 1, dash = null } = {}) {
+  if (alpha <= 0 || k <= 0) return;
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round';
+  if (dash) ctx.setLineDash(dash);
+  ctx.beginPath(); const N = 40; for (let i = 0; i <= N * k; i++) { const p = qbez(p0, p1, p2, i / N); i ? ctx.lineTo(...p) : ctx.moveTo(...p); }
+  ctx.stroke(); ctx.restore();
+  if (k > 0.98) { const a = qbez(p0, p1, p2, 0.96), b = p2; arrow(a[0], a[1], b[0], b[1], { color, lw, alpha, head }); }
+}
+function dot(x, y, r, { fill = C.terra, alpha = 1, stroke = null, lw = 2 } = {}) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); } ctx.restore();
+}
+function ring(x, y, r, k, { color = C.terra, track = C.beige, lw = 8, alpha = 1 } = {}) {
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.lineWidth = lw; ctx.lineCap = 'round';
+  ctx.strokeStyle = track; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke();
+  if (k > 0) { ctx.strokeStyle = color; ctx.beginPath(); ctx.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k); ctx.stroke(); }
+  ctx.restore();
+}
+// Claude-inspired asterisk motif (an original geometric mark, not a logo)
+function asterisk(cx, cy, r, rot = 0, { color = C.terra, alpha = 1 } = {}) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.translate(cx, cy); ctx.rotate(rot); ctx.strokeStyle = color; ctx.lineCap = 'round';
+  for (let i = 0; i < 12; i++) {
+    const a = i * Math.PI / 6, len = r * (i % 2 ? 0.78 : 1);
+    ctx.lineWidth = r * 0.2; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * 0.16, Math.sin(a) * r * 0.16);
+    ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len); ctx.stroke();
+  }
+  ctx.restore();
+}
+function check(x, y, r, { alpha = 1, scale = 1 } = {}) {
+  if (alpha <= 0 || scale <= 0) return; r *= scale;
+  dot(x, y, r, { fill: C.green, alpha });
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.strokeStyle = '#fff'; ctx.lineWidth = r * 0.22; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(x - r * 0.45, y + r * 0.02); ctx.lineTo(x - r * 0.1, y + r * 0.36); ctx.lineTo(x + r * 0.48, y - r * 0.34); ctx.stroke(); ctx.restore();
+}
+function cross(x, y, r, { alpha = 1, scale = 1, fill = C.red } = {}) {
+  if (alpha <= 0 || scale <= 0) return; r *= scale;
+  dot(x, y, r, { fill, alpha });
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.strokeStyle = '#fff'; ctx.lineWidth = r * 0.22; ctx.lineCap = 'round';
+  const d = r * 0.38; ctx.beginPath(); ctx.moveTo(x - d, y - d); ctx.lineTo(x + d, y + d); ctx.moveTo(x + d, y - d); ctx.lineTo(x - d, y + d); ctx.stroke(); ctx.restore();
+}
+function qmark(x, y, r, { alpha = 1 } = {}) {
+  dot(x, y, r, { fill: C.card, stroke: C.amber, lw: 3, alpha });
+  text('?', x, y + 2, { size: r * 1.3, weight: 700, color: C.amber, alpha });
+}
+function chip(label, cx, cy, { size = 28, weight = 600, fill = C.card, color = C.ink, stroke = C.border, alpha = 1, h = 54, padX = 22, f = SANS, maxW = 900 } = {}) {
+  const w = Math.min(maxW, measure(label, size, weight, f) + padX * 2);
+  rr(cx - w / 2, cy - h / 2, w, h, h / 2, { fill, stroke, lw: 2, alpha, shadow: fill ? 6 : 0 });
+  text(label, cx, cy + 1, { size, weight, color, alpha, f, maxW: w - padX * 2 + 2 });
+  return w;
+}
+function hatch(x, y, w, h, { color = C.faint, alpha = 1, gap = 14 } = {}) {
+  ctx.save(); ctx.globalAlpha = A * alpha; ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+  ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();
+  for (let d = -h; d < w; d += gap) { ctx.moveTo(x + d, y + h); ctx.lineTo(x + d + h, y); }
+  ctx.stroke(); ctx.restore();
+}
+
+// ---------- tokens ----------
+const TS = {
+  context:  { fill: C.card, stroke: C.border, ink: C.ink },
+  gen:      { fill: C.terraLight, stroke: C.terra, ink: C.ink },
+  draft:    { fill: C.amberFill, stroke: C.amber, ink: C.amberInk, dash: [9, 6] },
+  accepted: { fill: C.green, stroke: C.green, ink: '#FFFFFF' },
+  rejected: { fill: C.red, stroke: C.red, ink: '#FFFFFF' },
+  target:   { fill: C.ink, stroke: C.ink, ink: C.bg },
+  ghost:    { fill: null, stroke: C.faint, ink: C.muted, dash: [7, 6] },
+};
+function mixStyle(a, b, k) {
+  if (k <= 0) return a; if (k >= 1) return b;
+  return { fill: mix(a.fill || C.bg, b.fill || C.bg, k), stroke: mix(a.stroke, b.stroke, k), ink: mix(a.ink, b.ink, k), dash: k < 0.5 ? a.dash : b.dash };
+}
+const TOK_PAD = 16, TOK_MIN = 62;
+const tokW = (label, size) => Math.max(TOK_MIN * size / 30, measure(label, size, 600, MONO) + TOK_PAD * 2 * size / 30);
+function token(label, cx, cy, { st = TS.context, size = 30, alpha = 1, scale = 1, w = null, h = null } = {}) {
+  if (alpha <= 0 || scale <= 0) return;
+  const tw = (w || tokW(label, size)) * scale, th = (h || size * 2.05) * scale;
+  rr(cx - tw / 2, cy - th / 2, tw, th, 12 * scale, { fill: st.fill, stroke: st.stroke, lw: 2.5, alpha, shadow: st.fill ? 7 : 0, dash: st.dash });
+  text(label, cx, cy + 1, { size: size * scale, weight: 600, color: st.ink, f: MONO, alpha });
+}
+// horizontal row layout that shrinks the font until the row fits maxW
+function rowLayout(labels, cx, { size = 30, gap = 10, maxW = 880 } = {}) {
+  let sz = size, ws, total;
+  for (let i = 0; i < 20; i++) {
+    ws = labels.map(l => tokW(l, sz)); total = ws.reduce((a, b) => a + b, 0) + gap * (labels.length - 1);
+    if (total <= maxW) break; sz *= 0.96;
+  }
+  const xs = []; let x = cx - total / 2;
+  ws.forEach(w => { xs.push(x + w / 2); x += w + gap; });
+  return { xs, ws, size: sz, total };
+}
+
+// transformer block: rounded card with stacked layer bars; `sweep` (0..1) lights layers bottom->top
+function transformer(x, y, w, h, { label = '', sub = '', layers = 4, sweep = -1, alpha = 1, accent = C.terra, labelSize = 30, compact = false } = {}) {
+  if (alpha <= 0) return;
+  const active = sweep >= 0 && sweep <= 1;
+  rr(x, y, w, h, 22, { fill: C.card, stroke: active ? accent : C.border, lw: active ? 3 : 2, alpha, shadow: 14 });
+  const top = label ? (compact ? 44 : 64) : 20, pad = 22, lh = (h - top - pad) / layers - 8;
+  if (label) text(label, x + w / 2, y + (compact ? 25 : 36), { size: labelSize, weight: 650, color: C.ink, alpha, maxW: w - 40 });
+  for (let i = 0; i < layers; i++) {
+    const ly = y + h - pad - (i + 1) * (lh + 8) + 8;
+    const lit = active ? clamp((sweep * (layers + 1)) - i) * (1 - clamp(sweep * (layers + 1) - i - 1.6)) : 0;
+    rr(x + pad, ly, w - pad * 2, lh, 10, { fill: mix(C.beige, accent, 0.18 + 0.62 * lit), alpha });
+    if (i === 0 && sub) text(sub, x + w / 2, ly + lh / 2 + 1, { size: 22, weight: 500, color: C.ink2, alpha, maxW: w - 80 });
+  }
+}
+// small logit bar-chart (a next-token distribution); the top bar is highlighted
+function logits(cx, baseY, seed, { alpha = 1, k = 1, w = 64, maxH = 62, color = C.terra } = {}) {
+  if (alpha <= 0) return;
+  const n = 5, bw = w / n - 3, top = Math.floor(hash(seed) * n);
+  for (let i = 0; i < n; i++) {
+    const hgt = (i === top ? 1 : 0.18 + 0.42 * hash(seed * 7 + i)) * maxH * easeOutCubic(clamp(k * 1.3 - i * 0.06));
+    rr(cx - w / 2 + i * (bw + 3), baseY - hgt, bw, hgt, 3, { fill: i === top ? color : C.faint, alpha });
+  }
+}
+
+// =====================================================================================
+//  The running example (identical in narration and visuals)
+//  prompt: "The capital of France is"   draft (MTP): "Paris" "." "It"
+//  target greedy predictions: after "is" -> "Paris" ✓, after "Paris" -> "." ✓, after "." -> "The" ✗ (draft "It")
+//  result: accept "Paris" "." , replace "It" with "The"; the prediction after "It" is discarded.
+// =====================================================================================
+const PROMPT = ['The', 'capital', 'of', 'France', 'is'];
+const DRAFT = ['Paris', '.', 'It'];
+const TARGET = ['Paris', '.', 'The'];
+const CX = 540;
+
+// ---------- Scene 1: autoregressive decoding ----------
+function scene1(t) {
+  const labels = [...PROMPT, 'Paris', '.', 'The'];
+  const L = rowLayout(labels, CX, { size: 30, maxW: 880 });
+  const rowY = 1080, bx = 190, by = 690, bw = 700, bh = 270;
+  const steps = [cue(2, 'predicts'), cue(2, 'decoding'), cue(3, 'still')];
+  const tIntro = cue(0, 'normally'), tPrompt = cue(1, 'the#2');
+
+  text('One token at a time', CX, 470, { size: 48, weight: 700, color: C.ink, alpha: win(t, tIntro + 0.2, tPrompt + 1.2) });
+  text('next-token prediction, repeated', CX, 530, { size: 30, color: C.ink2, alpha: win(t, tIntro + 0.6, tPrompt + 1.2) });
+
+  // the model
+  let sweep = -1, passIdx = -1;
+  steps.forEach((g, k) => { const p = prog(t, g, g + 1.0); if (p > 0 && p < 1) { sweep = p; passIdx = k; } });
+  transformer(bx, by, bw, bh, { label: 'Large language model', sub: 'one full forward pass', layers: 4, sweep, alpha: ep(t, tIntro, 0.6) });
+  if (passIdx >= 0) text(`decoding step ${passIdx + 1}`, bx + bw - 26, by + 36, { size: 24, weight: 600, color: C.terra, align: 'right' });
+
+  // prompt tokens (inputs, under the model)
+  PROMPT.forEach((l, i) => {
+    const a = ep(t, tPrompt + i * 0.12, 0.35);
+    token(l, L.xs[i], rowY + (1 - a) * 18, { size: L.size, alpha: a, w: L.ws[i] });
+  });
+  // each step: inputs flow up, the model runs, one new token comes out and is appended
+  steps.forEach((g, k) => {
+    const slot = 5 + k, sx = L.xs[slot];
+    const inP = prog(t, g, g + 0.5);
+    for (let i = 0; i < slot; i++) {
+      if (inP > 0 && inP < 1) dot(L.xs[i], lerp(rowY - 38, by + bh, easeInOutCubic(inP)), 6, { fill: C.terra, alpha: 0.8 * (1 - inP * 0.4) });
+    }
+    if (t > g - 0.3 && t < g + 1.9) token('', sx, rowY, { st: TS.ghost, size: L.size, w: L.ws[slot], alpha: win(t, g - 0.3, g + 1.95, 0.3, 0.2) });
+    const outA = ep(t, g + 0.95, 0.3, easeOutBack);
+    const mv = ep(t, g + 1.3, 0.65);
+    if (t > g + 0.95) {
+      const p = mv <= 0 ? [CX, 590] : qbez([CX, 590], [1010, 640], [sx, rowY], mv);
+      const st = mixStyle(TS.gen, mv >= 1 ? TS.gen : TS.gen, 0);
+      if (mv <= 0) arrow(CX, by - 6, CX, 628, { color: C.terra, k: ep(t, g + 0.85, 0.2) });
+      token(labels[slot], p[0], p[1], { st, size: L.size, w: L.ws[slot], scale: mv > 0 ? 1 : outA });
+      if (mv > 0 && mv < 1) curveArrow([CX + 40, 600], [1010, 640], [sx + 20, rowY - 42], { color: C.terra, alpha: 0.35 * (1 - mv), lw: 2, dash: [6, 8] });
+    }
+  });
+  // bottleneck annotation
+  const tb = cue(4, 'bottleneck');
+  chip('Bottleneck: 1 full pass → 1 new token', CX, 450, { size: 30, color: C.terra, stroke: C.terra, alpha: ep(t, tb - 0.1, 0.4) });
+
+  // dependency chain arcs: is -> Paris -> . -> The
+  const td = cue(4, 'depends');
+  for (let i = 4; i < 7; i++) {
+    const k = ep(t, td + (i - 4) * 0.25, 0.45);
+    curveArrow([L.xs[i], rowY + 40], [(L.xs[i] + L.xs[i + 1]) / 2, rowY + 105], [L.xs[i + 1], rowY + 42], { color: C.terra, lw: 3, k, head: 11 });
+  }
+  text('each new token depends on the previous one', CX, 1195, { size: 28, color: C.ink2, alpha: ep(t, td + 0.5, 0.4), italic: true });
+
+  // counter: Sequential decoding steps 1 -> 2 -> 3
+  const cA = ep(t, steps[0] - 0.3, 0.4);
+  text('Sequential decoding steps', 300, 1290, { size: 30, weight: 650, color: C.ink, alpha: cA, align: 'center' });
+  [0, 1, 2].forEach(k => {
+    const x = 610 + k * 120, done = prog(t, steps[k], steps[k] + 1.0);
+    ring(x, 1290, 34, done, { alpha: cA, lw: 7 });
+    text(String(k + 1), x, 1292, { size: 32, weight: 700, color: done > 0 ? C.terra : C.muted, alpha: cA });
+    if (k < 2) arrow(x + 44, 1290, x + 76, 1290, { color: C.faint, lw: 3, head: 10, alpha: cA });
+  });
+}
+
+// ---------- Scene 2: Multi-Token Prediction architecture ----------
+function scene2(t) {
+  const s = SC.s2_mtp.start;
+  const tQ = cue(5, 'several'), tName = cue(6, 'multi'), tMain = cue(7, 'next'), tAux = cue(7, 'auxiliary');
+  const tMod = cue(7, 'modules'), tFut = cue(7, 'further');
+  const L = rowLayout(PROMPT, CX, { size: 30 });
+  const rowY = 1235, bx = 290, by = 815, bw = 500, bh = 330, hy = 752;
+  const aBase = ep(t, s + 0.1, 0.6);
+  PROMPT.forEach((l, i) => token(l, L.xs[i], rowY, { size: L.size, w: L.ws[i], alpha: aBase }));
+  // activation flow: deterministic looping pulse from tokens up through the backbone
+  const ph = ((t - s) * 0.7) % 1;
+  for (let i = 0; i < 5; i++) {
+    line(L.xs[i], rowY - 32, CX + (L.xs[i] - CX) * 0.35, by + bh, { color: C.faint, lw: 2, alpha: aBase });
+    const q = easeInOutCubic(ph);
+    dot(lerp(L.xs[i], CX + (L.xs[i] - CX) * 0.35, q), lerp(rowY - 32, by + bh, q), 5, { fill: C.terra, alpha: aBase * 0.6 * Math.sin(Math.PI * ph) });
+  }
+  transformer(bx, by, bw, bh, { label: 'Main transformer backbone', sub: 'shared layers', layers: 4, alpha: aBase, labelSize: 28,
+    sweep: ((t - s) * 0.45) % 1 });
+  line(CX, by, CX, hy + 22, { color: C.ink2, lw: 3, alpha: aBase });
+  dot(CX, hy, 22, { fill: C.ink, alpha: aBase });
+  text('h', CX, hy + 1, { size: 26, weight: 700, color: C.bg, f: MONO, alpha: aBase });
+  text('hidden state', CX + 36, hy, { size: 22, color: C.ink2, align: 'left', alpha: aBase });
+
+  text('Predict several future tokens', CX, 430, { size: 40, weight: 700, alpha: win(t, tQ - 0.2, tName - 0.2) });
+  text('before the next full pass?', CX, 485, { size: 40, weight: 700, color: C.terra, alpha: win(t, tQ - 0.0, tName - 0.2) });
+
+  // heads / modules
+  const heads = [
+    { x: 250, name: 'Main LM head', depth: 't+1', t0: tMain, role: 'next token' },
+    { x: 540, name: 'MTP head / module 1', depth: 't+2', t0: tAux + 0.15, role: 'speculative' },
+    { x: 830, name: 'MTP head / module 2', depth: 't+3', t0: tAux + 0.55, role: 'speculative' },
+  ];
+  const ghost = ep(t, tName, 0.5), hy2 = 585, oy = 445;
+  heads.forEach((hd, k) => {
+    const on = ep(t, hd.t0, 0.45);
+    const col = DEPTH[k];
+    line(CX, hy - 22, hd.x, hy2 + 42, { color: on > 0 ? col : C.faint, lw: on > 0 ? 3 : 2, alpha: Math.max(ghost * 0.6, on), k: Math.max(ghost, on) });
+    rr(hd.x - 130, hy2 - 42, 260, 84, 18, { fill: on > 0 ? mix(C.card, col, 0.14 * on) : null, stroke: on > 0 ? col : C.faint, lw: 2.5,
+      dash: on > 0 ? null : [7, 6], alpha: Math.max(ghost * 0.7, on), shadow: on > 0 ? 8 : 0 });
+    text(hd.name, hd.x, hy2 - 8, { size: 23, weight: 650, color: on > 0 ? C.ink : C.muted, alpha: Math.max(ghost * 0.7, on), maxW: 236 });
+    text(k === 0 ? 'predicts t+1' : `predicts ${hd.depth}`, hd.x, hy2 + 22, { size: 21, color: on > 0 ? col : C.muted, alpha: Math.max(ghost * 0.7, on) });
+    // outputs
+    const oA = k === 0 ? ep(t, tMain + 0.4, 0.4) : ep(t, tFut + (k - 1) * 0.3, 0.4, easeOutBack);
+    arrow(hd.x, hy2 - 44, hd.x, oy + 38, { color: col, lw: 3, k: oA, head: 11 });
+    if (oA > 0) {
+      const st = k === 0 ? { fill: col, stroke: col, ink: '#fff' } : { fill: mix(C.card, col, 0.25), stroke: col, ink: C.ink, dash: [8, 6] };
+      token(`token ${hd.depth}`, hd.x, oy, { st, size: 26, scale: oA, w: 200 });
+    }
+  });
+  const tagA = ep(t, tFut + 0.7, 0.4);
+  rr(400, 388, 560, 110, 24, { stroke: C.amber, lw: 2.5, dash: [10, 7], alpha: tagA });
+  text('speculative — not confirmed output', 680, 372, { size: 22, weight: 650, color: C.amberInk, alpha: tagA });
+  // design variants (not all MTP implementations look alike)
+  const vA = ep(t, tMod, 0.5);
+  [[250, 410], [540, 700]].forEach(([a, b]) => curveArrow([a + 132, hy2 + 8], [(a + b) / 2 + 40, hy2 + 60], [b - 132 + 0, hy2 + 14],
+    { color: C.ink2, lw: 2, dash: [5, 6], alpha: vA * 0.8, head: 9 }));
+  text('Designs vary:', 100, 1318, { size: 23, weight: 700, color: C.ink, align: 'left', alpha: vA });
+  text('independent parallel heads (e.g. Medusa), or', 260, 1318, { size: 23, color: C.ink2, align: 'left', alpha: vA, maxW: 720 });
+  text('sequential modules chained by the dashed links (e.g. DeepSeek-V3)', 100, 1354, { size: 23, color: C.ink2, align: 'left', alpha: vA, maxW: 880 });
+}
+
+// ---------- Scene 3: draft generation ----------
+function scene3(t) {
+  const s = SC.s3_draft.start;
+  const tP = [cue(8, 'paris'), cue(8, 'period'), cue(8, 'another')], tLane = cue(8, 'token') + 0.25;
+  const tProb = cue(9), tPred = cue(10, 'predictions'), tConf = cue(10, 'confirmed'), tSpec = cue(11, 'speculative');
+  const tFirst = cue(12, 'first'), tDraft = cue(12, 'draft');
+  const a0 = ep(t, s + 0.1, 0.5);
+  const L = rowLayout(PROMPT, CX, { size: 30 });
+  text('context', 100, 398, { size: 22, weight: 650, color: C.muted, align: 'left', alpha: a0 });
+  PROMPT.forEach((l, i) => token(l, L.xs[i], 450, { size: L.size, w: L.ws[i], alpha: a0 }));
+  arrow(CX, 492, CX, 548, { color: C.faint, lw: 3, alpha: a0 });
+  // drafter
+  rr(270, 555, 540, 120, 22, { fill: C.card, stroke: C.border, alpha: a0, shadow: 12 });
+  text('MTP drafter', CX, 597, { size: 30, weight: 700, alpha: a0 });
+  text('backbone + MTP heads / modules', CX, 637, { size: 22, color: C.ink2, alpha: a0 });
+  DEPTH.forEach((c, k) => dot(735 + k * 22, 597, 7, { fill: c, alpha: a0 }));
+
+  const laneY = 1000, laneX = 150, laneW = 780, slots = [395, 540, 685];
+  const laneA = ep(t, tLane - 0.4, 0.5);
+  const pulse = 0.5 + 0.5 * Math.sin((t - tDraft) * 6);
+  const lanePulse = t > tDraft ? (1 - prog(t, tDraft + 1.4, tDraft + 2.0)) * pulse : 0;
+  rr(laneX, laneY - 80, laneW, 160, 26, { fill: mix(C.amberFill, C.card, 0.45), stroke: mix(C.amber, C.terra, lanePulse), lw: 2.5 + 2 * lanePulse, dash: [12, 8], alpha: laneA });
+  text('SPECULATIVE DRAFT', laneX + 26, laneY - 54, { size: 20, weight: 750, color: C.amberInk, align: 'left', alpha: laneA });
+  text('unverified', laneX + laneW - 26, laneY - 54, { size: 20, weight: 600, color: C.amber, align: 'right', alpha: laneA });
+
+  DRAFT.forEach((l, k) => {
+    const born = ep(t, tP[k], 0.4, easeOutBack);
+    if (born <= 0) return;
+    const sx = 330 + k * 210, sy = 770;
+    arrow(CX + (sx - CX) * 0.3, 678, sx, 735, { color: DEPTH[k], lw: 3, k: ep(t, tP[k] - 0.2, 0.3), alpha: 1 - ep(t, tLane, 0.4), head: 10 });
+    const mv = ep(t, tLane + k * 0.12, 0.7);
+    const x = lerp(sx, slots[k], mv), y = lerp(sy, laneY + 6, mv);
+    const st = mixStyle({ fill: mix(C.card, DEPTH[k], 0.25), stroke: DEPTH[k], ink: C.ink }, TS.draft, mv);
+    token(l, x, y, { st, size: 34, scale: born, w: 130 });
+    text(['t+1', 't+2', 't+3'][k], x, y + 56, { size: 21, weight: 650, color: DEPTH[k], alpha: born });
+  });
+  // question mark above the draft, gently bobbing
+  const qA = ep(t, tProb - 0.1, 0.4, easeOutBack);
+  if (qA > 0) qmark(CX + 250, laneY - 120 + Math.sin((t - tProb) * 3) * 6, 26 * qA, { alpha: clamp(qA) });
+  rich([['Only predictions — ', C.ink2, 500], ['not yet confirmed', C.terra, 700]], CX, 1135, { size: 30, alpha: ep(t, tPred, 0.4) });
+  text('the main model has not checked these tokens', CX, 1180, { size: 25, color: C.ink2, alpha: ep(t, tConf, 0.4), italic: true });
+  // pipeline overview
+  const pA = ep(t, tSpec, 0.5);
+  const stepsP = [['1', 'Draft', 'MTP'], ['2', 'Verify', 'main model'], ['3', 'Accept / correct', 'prefix']];
+  stepsP.forEach(([n, a, b], k) => {
+    const x = 210 + k * 330, act = k === 0 ? ep(t, tFirst, 0.4) : 0;
+    rr(x - 140, 1240, 280, 110, 20, { fill: act ? mix(C.card, C.amberFill, act) : C.card, stroke: act ? C.amber : C.border, lw: act ? 3 : 2, alpha: pA, shadow: 8 });
+    text(`${n}  ${a}`, x, 1280, { size: 27, weight: 700, color: C.ink, alpha: pA, maxW: 250 });
+    text(b, x, 1318, { size: 22, color: C.ink2, alpha: pA });
+    if (k < 2) arrow(x + 145, 1295, x + 182, 1295, { color: C.faint, lw: 3, head: 10, alpha: pA });
+  });
+  text('speculative decoding', CX, 1222 - 12, { size: 1, alpha: 0 });
+}
+
+// ---------- Scene 4: one batched verification pass ----------
+function scene4(t) {
+  const s = SC.s4_verify.start;
+  const tNext = cue(13, 'next'), tVer = cue(13, 'verifies'), tSingle = cue(13, 'single'), tPass = cue(13, 'pass');
+  const tHow = cue(14), tCausal = cue(14, 'causal'), tKey = cue(15), tInputs = cue(15, 'available');
+  const labels = [...PROMPT, ...DRAFT];
+  const L = rowLayout(labels, CX, { size: 30 });
+  const rowY = 1125, bx = 100, by = 845, bw = 880, bh = 210;
+  // inputs
+  labels.forEach((l, i) => token(l, L.xs[i], rowY, { st: i < 5 ? TS.context : TS.draft, size: L.size, w: L.ws[i], alpha: ep(t, Math.max(s + 0.1, tNext - 0.3) + i * 0.06, 0.35) }));
+  // feed + forward pass
+  const feed = prog(t, tVer, tVer + 0.7);
+  const sweep = t > tVer + 0.4 && t < tPass + 0.6 ? prog(t, tVer + 0.4, tPass + 0.6) : -1;
+  transformer(bx, by, bw, bh, { label: 'Main (target) model — one forward pass', sub: 'all 8 positions in the same pass', layers: 3, sweep, alpha: ep(t, tNext, 0.5), labelSize: 28 });
+  labels.forEach((l, i) => {
+    const ver = i >= 4;
+    line(L.xs[i], rowY - 34, L.xs[i], by + bh + 4, { color: ver ? C.terra : C.faint, lw: ver ? 3 : 2, alpha: ep(t, tVer, 0.4), k: easeInOutCubic(feed) });
+  });
+  // outputs: one next-token distribution per verification position (is, Paris, ., It)
+  const outT = tPass + 0.4;
+  [4, 5, 6, 7].forEach((i, k) => {
+    const a = ep(t, outT + k * 0.12, 0.4);
+    arrow(L.xs[i], by - 4, L.xs[i], by - 52, { color: C.terra, lw: 3, k: a, head: 10 });
+    logits(L.xs[i], by - 62, 11 + k * 3, { alpha: a, k: a, w: 70, maxH: 60 });
+  });
+  rich([['4 next-token distributions ', C.terra, 700], ['from 1 pass', C.ink, 700]], CX, 742, { size: 28, alpha: ep(t, outT + 0.6, 0.4) });
+  // brackets under the row
+  const bA = ep(t, tVer, 0.4);
+  const brk = (x1, x2, y, label, col, a) => { line(x1, y, x2, y, { color: col, lw: 2.5, alpha: a }); line(x1, y - 10, x1, y, { color: col, lw: 2.5, alpha: a }); line(x2, y - 10, x2, y, { color: col, lw: 2.5, alpha: a });
+    text(label, (x1 + x2) / 2, y + 26, { size: 22, weight: 600, color: col, alpha: a, maxW: x2 - x1 + 40 }); };
+  brk(L.xs[0] - L.ws[0] / 2, L.xs[4] + L.ws[4] / 2, rowY + 50, 'prompt', C.ink2, bA);
+  const keyA = ep(t, tInputs, 0.4);
+  brk(L.xs[5] - L.ws[5] / 2, L.xs[7] + L.ws[7] / 2, rowY + 50, keyA > 0.5 ? 'draft = known inputs' : 'draft tokens', keyA > 0.5 ? C.terra : C.amberInk, bA);
+  // contrast cards (top): 3 separate passes vs 1 batched pass
+  const cA = ep(t, tSingle - 0.2, 0.5);
+  rr(90, 375, 440, 300, 24, { fill: C.card, stroke: C.border, alpha: cA * 0.95, shadow: 8 });
+  rr(550, 375, 440, 300, 24, { fill: mix(C.card, C.terraLight, 0.5), stroke: C.terra, lw: 3, alpha: cA, shadow: 12 });
+  cross(130, 420, 18, { alpha: cA, fill: C.muted });
+  text('3 separate decoding passes', 158, 421, { size: 25, weight: 700, color: C.ink2, align: 'left', alpha: cA, maxW: 350 });
+  check(590, 420, 18, { alpha: cA });
+  text('1 batched verification pass', 618, 421, { size: 25, weight: 700, color: C.ink, align: 'left', alpha: cA, maxW: 350 });
+  for (let k = 0; k < 3; k++) {          // three sequential mini passes (what verification is NOT)
+    const x = 115 + k * 140;
+    transformer(x, 495, 110, 100, { layers: 3, alpha: cA * 0.7, accent: C.muted });
+    logits(x + 55, 485, 40 + k, { alpha: cA * 0.7, w: 46, maxH: 26, color: C.muted, k: 1 });
+    if (k < 2) arrow(x + 113, 545, x + 137, 545, { color: C.muted, lw: 2.5, head: 9, alpha: cA });
+  }
+  text('serial: 1 position per pass', 310, 640, { size: 22, color: C.muted, alpha: cA });
+  transformer(585, 495, 370, 100, { layers: 3, alpha: cA, sweep: cA > 0 ? ((t - tSingle) * 0.6) % 1 : -1 });
+  for (let k = 0; k < 4; k++) logits(625 + k * 97, 485, 11 + k * 3, { alpha: cA, w: 46, maxH: 26, k: 1 });
+  text('parallel: all draft positions at once', 770, 640, { size: 22, color: C.terra, weight: 600, alpha: cA, maxW: 400 });
+  // the causal-attention puzzle and its answer
+  const qA = win(t, tHow, tKey + 0.1, 0.4, 0.3);
+  rich([['But transformers use ', C.ink, 600], ['causal attention', t > tCausal ? C.terra : C.ink, 750], [' …?', C.ink, 600]], CX, 1268, { size: 32, alpha: qA });
+  rich([['Key: draft tokens are ', C.ink, 600], ['already known', C.terra, 750], [' → feed them as inputs', C.ink, 600]], CX, 1268, { size: 31, alpha: ep(t, tKey + 0.1, 0.4), maxW: 880 });
+  text('(the prompt’s keys/values are typically already in the KV cache)', CX, 1318, { size: 22, color: C.muted, alpha: ep(t, tKey + 0.6, 0.4), maxW: 880 });
+}
+
+// ---------- Scene 5: causal attention mask ----------
+function scene5(t) {
+  const s = SC.s5_mask.start;
+  const tPlace = cue(16, 'place'), tMask = cue(16, 'mask');
+  const tEach = cue(17, 'each'), tOnly = cue(17, 'only'), tBefore = cue(17, 'before');
+  const tPar = cue(18, 'that'), tParW = cue(18, 'parallel'), tLeak = cue(18, 'without');
+  const labels = [...PROMPT, ...DRAFT], N = 8, cell = 84, gx = 262, gy = 492, R = 3;
+  const a0 = ep(t, s + 0.1, 0.5);
+  text('keys  (positions attended to)  →', gx + cell * N / 2, 380, { size: 24, weight: 650, color: C.ink2, alpha: a0 });
+  text('queries ↓', 96, 470, { size: 22, weight: 650, color: C.ink2, align: 'left', alpha: a0 });
+  // column labels (rotated)
+  labels.forEach((l, j) => {
+    ctx.save(); ctx.globalAlpha = A * a0; ctx.translate(gx + j * cell + cell / 2 - 6, gy - 14); ctx.rotate(-Math.PI / 4);
+    ctx.font = font(23, 600, MONO); ctx.fillStyle = j >= 5 ? C.amberInk : C.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(l, 0, 0); ctx.restore();
+  });
+  // phase weights
+  const hiRow = 6;                                  // query "." = verification position 3
+  const focus = win(t, tEach, tPar + 0.1, 0.4, 0.3);
+  const par = ep(t, tPar, 0.5);
+  labels.forEach((l, i) => {
+    const y = gy + i * cell + cell / 2;
+    const rowDim = focus > 0 ? lerp(1, i === hiRow ? 1 : 0.32, focus) : (par > 0 ? lerp(1, i >= 4 ? 1 : 0.4, par) : 1);
+    text(l, gx - 14, y, { size: 24, weight: 600, f: MONO, color: i >= 5 ? C.amberInk : C.ink, align: 'right', alpha: a0 * rowDim });
+    if (i >= 4) text(`v${i - 3}`, 98, y, { size: 22, weight: 750, color: C.terra, align: 'left', alpha: a0 * rowDim });
+    const rowT = lerp(tPlace, tMask, i / (N - 1));
+    for (let j = 0; j < N; j++) {
+      const a = ep(t, rowT + j * 0.03, 0.25);
+      const x = gx + j * cell, yy = gy + i * cell, ok = j <= i;
+      const fill = ok ? (j >= 5 ? '#EFC48F' : (j === i ? C.terra : '#E3AE97')) : '#EFEAE2';
+      rr(x + 3, yy + 3, cell - 6, cell - 6, 9, { fill, alpha: a * rowDim });
+      if (!ok) hatch(x + 3, yy + 3, cell - 6, cell - 6, { color: '#E0D8CC', alpha: a * rowDim });
+    }
+  });
+  // highlight: v3 (".") sees the prompt + "Paris" + itself, but not the future token "It"
+  if (focus > 0) {
+    rr(gx - 2, gy + hiRow * cell - 2, cell * N + 4, cell + 4, 12, { stroke: C.ink, lw: 3, alpha: focus });
+    const mA = ep(t, tBefore, 0.4) * focus;
+    rr(gx + 7 * cell + 1, gy + hiRow * cell + 1, cell - 2, cell - 2, 10, { stroke: C.ink, lw: 3, dash: [6, 5], alpha: mA });
+    text('masked', gx + 7.5 * cell, gy + hiRow * cell - 18, { size: 21, weight: 700, color: C.ink, alpha: mA });
+    rich([['v3 (".") sees ', C.ink, 600], ['the prompt + "Paris"', C.terra, 750], [' — never "It"', C.ink, 600]], CX, 1225, { size: 30, alpha: ep(t, tOnly, 0.4) * focus, maxW: 900 });
+  }
+  // parallel phase: all verification rows (v1..v4) are computed together
+  if (par > 0) {
+    const sweepX = ((t - tPar) * 0.9) % 1;
+    for (let i = 4; i < 8; i++) {
+      const y = gy + i * cell;
+      rr(gx - 2, y - 1, cell * N + 4, cell + 2, 10, { stroke: C.terra, lw: 2.5, alpha: par * 0.9 });
+      const xx = gx + sweepX * (i + 1) * cell;       // identical phase on every row: same pass
+      line(xx, y + 10, xx, y + cell - 10, { color: '#fff', lw: 5, alpha: par * 0.7 * Math.sin(Math.PI * sweepX) });
+    }
+    const bxr = gx + cell * N + 18, y1 = gy + 4 * cell + 6, y2 = gy + 8 * cell - 6;
+    line(bxr, y1, bxr, y2, { color: C.terra, lw: 3, alpha: par }); line(bxr - 10, y1, bxr, y1, { color: C.terra, lw: 3, alpha: par }); line(bxr - 10, y2, bxr, y2, { color: C.terra, lw: 3, alpha: par });
+    ctx.save(); ctx.globalAlpha = A * par; ctx.translate(bxr + 26, (y1 + y2) / 2); ctx.rotate(Math.PI / 2); ctx.font = font(22, 700); ctx.fillStyle = C.terra; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('one pass', 0, 0); ctx.restore();
+    const pA = ep(t, tParW, 0.4);
+    chip('Parallel computation: v1–v4 together', CX, 1222, { size: 27, color: C.terra, stroke: C.terra, alpha: pA });
+    const lA = ep(t, tLeak, 0.4);
+    chip('Causal information flow: no future leakage', CX, 1290, { size: 27, color: C.ink, stroke: C.ink, alpha: lA });
+    // outline the masked upper triangle
+    if (lA > 0) {
+      ctx.save(); ctx.globalAlpha = A * lA * (0.6 + 0.4 * Math.sin((t - tLeak) * 5)); ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.setLineDash([8, 6]);
+      ctx.beginPath(); ctx.moveTo(gx + cell, gy); ctx.lineTo(gx + N * cell, gy); ctx.lineTo(gx + N * cell, gy + (N - 1) * cell);
+      for (let k = N - 1; k >= 1; k--) { ctx.lineTo(gx + k * cell, gy + k * cell); ctx.lineTo(gx + k * cell, gy + (k - 1) * cell); }
+      ctx.closePath(); ctx.stroke(); ctx.restore();
+    }
+  }
+  // legend
+  const lg = a0 * (1 - Math.max(focus, par > 0 ? 1 : 0) * 0.0);
+  const ly = 1356;
+  rr(150, ly - 14, 28, 28, 6, { fill: '#E3AE97', alpha: lg }); text('allowed (past + self)', 190, ly, { size: 22, color: C.ink2, align: 'left', alpha: lg });
+  rr(520, ly - 14, 28, 28, 6, { fill: '#EFEAE2', alpha: lg }); hatch(520, ly - 14, 28, 28, { color: '#D6CDBF', alpha: lg, gap: 8 });
+  text('masked (future)', 560, ly, { size: 22, color: C.ink2, align: 'left', alpha: lg });
+  if (focus <= 0 && par <= 0) text('Lower-triangular causal mask', CX, 1240, { size: 32, weight: 700, alpha: ep(t, tMask, 0.4) });
+}
+
+// ---------- Scene 6: acceptance & rejection (greedy) ----------
+function scene6(t) {
+  const s = SC.s6_accept.start;
+  const tCmp = cue(19, 'compare'), tTgt = cue(19, 'target'), tGreedy = cue(20, 'greedy');
+  const tM = [cue(20, 'first'), cue(20, 'two')], tThird = cue(20, 'third'), tAcc = cue(21, 'accept');
+  const tRej = cue(21, 'reject'), tCont = cue(21, 'continue'), tCorr = cue(21, 'correct'), tSamp = cue(22), tPres = cue(22, 'preserve');
+  const a0 = ep(t, s + 0.1, 0.5);
+  const cols = { pos: 205, draft: 500, tgt: 745, res: 925 };
+  const hy = 395, rows = [490, 590, 690], r4 = 778;
+  text('input position', cols.pos, hy, { size: 22, weight: 700, color: C.muted, alpha: a0 });
+  text('draft', cols.draft, hy, { size: 22, weight: 700, color: C.amberInk, alpha: ep(t, tCmp, 0.4) });
+  text('target prediction', cols.tgt, hy, { size: 22, weight: 700, color: C.ink, alpha: ep(t, tTgt, 0.4) });
+  chip('greedy: target = argmax', cols.tgt, 335 + 0, { size: 21, h: 40, padX: 16, color: C.ink2, alpha: ep(t, tGreedy, 0.4) * (1 - ep(t, tSamp, 0.3)) });
+  const after = ['after "is"', 'after "Paris"', 'after "."'];
+  const accK = ep(t, tAcc, 0.5), rejK = ep(t, tRej, 0.4);
+  const L = rowLayout([...PROMPT, ...TARGET], CX, { size: 30 });
+  const outY = 945;
+  for (let k = 0; k < 3; k++) {
+    const y = rows[k], ra = ep(t, Math.max(s + 0.1, tCmp - 0.2) + k * 0.12, 0.4);
+    rr(90, y - 46, 900, 92, 20, { fill: C.card, stroke: C.beige, alpha: ra * 0.9 });
+    text(after[k], cols.pos, y, { size: 26, weight: 600, color: C.ink2, f: MONO, alpha: ra });
+    // draft token: amber -> green (accepted) / red (rejected) -> moves or vanishes
+    const da = ep(t, tCmp + k * 0.15, 0.4);
+    if (k < 2) {
+      const fly = ep(t, tAcc + 0.45 + k * 0.15, 0.7);
+      const st = mixStyle(TS.draft, TS.accepted, accK);
+      token(DRAFT[k], cols.draft, y, { st: TS.ghost, w: 130, size: 32, alpha: fly > 0 ? 1 : 0 });
+      token(DRAFT[k], lerp(cols.draft, L.xs[5 + k], fly), lerp(y, outY, fly), { st, size: lerp(32, L.size, fly), w: lerp(130, L.ws[5 + k], fly), alpha: da });
+    } else {
+      const st = mixStyle(TS.draft, TS.rejected, rejK);
+      const gone = ep(t, tRej + 0.5, 0.6);
+      token(DRAFT[k], cols.draft, y, { st, w: 130, size: 32, alpha: da * (1 - gone), scale: 1 - 0.35 * gone });
+      if (gone > 0) { token(DRAFT[k], cols.draft, y, { st: TS.ghost, w: 130, size: 32, alpha: gone * 0.8 }); text('rejected', cols.draft, y + 62, { size: 20, weight: 700, color: C.red, alpha: gone }); }
+    }
+    const ta = ep(t, tTgt + k * 0.15, 0.4);
+    const flyT = k === 2 ? ep(t, tCont, 0.8) : 0;
+    if (k === 2 && flyT > 0) token(TARGET[k], cols.tgt, y, { st: TS.ghost, w: 130, size: 32 });
+    token(TARGET[k], lerp(cols.tgt, L.xs[7], flyT), lerp(y, outY, flyT), { st: TS.target, size: lerp(32, L.size, flyT), w: lerp(130, L.ws[7], flyT), alpha: ta });
+    text(k < 2 ? '=' : '≠', (cols.draft + cols.tgt) / 2, y, { size: 38, weight: 700, color: k < 2 ? C.green : C.red, alpha: ep(t, k < 2 ? tM[k] : tThird, 0.3) });
+    if (k < 2) check(cols.res, y, 24, { scale: ep(t, tM[k], 0.35, easeOutBack) });
+    else cross(cols.res, y, 24, { scale: ep(t, tThird, 0.35, easeOutBack) });
+  }
+  // 4th output: conditioned on the rejected token -> discarded
+  const dA = ep(t, tRej + 0.6, 0.4);
+  text('after "It": prediction discarded (it depends on the rejected token)', CX, r4, { size: 22, color: C.muted, alpha: dA, italic: true, maxW: 880 });
+  // output sequence
+  const oA = ep(t, tAcc + 0.2, 0.4);
+  text('output', 100, outY - 58, { size: 22, weight: 700, color: C.muted, align: 'left', alpha: oA });
+  PROMPT.forEach((l, i) => token(l, L.xs[i], outY, { size: L.size, w: L.ws[i], alpha: oA }));
+  for (let k = 0; k < 3; k++) if (t < (k < 2 ? tAcc + 0.45 + k * 0.15 + 0.7 : tCont + 0.8)) token('', L.xs[5 + k], outY, { st: TS.ghost, w: L.ws[5 + k], size: L.size, alpha: oA });
+  const accBr = ep(t, tAcc + 1.2, 0.4);
+  line(L.xs[5] - L.ws[5] / 2, outY + 46, L.xs[6] + L.ws[6] / 2, outY + 46, { color: C.green, lw: 3, alpha: accBr });
+  text('accepted prefix', (L.xs[5] + L.xs[6]) / 2, outY + 70, { size: 21, weight: 700, color: C.green, alpha: accBr });
+  text('from target', L.xs[7] + 6, outY + 70, { size: 21, weight: 700, color: C.ink, alpha: ep(t, tCont + 0.8, 0.4) });
+  chip('Accept matching prefix → correct mismatch → continue', CX, 1080, { size: 26, color: C.ink, stroke: C.terra, alpha: ep(t, tCorr, 0.45), maxW: 900 });
+  text('one verification pass committed 3 tokens (2 accepted + 1 correction)', CX, 1136, { size: 22, color: C.ink2, alpha: ep(t, tCorr + 0.5, 0.4), maxW: 880 });
+  // sampling-based decoding: probability-based acceptance (exact speculative sampling)
+  const sA = ep(t, tSamp, 0.5);
+  rr(90, 1175, 900, 200, 22, { fill: C.card, stroke: C.border, alpha: sA, shadow: 10 });
+  text('Sampling-based decoding (exact):', 120, 1212, { size: 25, weight: 750, align: 'left', alpha: sA });
+  rich([['accept dᵢ with probability ', C.ink2, 500], ['min(1, p(dᵢ) / q(dᵢ))', C.terra, 700]], 120, 1258, { size: 25, align: 'left', alpha: sA, f: SANS });
+  rich([['on rejection, resample from ', C.ink2, 500], ['norm(max(0, p − q))', C.terra, 700]], 120, 1298, { size: 25, align: 'left', alpha: ep(t, tSamp + 1.2, 0.4) });
+  text('p = target model, q = draft  →  output distribution = target’s', 120, 1342, { size: 22, color: C.ink2, align: 'left', alpha: ep(t, tPres, 0.4), maxW: 840 });
+}
+
+// ---------- Scene 7: why it speeds up inference ----------
+function scene7(t) {
+  const s = SC.s7_speedup.start;
+  const tWo = cue(24, 'without'), tW = cue(25, 'with'), tAcc = cue(25, 'accept');
+  const tComp = cue(26, 'reduced'), tExtra = cue(26, 'extra'), tSeq = cue(27, 'reduced'), tGpu = cue(28, 'gpus'), tPar = cue(28, 'parallel');
+  const a0 = ep(t, s + 0.1, 0.5);
+  const X0 = 100;
+  // top timeline: standard decoding
+  text('Standard decoding', X0, 392, { size: 28, weight: 750, align: 'left', alpha: a0 });
+  const sx = [X0, X0 + 225, X0 + 450];
+  sx.forEach((x, k) => {
+    const g = tWo + 0.2 + k * 1.15, p = prog(t, g, g + 1.0);
+    rr(x, 425, 205, 90, 16, { fill: C.card, stroke: p > 0 && p < 1 ? C.terra : C.border, lw: 2.5, alpha: a0, shadow: 6 });
+    rr(x + 8, 433, (205 - 16) * easeInOutCubic(p), 74, 11, { fill: C.terraLight, alpha: a0 });
+    text(`full pass ${k + 1}`, x + 102, 470, { size: 23, weight: 650, color: C.ink, alpha: a0 });
+    token(TARGET[k], x + 102, 565, { st: TS.gen, size: 26, w: 100, scale: ep(t, g + 1.0, 0.3, easeOutBack) });
+  });
+  const c1 = ep(t, tWo + 3.6, 0.4);
+  text('3', 860, 455, { size: 64, weight: 800, color: C.terra, alpha: c1 });
+  text('sequential steps', 860, 505, { size: 22, weight: 600, color: C.ink2, alpha: c1 });
+  // bottom timeline: speculative decoding
+  text('Speculative decoding', X0, 650, { size: 28, weight: 750, align: 'left', alpha: ep(t, tW - 0.3, 0.4) });
+  const bA = ep(t, tW - 0.3, 0.4), dP = prog(t, tW, tW + 0.6), vP = prog(t, tW + 0.65, tW + 1.9);
+  rr(X0, 683, 80, 90, 16, { fill: C.amberFill, stroke: C.amber, lw: 2.5, dash: [7, 5], alpha: bA });
+  rr(X0 + 6, 689, 68 * dP, 78, 11, { fill: '#EFCB97', alpha: bA });
+  text('draft', X0 + 40, 728, { size: 21, weight: 700, color: C.amberInk, alpha: bA });
+  rr(X0 + 95, 683, 265, 90, 16, { fill: C.card, stroke: vP > 0 && vP < 1 ? C.terra : C.border, lw: 2.5, alpha: bA, shadow: 6 });
+  rr(X0 + 103, 691, 249 * easeInOutCubic(vP), 74, 11, { fill: C.terraLight, alpha: bA });
+  text('1 verification pass', X0 + 227, 728, { size: 23, weight: 650, alpha: bA });
+  const em = ep(t, tAcc, 0.4, easeOutBack);
+  TARGET.forEach((l, k) => token(l, X0 + 140 + k * 88, 822, { st: k < 2 ? TS.accepted : TS.target, size: 24, w: 80, scale: em }));
+  const c2 = ep(t, tAcc + 0.3, 0.4);
+  text('1', 860, 713, { size: 64, weight: 800, color: C.green, alpha: c2 });
+  text('verification pass', 860, 763, { size: 22, weight: 600, color: C.ink2, alpha: c2 });
+  arrow(X0, 880, 800, 880, { color: C.faint, lw: 2.5, alpha: a0, head: 11 });
+  text('time →   (illustrative, not to scale)', X0, 905, { size: 20, color: C.muted, align: 'left', alpha: a0 });
+  // metric
+  const mA = ep(t, tAcc + 0.6, 0.45);
+  rr(90, 935, 900, 110, 22, { fill: C.card, stroke: C.green, lw: 2.5, alpha: mA, shadow: 8 });
+  text('Accepted tokens per verification pass', 120, 970, { size: 26, weight: 700, align: 'left', alpha: mA });
+  text('in this example: 2 accepted (+ 1 corrected token from the target)', 120, 1010, { size: 22, color: C.ink2, align: 'left', alpha: mA, maxW: 700 });
+  text('2', 940, 990, { size: 58, weight: 800, color: C.green, align: 'right', alpha: mA });
+  // compute is NOT reduced
+  const cA = ep(t, tComp, 0.45);
+  text('Total computation (token-positions processed)', X0, 1085, { size: 24, weight: 700, align: 'left', alpha: cA });
+  for (let k = 0; k < 3; k++) rr(X0 + 230 + k * 58, 1110, 50, 36, 7, { fill: C.terra, alpha: cA * ep(t, tComp + k * 0.1, 0.3) });
+  text('standard', X0, 1128, { size: 22, color: C.ink2, align: 'left', alpha: cA });
+  const eA = ep(t, tExtra, 0.4);
+  text('speculative', X0, 1178, { size: 22, color: C.ink2, align: 'left', alpha: cA });
+  rr(X0 + 230, 1160, 36, 36, 7, { fill: C.amber, alpha: cA * eA });
+  for (let k = 0; k < 4; k++) rr(X0 + 274 + k * 58, 1160, 50, 36, 7, { fill: k === 3 ? C.faint : C.terra, alpha: cA * ep(t, tExtra + 0.2 + k * 0.1, 0.3) });
+  text('drafting + verifying 4 positions = extra work', X0 + 520, 1178, { size: 21, color: C.amberInk, align: 'left', alpha: eA, maxW: 340 });
+  const qA = ep(t, tSeq, 0.45);
+  rich([['But serial steps: ', C.ink, 650], ['3 → 1', C.terra, 800]], X0 + 520, 1128, { size: 26, align: 'left', alpha: qA });
+  if (qA > 0) { ring(860, 480, 62, qA, { color: C.terra, lw: 4, alpha: qA * 0.8 }); ring(860, 738, 62, qA, { color: C.green, lw: 4, alpha: qA * 0.8 }); }
+  // GPUs
+  const gA = ep(t, tGpu, 0.45);
+  rr(90, 1232, 900, 140, 22, { fill: mix(C.card, C.terraLight, 0.4), stroke: C.border, alpha: gA });
+  text('Why GPUs like it', 120, 1270, { size: 25, weight: 750, align: 'left', alpha: gA });
+  text('decoding is often limited by memory bandwidth; one pass reads the', 120, 1308, { size: 22, color: C.ink2, align: 'left', alpha: gA, maxW: 840 });
+  rich([['weights once for all 4 positions → ', C.ink2, 500], ['better use of parallel compute', C.terra, 700]], 120, 1342, { size: 22, align: 'left', alpha: ep(t, tPar - 0.4, 0.4), maxW: 840 });
+}
+
+// ---------- Scene 8: when speculation fails ----------
+function scene8(t) {
+  const s = SC.s8_failure.start;
+  const tF = [cue(29, 'accuracy'), cue(29, 'verification'), cue(29, 'memory'), cue(29, 'hardware')];
+  const tIf = cue(30, 'if'), tRej = cue(30, 'rejected'), tOut = cue(30, 'outweigh');
+  const a0 = ep(t, s + 0.1, 0.5);
+  // each round: 3 draft verdicts (A accepted, R rejected, D discarded) + 1 token supplied by the target
+  const panel = (y0, title, dotCol, rounds, t0, alpha, summary, sumCol, sumA) => {
+    rr(80, y0, 920, 330, 24, { fill: C.card, stroke: C.border, alpha, shadow: 10 });
+    dot(118, y0 + 42, 10, { fill: dotCol, alpha });
+    text(title, 140, y0 + 42, { size: 28, weight: 750, align: 'left', alpha });
+    text('illustrative', 970, y0 + 42, { size: 20, color: C.muted, align: 'right', alpha });
+    rounds.forEach((r, k) => {
+      const gx = 120 + k * 290, gy = y0 + 95, ra = ep(t, t0 + k * 0.45, 0.4);
+      r.forEach((v, j) => {
+        const x = gx + j * 64;
+        if (v === 'A') { rr(x, gy, 56, 56, 10, { fill: C.green, alpha: ra }); check(x + 28, gy + 28, 16, { alpha: ra }); }
+        else if (v === 'R') { rr(x, gy, 56, 56, 10, { fill: C.red, alpha: ra }); cross(x + 28, gy + 28, 16, { alpha: ra, fill: C.red }); }
+        else { rr(x, gy, 56, 56, 10, { fill: '#F1ECE4', stroke: C.faint, dash: [5, 4], alpha: ra }); hatch(x, gy, 56, 56, { color: '#DED5C8', alpha: ra, gap: 10 }); }
+      });
+      rr(gx + 198, gy + 8, 52, 40, 10, { fill: C.ink, alpha: ra });
+      text('+1', gx + 224, gy + 29, { size: 20, weight: 700, color: C.bg, alpha: ra });
+      text(`pass ${k + 1}: ${r.filter(v => v === 'A').length + 1} tokens`, gx + 125, gy + 88, { size: 21, color: C.ink2, alpha: ra });
+    });
+    summary.forEach((l, i) => text(l, CX, y0 + 245 + i * 38, { size: i ? 22 : 26, weight: i ? 500 : 700, color: i ? C.ink2 : sumCol, alpha: sumA, maxW: 860 }));
+  };
+  panel(370, 'High acceptance rate', C.green, [['A', 'A', 'A'], ['A', 'A', 'A'], ['A', 'A', 'R']], s + 0.4, a0,
+    ['11 tokens in 3 verification passes', 'most drafts accepted → far fewer sequential steps'], C.green, ep(t, s + 2.0, 0.4));
+  const lowA = ep(t, tIf - 0.2, 0.45);
+  panel(730, 'Low acceptance rate', C.red, [['R', 'D', 'D'], ['A', 'R', 'D'], ['R', 'D', 'D']], tIf, lowA,
+    ['4 tokens in 3 passes ≈ standard decoding', 'plus drafting & verification overhead → can be slower'], C.red, ep(t, tOut, 0.4));
+  // wasted work bracket
+  const wA = ep(t, tRej, 0.4);
+  rr(112, 817, 870, 76, 14, { stroke: C.red, lw: 2.5, dash: [8, 6], alpha: wA * 0.8 });
+  text('wasted speculative work', 980, 800, { size: 21, weight: 700, color: C.red, align: 'right', alpha: wA });
+  text('+1 = token supplied by the target (correction or bonus)', CX, 1092, { size: 20, color: C.muted, alpha: lowA });
+  // factors
+  const fA = ep(t, tF[0] - 0.4, 0.4);
+  text('The speedup depends on', CX, 1145, { size: 26, weight: 700, alpha: fA });
+  ['draft accuracy', 'verification cost', 'memory bandwidth', 'hardware efficiency'].forEach((l, k) => {
+    const x = k % 2 ? 765 : 315, y = 1210 + Math.floor(k / 2) * 72;
+    chip(l, x, y, { size: 26, color: k ? C.ink : C.terra, stroke: k ? C.border : C.terra, alpha: ep(t, tF[k] - 0.05, 0.35), h: 56 });
+  });
+}
+
+// ---------- Scene 9: takeaway ----------
+function scene9(t) {
+  const s = SC.s9_takeaway.start;
+  const tIdea = cue(31), tMtp = cue(32, 'mtp'), tTok = cue(32, 'tokens'), tSpec = cue(32, 'speculative'), tAcc = cue(32, 'accepted');
+  const tFast = cue(32, 'faster'), tProv = cue(32, 'provided'), tEnd = cue(33, 'thats');
+  const boxes = [
+    { y: 400, title: 'MTP heads / modules', sub: 'propose future tokens', t0: tMtp, col: C.terra },
+    { y: 580, title: 'Draft tokens', sub: 'speculative, unverified', t0: tTok, col: C.amber },
+    { y: 760, title: 'Target verification', sub: 'one parallel pass, causal mask', t0: tSpec, col: C.ink },
+    { y: 940, title: 'Accepted output', sub: 'matching prefix + correction', t0: tAcc, col: C.green },
+  ];
+  const ghost = ep(t, tIdea, 0.5);
+  boxes.forEach((b, k) => {
+    const on = ep(t, b.t0, 0.45);
+    rr(150, b.y, 780, 130, 24, { fill: on > 0 ? C.card : null, stroke: on > 0 ? b.col : C.faint, lw: on > 0 ? 3 : 2, dash: on > 0 ? null : [8, 7], alpha: Math.max(ghost * 0.6, on), shadow: on > 0 ? 12 : 0 });
+    text(b.title, 200, b.y + 50, { size: 34, weight: 750, align: 'left', color: on > 0 ? C.ink : C.muted, alpha: Math.max(ghost * 0.6, on) });
+    text(b.sub, 200, b.y + 94, { size: 24, color: C.ink2, align: 'left', alpha: on });
+    // mini icons
+    const ix = 800, iy = b.y + 65;
+    if (k === 0) DEPTH.forEach((c, j) => dot(ix - 30 + j * 34, iy, 12, { fill: c, alpha: on }));
+    if (k === 1) DRAFT.forEach((l, j) => token(l, ix - 70 + j * 70, iy, { st: TS.draft, size: 22, w: 62, alpha: on }));
+    if (k === 2) for (let i = 0; i < 4; i++) for (let j = 0; j <= i; j++) rr(ix - 44 + j * 22, iy - 44 + i * 22, 19, 19, 4, { fill: j === i ? C.terra : '#E3AE97', alpha: on });
+    if (k === 3) [['Paris', TS.accepted], ['.', TS.accepted], ['The', TS.target]].forEach(([l, st], j) => token(l, ix - 70 + j * 70, iy, { st, size: 22, w: 62, alpha: on }));
+    if (k < 3) {
+      const ak = ep(t, boxes[k + 1].t0 - 0.35, 0.35);
+      arrow(CX, b.y + 134, CX, b.y + 176, { color: C.ink2, lw: 3, k: ak, head: 11 });
+    }
+  });
+  // closing flow: a dot travelling through the pipeline (deterministic loop)
+  const flow = ep(t, tFast, 0.5);
+  if (flow > 0) { const ph = ((t - tFast) * 0.35) % 1; dot(CX, lerp(400, 1070, easeInOutCubic(ph)), 9, { fill: C.terra, alpha: flow * Math.sin(Math.PI * ph) }); }
+  const tg = ep(t, tEnd, 0.6);
+  text('More accepted tokens', CX, 1150, { size: 44, weight: 800, color: C.terra, alpha: tg, maxW: 880 });
+  text('per verification pass', CX, 1205, { size: 44, weight: 800, color: C.terra, alpha: ep(t, tEnd + 0.2, 0.6), maxW: 880 });
+  text('= fewer sequential decoding steps', CX, 1270, { size: 40, weight: 750, color: C.ink, alpha: ep(t, tEnd + 0.5, 0.6), maxW: 880 });
+  text('exact only with the right verification rule (greedy match / rejection sampling)', CX, 1340, { size: 21, color: C.muted, alpha: ep(t, tProv, 0.5) * (1 - 0.0), maxW: 880 });
+  // final hold: gentle asterisk + disclosure
+  const hold = ep(t, cue(33, null, 'end') + 0.5, 0.8);
+  asterisk(CX, 1470, 34, (t - tEnd) * 0.25, { alpha: hold });
+  text('Independent educational explainer · narration is AI-generated', CX, 1545, { size: 21, color: C.muted, alpha: hold, maxW: 860 });
+}
+
+const SCENES = [
+  ['s1_autoregressive', scene1, '01', 'Autoregressive decoding'],
+  ['s2_mtp', scene2, '02', 'Multi-Token Prediction (MTP)'],
+  ['s3_draft', scene3, '03', 'Draft tokens'],
+  ['s4_verify', scene4, '04', 'Verification'],
+  ['s5_mask', scene5, '05', 'Causal attention mask'],
+  ['s6_accept', scene6, '06', 'Accepted prefix'],
+  ['s7_speedup', scene7, '07', 'Why it can be faster'],
+  ['s8_failure', scene8, '08', 'When speculation fails'],
+  ['s9_takeaway', scene9, '09', 'The takeaway'],
+];
+function sceneAlpha(t, i) {
+  const sc = SC[SCENES[i][0]];
+  const ain = i === 0 ? ep(t, 0.15, 0.6) : ep(t, sc.start, 0.5);
+  const aout = i === SCENES.length - 1 ? 1 : 1 - ep(t, sc.end - 0.45, 0.45);
+  return t < sc.start || t >= sc.end ? 0 : Math.min(ain, aout);
+}
+
+// ---------- header ----------
+function header(t) {
+  A = 1;
+  asterisk(112, 205, 20, t * 0.15);
+  text('MTP · speculative decoding', 146, 206, { size: 27, weight: 650, color: C.ink, align: 'left' });
+  rr(760, 186, 222, 40, 20, { fill: C.beige });
+  text('AI-generated narration', 871, 207, { size: 19, weight: 600, color: C.ink2 });
+  SCENES.forEach(([id, , num, title], i) => {
+    const a = sceneAlpha(t, i); if (a <= 0) return;
+    A = a; text(num, 100, 280, { size: 30, weight: 800, color: C.terra, align: 'left' });
+    text(title, 150, 280, { size: 40, weight: 750, color: C.ink, align: 'left', maxW: 830 }); A = 1;
+  });
+  // chapter progress
+  SCENES.forEach(([id], i) => {
+    const sc = SC[id], x = 100 + i * 100, k = prog(t, sc.start, sc.end);
+    rr(x, 318, 90, 6, 3, { fill: C.beige });
+    if (k > 0) rr(x, 318, 90 * k, 6, 3, { fill: C.terra });
+  });
+}
+
+// ---------- captions (from aligned narration) ----------
+const TERMS = [['multitoken', 'prediction'], ['autoregressive'], ['mtp'], ['speculative', 'decoding'], ['draft', 'tokens'], ['draft', 'sequence'],
+  ['draft'], ['verifies'], ['verification'], ['verify'], ['causal', 'attention', 'mask'], ['causal', 'attention'], ['sequential'], ['sequentially'],
+  ['accept'], ['accepted']];
+const CAP_SIZE = 40, CAP_W = 820, CAP_LH = 54;
+const CHUNKS = (() => {
+  const out = [];
+  SEG.forEach((s, si) => {
+    const ws = s.words.map(w => ({ ...w, n: norm(w.w), key: false }));
+    for (let i = 0; i < ws.length; i++) for (const term of TERMS) {
+      if (term.every((p, k) => ws[i + k] && ws[i + k].n === p)) { term.forEach((_, k) => ws[i + k].key = true); i += term.length - 1; break; }
+    }
+    let cur = [];
+    const lines = arr => { const ls = [[]]; let w = 0; for (const x of arr) { const xw = measure(x.w + ' ', CAP_SIZE, 650);
+      if (w + xw > CAP_W && ls[ls.length - 1].length) { ls.push([]); w = 0; } ls[ls.length - 1].push(x); w += xw; } return ls; };
+    const flush = () => { if (cur.length) out.push({ si, words: cur, lines: lines(cur) }); cur = []; };
+    ws.forEach((w, i) => {
+      if (cur.length && lines([...cur, w]).length > 2) flush();
+      cur.push(w);
+      const end = /[.?!]$/.test(w.w), soft = /[,:]$/.test(w.w);
+      if ((end && cur.length >= 3 && i < ws.length - 1) || (soft && cur.length >= 7)) flush();
+    });
+    flush();
+  });
+  out.forEach((c, i) => {
+    const s = SEG[c.si], first = out[i - 1] && out[i - 1].si === c.si ? c.words[0].start - 0.08 : s.start - 0.15;
+    c.t0 = first;
+    const next = out[i + 1];
+    c.t1 = next ? (next.si === c.si ? next.words[0].start - 0.08 : Math.min(next.t0 ?? (SEG[next.si].start - 0.15), s.end + 0.9)) : s.end + 0.9;
+  });
+  out.forEach((c, i) => { const n = out[i + 1]; if (n && n.si !== c.si) c.t1 = Math.min(SEG[n.si].start - 0.15, c.words.at(-1).end + 0.9, SEG[c.si].end + 0.9); });
+  return out;
+})();
+function captions(t) {
+  A = 1;
+  const c = CHUNKS.find(c => t >= c.t0 && t < c.t1); if (!c) return;
+  const a = Math.min(ep(t, c.t0, 0.12), 1 - ep(t, c.t1 - 0.12, 0.12));
+  const n = c.lines.length, boxH = n * CAP_LH + 44, cy = 1515, top = cy - boxH / 2;
+  rr(90, top, 860, boxH, 26, { fill: 'rgba(255,253,249,0.94)', stroke: C.beige, lw: 2, alpha: a, shadow: 14 });
+  c.lines.forEach((ln, li) => {
+    const wsz = ln.map(w => measure(w.w + ' ', CAP_SIZE, 650)); const tot = wsz.reduce((p, q) => p + q, 0) - measure(' ', CAP_SIZE, 650);
+    let x = 520 - tot / 2; const y = top + 22 + CAP_LH * li + CAP_LH / 2;
+    ln.forEach((w, k) => {
+      const said = t >= w.start - 0.05;
+      const col = w.key ? (said ? C.terra : '#DDB3A2') : (said ? C.ink : '#B4ACA2');
+      text(w.w, x, y, { size: CAP_SIZE, weight: w.key ? 800 : 650, color: col, align: 'left', alpha: a });
+      x += wsz[k];
+    });
+  });
+}
+
+// ---------- the single deterministic entry point ----------
+function draw(t) {
+  t = clamp(t, 0, window.TOTAL);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  // faint paper vignette (static)
+  const g = ctx.createRadialGradient(W / 2, H * 0.42, 200, W / 2, H * 0.42, 1250);
+  g.addColorStop(0, 'rgba(255,255,255,0.35)'); g.addColorStop(1, 'rgba(214,200,180,0.18)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  header(t);
+  SCENES.forEach(([id, fn], i) => {
+    const a = sceneAlpha(t, i); if (a <= 0) return;
+    ctx.save(); A = a; ctx.translate(0, (1 - Math.min(1, a)) * 18); fn(t); ctx.restore();
+  });
+  A = 1;
+  captions(t);
+}
+window.draw = draw;
+window.ready = document.fonts.ready.then(() => { draw(0); return true; });
+
+// ---------- live browser preview (synchronised to the narration audio) ----------
+if (window.__RENDERING) document.body.classList.add('rendering');
+else {
+  const audio = document.getElementById('audio'), btn = document.getElementById('play'), scrub = document.getElementById('scrub'), tc = document.getElementById('tc');
+  const q = new URLSearchParams(location.search); let tNow = +(q.get('t') || 0);
+  const show = t => { draw(t); tc.textContent = `${t.toFixed(2)} / ${window.TOTAL.toFixed(2)} s`; scrub.value = Math.round(t / window.TOTAL * 1000); };
+  const loop = () => { if (!audio.paused) { tNow = audio.currentTime; show(tNow); requestAnimationFrame(loop); } };
+  btn.onclick = () => { if (audio.paused) { audio.currentTime = tNow; audio.play(); btn.textContent = '❚❚ Pause'; requestAnimationFrame(loop); } else { audio.pause(); btn.textContent = '▶ Play'; } };
+  audio.onended = () => { btn.textContent = '▶ Play'; };
+  scrub.oninput = () => { tNow = scrub.value / 1000 * window.TOTAL; audio.currentTime = tNow; show(tNow); };
+  document.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); btn.click(); }
+    if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') { tNow = clamp(tNow + (e.code === 'ArrowRight' ? 1 : -1), 0, window.TOTAL); audio.currentTime = tNow; show(tNow); } });
+  window.ready.then(() => show(tNow));
+}
+</script>
+</body>
+</html>
