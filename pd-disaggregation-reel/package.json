@@ -1,0 +1,16 @@
+{
+  "name": "pd-disaggregation-reel",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Why LLM servers separate prefill and decode — Canvas 2D + Puppeteer + FFmpeg explainer reel",
+  "scripts": {
+    "audio": "python3 generate_audio.py --speed 1.30 --max-pause 0.35",
+    "align": "python3 generate_audio.py --align-only",
+    "inject": "node render.mjs --inject",
+    "preview": "node render.mjs --inject && node render.mjs --audio && python3 -m http.server 8000",
+    "qa": "node render.mjs --qa",
+    "render": "node render.mjs"
+  },
+  "dependencies": { "puppeteer-core": "^23.11.1" }
+}

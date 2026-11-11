@@ -1,0 +1,51 @@
+{
+  "model": "gpt-4o-mini-tts",
+  "voice": "onyx",
+  "speed": 1.3,
+  "instructions": "Speak like an experienced machine learning engineer explaining an interesting systems concept. Maintain a steady, conversational pace. Emphasize technical distinctions naturally, and pause briefly after important concepts. Pronounce GPU as 'G P U', LLM as 'L L M', KV as 'K V', TTFT as 'T T F T', RDMA as 'R D M A'. Say 'prefill' as 'pre-fill' and 'decode' clearly. No exaggerated presentation style.",
+  "requests": "9 (one per scene + 1 extra paragraph split)",
+  "join_gap_s": 0.42,
+  "scenes": [
+    {
+      "segment": 1,
+      "reused": true
+    },
+    {
+      "segment": 2,
+      "reused": true
+    },
+    {
+      "segment": 3,
+      "reused": true
+    },
+    {
+      "segment": 4,
+      "reused": true
+    },
+    {
+      "segment": 5,
+      "reused": true
+    },
+    {
+      "segment": 6,
+      "reused": true
+    },
+    {
+      "segment": 7,
+      "reused": true
+    },
+    {
+      "segment": 8,
+      "reused": true
+    },
+    {
+      "segment": 9,
+      "reused": true
+    }
+  ],
+  "sample_rate": 24000,
+  "raw_duration_s": 182.681,
+  "max_pause_s": 0.35,
+  "silence_removed_s": 10.61,
+  "duration_s": 172.071
+}

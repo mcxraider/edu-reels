@@ -1,0 +1,13 @@
+.venv/
+node_modules/
+output/stills/
+output/video_silent.mp4
+output/whisper_words.json
+.env
+__pycache__/
+audio/scenes/
+audio/scenes_122/
+audio/take2_raw.wav
+audio/narration_raw.wav
+audio/best_*
+output/qa/

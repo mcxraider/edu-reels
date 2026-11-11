@@ -1,0 +1,3981 @@
+{
+ "source": "audio/narration.wav",
+ "duration": 172.071,
+ "method": "whisper-1 word anchors + Needleman-Wunsch alignment to script.txt + RMS pause snapping",
+ "qa": {
+  "script_words": 529,
+  "matched_words": 524,
+  "match_rate": 0.9905,
+  "unmatched_script_words": [
+   "key-value",
+   "compute-bound.",
+   "were",
+   "Prefill-decode",
+   "High-speed"
+  ],
+  "verbatim_check": {
+   "recogniser": "gpt-4o-transcribe",
+   "differences": [
+    {
+     "op": "replace",
+     "script": "technologies",
+     "heard": "technology"
+    },
+    {
+     "op": "replace",
+     "script": "inter token",
+     "heard": "intertoken"
+    }
+   ],
+   "heard": "Imagine you're chatting with an AI model. It's generating your answer, one token at a time. Suddenly, another user submits a massive prompt containing 10,000 tokens. Your response starts slowing down, even though your own request hasn't changed. Why? Because traditional LLM serving often runs two very different workloads on the same GPU resources. Every LLM inference request has two main phases. First, prefill. The model processes the input prompt, computing attention representations, and creating a key-value cache for its tokens. Prefill involves large matrix multiplications and is often compute-bound. Then comes decode. The model generates new tokens autoregressively, typically one token per sequence at each decoding step. For small batches, decode is often limited by memory bandwidth because the GPU repeatedly reads model weights and cached attention states. These two phases have very different hardware requirements. Now imagine a GPU already decoding responses for several users. A new request arrives with a very long prompt. Processing that prompt can consume significant compute resources, competing with ongoing decoding. The result? Users who were already receiving tokens may experience delays between successive tokens. This is known as interference between prefill and decode. Prefill decode disaggregation solves this by separating the two workloads. Instead of running everything on the same GPU worker, we create two specialized groups. Prefill workers process incoming prompts, decode workers focus on generating output tokens, each group can be configured and scaled independently. But there's one important problem. How does the decode worker know what happened during prefill? The answer is the KV cache. During prefill, the model computes key and value representations for the prompt tokens across its transformer layers. These cached representations are needed when generating subsequent tokens. So, after prefill finishes, the system transfers the KV cache to a decode worker. High-speed communication technology such as RDMA can help move this data efficiently. The decode worker can then continue generating tokens without recomputing the entire prompt. The model weights are still required on both sides. We're transferring the KV cache, not the model itself. Now the two workloads stop directly competing for the same worker's execution time. A long prefill request can run while other GPUs continue decoding responses. We can optimize prefill for computational throughput and decode for low token latency. This gives us finer control over two important metrics, time to first token or TTFT, and time per output token, commonly measured through intertoken latency. It also allows the serving system to independently scale prefill and decode capacity. But disaggregation isn't free. Transferring KV caches takes time and consumes network bandwidth. With long prompts, those caches can become extremely large. Both worker groups also need access to compatible copies of the model. And inefficient routing or slow transfers can erase the performance benefits. So disaggregation doesn't automatically make every workload faster. It becomes valuable when improved scheduling and hardware utilization outweigh the added communication overhead. Here's the key idea. Prefill and decode are fundamentally different computational workloads. By separating them, we can specialize our infrastructure, reduce interference, and scale each phase independently. The real optimization isn't changing how the transformer computes its answer. It's changing how we schedule and serve its computation."
+  }
+ },
+ "pauses": [
+  [
+   1.55,
+   1.93
+  ],
+  [
+   2.95,
+   3.15
+  ],
+  [
+   4.08,
+   4.44
+  ],
+  [
+   4.81,
+   5.12
+  ],
+  [
+   6.65,
+   7.02
+  ],
+  [
+   8.19,
+   8.59
+  ],
+  [
+   9.82,
+   10.19
+  ],
+  [
+   11.58,
+   12.03
+  ],
+  [
+   12.3,
+   12.77
+  ],
+  [
+   14.2,
+   14.46
+  ],
+  [
+   17.25,
+   17.64
+  ],
+  [
+   20.03,
+   20.38
+  ],
+  [
+   20.57,
+   20.85
+  ],
+  [
+   21.16,
+   21.55
+  ],
+  [
+   22.85,
+   23.29
+  ],
+  [
+   24.59,
+   24.88
+  ],
+  [
+   26.59,
+   27.01
+  ],
+  [
+   27.41,
+   27.67
+  ],
+  [
+   29.21,
+   29.52
+  ],
+  [
+   30.5,
+   30.85
+  ],
+  [
+   31.81,
+   32.17
+  ],
+  [
+   34.16,
+   34.44
+  ],
+  [
+   36.65,
+   37.01
+  ],
+  [
+   37.71,
+   38.01
+  ],
+  [
+   39.71,
+   40.07
+  ],
+  [
+   42.19,
+   42.45
+  ],
+  [
+   43.41,
+   43.79
+  ],
+  [
+   45.8,
+   46.16
+  ],
+  [
+   48.87,
+   49.1
+  ],
+  [
+   49.77,
+   50.18
+  ],
+  [
+   52.08,
+   52.45
+  ],
+  [
+   55.13,
+   55.51
+  ],
+  [
+   56.85,
+   57.21
+  ],
+  [
+   57.65,
+   58.01
+  ],
+  [
+   61.61,
+   61.98
+  ],
+  [
+   63.79,
+   63.95
+  ],
+  [
+   64.41,
+   64.76
+  ],
+  [
+   67.82,
+   68.25
+  ],
+  [
+   70.17,
+   70.46
+  ],
+  [
+   71.73,
+   72.09
+  ],
+  [
+   73.71,
+   74.07
+  ],
+  [
+   76.35,
+   76.64
+  ],
+  [
+   78.51,
+   78.86
+  ],
+  [
+   79.9,
+   80.27
+  ],
+  [
+   82.2,
+   82.56
+  ],
+  [
+   83.04,
+   83.27
+  ],
+  [
+   84.22,
+   84.6
+  ],
+  [
+   85.32,
+   85.67
+  ],
+  [
+   88.4,
+   88.69
+  ],
+  [
+   89.91,
+   90.28
+  ],
+  [
+   93.06,
+   93.43
+  ],
+  [
+   93.65,
+   93.91
+  ],
+  [
+   94.95,
+   95.27
+  ],
+  [
+   96.82,
+   97.1
+  ],
+  [
+   97.86,
+   98.23
+  ],
+  [
+   100.56,
+   100.77
+  ],
+  [
+   102.1,
+   102.46
+  ],
+  [
+   104.53,
+   104.79
+  ],
+  [
+   106.15,
+   106.5
+  ],
+  [
+   108.33,
+   108.75
+  ],
+  [
+   109.85,
+   110.27
+  ],
+  [
+   111.04,
+   111.4
+  ],
+  [
+   114.85,
+   115.21
+  ],
+  [
+   118.77,
+   119.15
+  ],
+  [
+   121.15,
+   121.5
+  ],
+  [
+   122.96,
+   123.32
+  ],
+  [
+   125.45,
+   125.81
+  ],
+  [
+   127.35,
+   127.7
+  ],
+  [
+   128.76,
+   129.08
+  ],
+  [
+   130.67,
+   131.04
+  ],
+  [
+   134.49,
+   134.85
+  ],
+  [
+   136.5,
+   136.87
+  ],
+  [
+   139.95,
+   140.32
+  ],
+  [
+   142.76,
+   143.13
+  ],
+  [
+   146.09,
+   146.44
+  ],
+  [
+   149.18,
+   149.7
+  ],
+  [
+   152.31,
+   152.67
+  ],
+  [
+   156.81,
+   157.21
+  ],
+  [
+   157.95,
+   158.32
+  ],
+  [
+   160.89,
+   161.34
+  ],
+  [
+   162.05,
+   162.39
+  ],
+  [
+   163.68,
+   164.01
+  ],
+  [
+   164.78,
+   165.1
+  ],
+  [
+   166.39,
+   166.76
+  ],
+  [
+   169.64,
+   170.0
+  ]
+ ],
+ "timeline": {
+  "lead_in": 1.0,
+  "tail_hold": 3.0,
+  "fps": 30,
+  "total": 176.071
+ },
+ "sentences": [
+  {
+   "i": 0,
+   "text": "Imagine you're chatting with an AI model.",
+   "start": 0.0,
+   "end": 1.55,
+   "words": [
+    {
+     "w": "Imagine",
+     "start": 0.0,
+     "end": 0.36,
+     "matched": true
+    },
+    {
+     "w": "you're",
+     "start": 0.36,
+     "end": 0.6,
+     "matched": true
+    },
+    {
+     "w": "chatting",
+     "start": 0.6,
+     "end": 0.76,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 0.76,
+     "end": 0.94,
+     "matched": true
+    },
+    {
+     "w": "an",
+     "start": 0.94,
+     "end": 1.08,
+     "matched": true
+    },
+    {
+     "w": "AI",
+     "start": 1.08,
+     "end": 1.34,
+     "matched": true
+    },
+    {
+     "w": "model.",
+     "start": 1.34,
+     "end": 1.56,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 1,
+   "text": "It's generating your answer, one token at a time.",
+   "start": 1.93,
+   "end": 4.08,
+   "words": [
+    {
+     "w": "It's",
+     "start": 2.04,
+     "end": 2.2,
+     "matched": true
+    },
+    {
+     "w": "generating",
+     "start": 2.2,
+     "end": 2.42,
+     "matched": true
+    },
+    {
+     "w": "your",
+     "start": 2.42,
+     "end": 2.98,
+     "matched": true
+    },
+    {
+     "w": "answer,",
+     "start": 2.98,
+     "end": 2.98,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 3.32,
+     "end": 3.4,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 3.4,
+     "end": 3.58,
+     "matched": true
+    },
+    {
+     "w": "at",
+     "start": 3.58,
+     "end": 3.78,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 3.78,
+     "end": 4.34,
+     "matched": true
+    },
+    {
+     "w": "time.",
+     "start": 4.34,
+     "end": 4.34,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 2,
+   "text": "Suddenly, another user submits a massive prompt containing ten thousand tokens.",
+   "start": 4.44,
+   "end": 8.19,
+   "words": [
+    {
+     "w": "Suddenly,",
+     "start": 4.74,
+     "end": 4.74,
+     "matched": true
+    },
+    {
+     "w": "another",
+     "start": 5.16,
+     "end": 5.4,
+     "matched": true
+    },
+    {
+     "w": "user",
+     "start": 5.4,
+     "end": 5.68,
+     "matched": true
+    },
+    {
+     "w": "submits",
+     "start": 5.68,
+     "end": 5.94,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 5.94,
+     "end": 6.16,
+     "matched": true
+    },
+    {
+     "w": "massive",
+     "start": 6.16,
+     "end": 6.46,
+     "matched": true
+    },
+    {
+     "w": "prompt",
+     "start": 6.46,
+     "end": 6.7,
+     "matched": true
+    },
+    {
+     "w": "containing",
+     "start": 6.78,
+     "end": 7.3,
+     "matched": true
+    },
+    {
+     "w": "ten",
+     "start": 7.3,
+     "end": 7.49,
+     "matched": true
+    },
+    {
+     "w": "thousand",
+     "start": 7.49,
+     "end": 7.68,
+     "matched": true
+    },
+    {
+     "w": "tokens.",
+     "start": 7.86,
+     "end": 8.12,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 3,
+   "text": "Your response starts slowing down, even though your own request hasn't changed.",
+   "start": 8.59,
+   "end": 11.58,
+   "words": [
+    {
+     "w": "Your",
+     "start": 8.58,
+     "end": 8.7,
+     "matched": true
+    },
+    {
+     "w": "response",
+     "start": 8.7,
+     "end": 9.02,
+     "matched": true
+    },
+    {
+     "w": "starts",
+     "start": 9.02,
+     "end": 9.3,
+     "matched": true
+    },
+    {
+     "w": "slowing",
+     "start": 9.3,
+     "end": 9.52,
+     "matched": true
+    },
+    {
+     "w": "down,",
+     "start": 9.52,
+     "end": 9.9,
+     "matched": true
+    },
+    {
+     "w": "even",
+     "start": 10.26,
+     "end": 10.38,
+     "matched": true
+    },
+    {
+     "w": "though",
+     "start": 10.38,
+     "end": 10.48,
+     "matched": true
+    },
+    {
+     "w": "your",
+     "start": 10.48,
+     "end": 10.6,
+     "matched": true
+    },
+    {
+     "w": "own",
+     "start": 10.6,
+     "end": 10.82,
+     "matched": true
+    },
+    {
+     "w": "request",
+     "start": 10.82,
+     "end": 11.02,
+     "matched": true
+    },
+    {
+     "w": "hasn't",
+     "start": 11.02,
+     "end": 11.28,
+     "matched": true
+    },
+    {
+     "w": "changed.",
+     "start": 11.28,
+     "end": 11.62,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 4,
+   "text": "Why?",
+   "start": 12.03,
+   "end": 12.3,
+   "words": [
+    {
+     "w": "Why?",
+     "start": 12.26,
+     "end": 12.28,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 5,
+   "text": "Because traditional LLM serving often runs two very different workloads on the same GPU resources.",
+   "start": 12.77,
+   "end": 17.25,
+   "words": [
+    {
+     "w": "Because",
+     "start": 12.66,
+     "end": 13.02,
+     "matched": true
+    },
+    {
+     "w": "traditional",
+     "start": 13.02,
+     "end": 13.4,
+     "matched": true
+    },
+    {
+     "w": "LLM",
+     "start": 13.4,
+     "end": 13.86,
+     "matched": true
+    },
+    {
+     "w": "serving",
+     "start": 13.86,
+     "end": 14.18,
+     "matched": true
+    },
+    {
+     "w": "often",
+     "start": 14.18,
+     "end": 14.7,
+     "matched": true
+    },
+    {
+     "w": "runs",
+     "start": 14.7,
+     "end": 14.86,
+     "matched": true
+    },
+    {
+     "w": "two",
+     "start": 14.86,
+     "end": 15.12,
+     "matched": true
+    },
+    {
+     "w": "very",
+     "start": 15.12,
+     "end": 15.46,
+     "matched": true
+    },
+    {
+     "w": "different",
+     "start": 15.46,
+     "end": 15.62,
+     "matched": true
+    },
+    {
+     "w": "workloads",
+     "start": 15.62,
+     "end": 15.9,
+     "matched": true
+    },
+    {
+     "w": "on",
+     "start": 15.9,
+     "end": 16.1,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 16.1,
+     "end": 16.24,
+     "matched": true
+    },
+    {
+     "w": "same",
+     "start": 16.24,
+     "end": 16.4,
+     "matched": true
+    },
+    {
+     "w": "GPU",
+     "start": 16.4,
+     "end": 16.78,
+     "matched": true
+    },
+    {
+     "w": "resources.",
+     "start": 16.78,
+     "end": 17.3,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 6,
+   "text": "Every LLM inference request has two main phases.",
+   "start": 17.64,
+   "end": 20.03,
+   "words": [
+    {
+     "w": "Every",
+     "start": 17.64,
+     "end": 17.94,
+     "matched": true
+    },
+    {
+     "w": "LLM",
+     "start": 17.94,
+     "end": 18.44,
+     "matched": true
+    },
+    {
+     "w": "inference",
+     "start": 18.44,
+     "end": 18.72,
+     "matched": true
+    },
+    {
+     "w": "request",
+     "start": 18.72,
+     "end": 19.04,
+     "matched": true
+    },
+    {
+     "w": "has",
+     "start": 19.04,
+     "end": 19.24,
+     "matched": true
+    },
+    {
+     "w": "two",
+     "start": 19.24,
+     "end": 19.46,
+     "matched": true
+    },
+    {
+     "w": "main",
+     "start": 19.46,
+     "end": 19.7,
+     "matched": true
+    },
+    {
+     "w": "phases.",
+     "start": 19.7,
+     "end": 20.0,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 7,
+   "text": "First, prefill.",
+   "start": 20.38,
+   "end": 21.16,
+   "words": [
+    {
+     "w": "First,",
+     "start": 20.46,
+     "end": 20.66,
+     "matched": true
+    },
+    {
+     "w": "prefill.",
+     "start": 20.98,
+     "end": 21.16,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 8,
+   "text": "The model processes the input prompt, computing attention representations and creating a key-value cache for its tokens.",
+   "start": 21.55,
+   "end": 26.59,
+   "words": [
+    {
+     "w": "The",
+     "start": 21.56,
+     "end": 21.66,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 21.66,
+     "end": 21.84,
+     "matched": true
+    },
+    {
+     "w": "processes",
+     "start": 21.84,
+     "end": 22.2,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 22.2,
+     "end": 22.48,
+     "matched": true
+    },
+    {
+     "w": "input",
+     "start": 22.48,
+     "end": 22.66,
+     "matched": true
+    },
+    {
+     "w": "prompt,",
+     "start": 22.66,
+     "end": 22.92,
+     "matched": true
+    },
+    {
+     "w": "computing",
+     "start": 23.54,
+     "end": 23.54,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 23.54,
+     "end": 23.94,
+     "matched": true
+    },
+    {
+     "w": "representations",
+     "start": 23.94,
+     "end": 24.44,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 24.9,
+     "end": 25.06,
+     "matched": true
+    },
+    {
+     "w": "creating",
+     "start": 25.06,
+     "end": 25.2,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 25.2,
+     "end": 25.36,
+     "matched": true
+    },
+    {
+     "w": "key-value",
+     "start": 25.36,
+     "end": 25.76,
+     "matched": false
+    },
+    {
+     "w": "cache",
+     "start": 25.76,
+     "end": 26.02,
+     "matched": true
+    },
+    {
+     "w": "for",
+     "start": 26.02,
+     "end": 26.18,
+     "matched": true
+    },
+    {
+     "w": "its",
+     "start": 26.18,
+     "end": 26.38,
+     "matched": true
+    },
+    {
+     "w": "tokens.",
+     "start": 26.38,
+     "end": 26.62,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 9,
+   "text": "Prefill involves large matrix multiplications and is often compute-bound.",
+   "start": 27.01,
+   "end": 30.5,
+   "words": [
+    {
+     "w": "Prefill",
+     "start": 27.04,
+     "end": 27.36,
+     "matched": true
+    },
+    {
+     "w": "involves",
+     "start": 27.36,
+     "end": 27.96,
+     "matched": true
+    },
+    {
+     "w": "large",
+     "start": 27.96,
+     "end": 28.28,
+     "matched": true
+    },
+    {
+     "w": "matrix",
+     "start": 28.28,
+     "end": 28.54,
+     "matched": true
+    },
+    {
+     "w": "multiplications",
+     "start": 28.54,
+     "end": 29.12,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 29.12,
+     "end": 29.36,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 29.36,
+     "end": 29.66,
+     "matched": true
+    },
+    {
+     "w": "often",
+     "start": 29.66,
+     "end": 29.94,
+     "matched": true
+    },
+    {
+     "w": "compute-bound.",
+     "start": 29.94,
+     "end": 31.06,
+     "matched": false
+    }
+   ]
+  },
+  {
+   "i": 10,
+   "text": "Then comes decode.",
+   "start": 30.85,
+   "end": 31.81,
+   "words": [
+    {
+     "w": "Then",
+     "start": 31.06,
+     "end": 31.08,
+     "matched": true
+    },
+    {
+     "w": "comes",
+     "start": 31.08,
+     "end": 31.44,
+     "matched": true
+    },
+    {
+     "w": "decode.",
+     "start": 31.44,
+     "end": 31.82,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 11,
+   "text": "The model generates new tokens autoregressively, typically one token per sequence at each decoding step.",
+   "start": 32.17,
+   "end": 36.65,
+   "words": [
+    {
+     "w": "The",
+     "start": 32.24,
+     "end": 32.24,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 32.24,
+     "end": 32.46,
+     "matched": true
+    },
+    {
+     "w": "generates",
+     "start": 32.46,
+     "end": 32.84,
+     "matched": true
+    },
+    {
+     "w": "new",
+     "start": 32.84,
+     "end": 33.38,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 33.38,
+     "end": 33.38,
+     "matched": true
+    },
+    {
+     "w": "autoregressively,",
+     "start": 33.38,
+     "end": 34.14,
+     "matched": true
+    },
+    {
+     "w": "typically",
+     "start": 34.68,
+     "end": 34.7,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 34.7,
+     "end": 35.0,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 35.0,
+     "end": 35.16,
+     "matched": true
+    },
+    {
+     "w": "per",
+     "start": 35.16,
+     "end": 35.48,
+     "matched": true
+    },
+    {
+     "w": "sequence",
+     "start": 35.48,
+     "end": 35.68,
+     "matched": true
+    },
+    {
+     "w": "at",
+     "start": 35.68,
+     "end": 35.86,
+     "matched": true
+    },
+    {
+     "w": "each",
+     "start": 35.86,
+     "end": 36.06,
+     "matched": true
+    },
+    {
+     "w": "decoding",
+     "start": 36.06,
+     "end": 36.3,
+     "matched": true
+    },
+    {
+     "w": "step.",
+     "start": 36.3,
+     "end": 36.8,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 12,
+   "text": "For small batches, decode is often limited by memory bandwidth, because the GPU repeatedly reads model weights and cached attention states.",
+   "start": 37.01,
+   "end": 43.41,
+   "words": [
+    {
+     "w": "For",
+     "start": 37.12,
+     "end": 37.12,
+     "matched": true
+    },
+    {
+     "w": "small",
+     "start": 37.12,
+     "end": 37.36,
+     "matched": true
+    },
+    {
+     "w": "batches,",
+     "start": 37.36,
+     "end": 37.96,
+     "matched": true
+    },
+    {
+     "w": "decode",
+     "start": 38.18,
+     "end": 38.38,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 38.38,
+     "end": 38.54,
+     "matched": true
+    },
+    {
+     "w": "often",
+     "start": 38.54,
+     "end": 38.78,
+     "matched": true
+    },
+    {
+     "w": "limited",
+     "start": 38.78,
+     "end": 38.96,
+     "matched": true
+    },
+    {
+     "w": "by",
+     "start": 38.96,
+     "end": 39.44,
+     "matched": true
+    },
+    {
+     "w": "memory",
+     "start": 39.44,
+     "end": 39.44,
+     "matched": true
+    },
+    {
+     "w": "bandwidth,",
+     "start": 39.44,
+     "end": 39.76,
+     "matched": true
+    },
+    {
+     "w": "because",
+     "start": 39.76,
+     "end": 40.26,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 40.26,
+     "end": 40.48,
+     "matched": true
+    },
+    {
+     "w": "GPU",
+     "start": 40.48,
+     "end": 40.82,
+     "matched": true
+    },
+    {
+     "w": "repeatedly",
+     "start": 40.82,
+     "end": 41.42,
+     "matched": true
+    },
+    {
+     "w": "reads",
+     "start": 41.42,
+     "end": 41.66,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 41.66,
+     "end": 41.96,
+     "matched": true
+    },
+    {
+     "w": "weights",
+     "start": 41.96,
+     "end": 42.2,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 42.2,
+     "end": 42.6,
+     "matched": true
+    },
+    {
+     "w": "cached",
+     "start": 42.6,
+     "end": 42.8,
+     "matched": true
+    },
+    {
+     "w": "attention",
+     "start": 42.8,
+     "end": 43.12,
+     "matched": true
+    },
+    {
+     "w": "states.",
+     "start": 43.12,
+     "end": 43.42,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 13,
+   "text": "These two phases have very different hardware requirements.",
+   "start": 43.79,
+   "end": 45.8,
+   "words": [
+    {
+     "w": "These",
+     "start": 43.86,
+     "end": 43.94,
+     "matched": true
+    },
+    {
+     "w": "two",
+     "start": 43.94,
+     "end": 44.18,
+     "matched": true
+    },
+    {
+     "w": "phases",
+     "start": 44.18,
+     "end": 44.4,
+     "matched": true
+    },
+    {
+     "w": "have",
+     "start": 44.4,
+     "end": 44.62,
+     "matched": true
+    },
+    {
+     "w": "very",
+     "start": 44.62,
+     "end": 44.9,
+     "matched": true
+    },
+    {
+     "w": "different",
+     "start": 44.9,
+     "end": 45.08,
+     "matched": true
+    },
+    {
+     "w": "hardware",
+     "start": 45.08,
+     "end": 45.34,
+     "matched": true
+    },
+    {
+     "w": "requirements.",
+     "start": 45.34,
+     "end": 45.8,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 14,
+   "text": "Now imagine a GPU already decoding responses for several users.",
+   "start": 46.16,
+   "end": 49.77,
+   "words": [
+    {
+     "w": "Now",
+     "start": 46.22,
+     "end": 46.36,
+     "matched": true
+    },
+    {
+     "w": "imagine",
+     "start": 46.36,
+     "end": 46.66,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 46.66,
+     "end": 47.32,
+     "matched": true
+    },
+    {
+     "w": "GPU",
+     "start": 47.32,
+     "end": 47.32,
+     "matched": true
+    },
+    {
+     "w": "already",
+     "start": 47.32,
+     "end": 47.9,
+     "matched": true
+    },
+    {
+     "w": "decoding",
+     "start": 47.9,
+     "end": 48.24,
+     "matched": true
+    },
+    {
+     "w": "responses",
+     "start": 48.24,
+     "end": 48.72,
+     "matched": true
+    },
+    {
+     "w": "for",
+     "start": 48.72,
+     "end": 49.24,
+     "matched": true
+    },
+    {
+     "w": "several",
+     "start": 49.24,
+     "end": 49.48,
+     "matched": true
+    },
+    {
+     "w": "users.",
+     "start": 49.48,
+     "end": 49.82,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 15,
+   "text": "A new request arrives with a very long prompt.",
+   "start": 50.18,
+   "end": 52.08,
+   "words": [
+    {
+     "w": "A",
+     "start": 50.2,
+     "end": 50.28,
+     "matched": true
+    },
+    {
+     "w": "new",
+     "start": 50.28,
+     "end": 50.48,
+     "matched": true
+    },
+    {
+     "w": "request",
+     "start": 50.48,
+     "end": 50.76,
+     "matched": true
+    },
+    {
+     "w": "arrives",
+     "start": 50.76,
+     "end": 51.1,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 51.1,
+     "end": 51.26,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 51.26,
+     "end": 51.36,
+     "matched": true
+    },
+    {
+     "w": "very",
+     "start": 51.36,
+     "end": 51.62,
+     "matched": true
+    },
+    {
+     "w": "long",
+     "start": 51.62,
+     "end": 51.8,
+     "matched": true
+    },
+    {
+     "w": "prompt.",
+     "start": 51.8,
+     "end": 52.08,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 16,
+   "text": "Processing that prompt can consume significant compute resources, competing with ongoing decoding.",
+   "start": 52.45,
+   "end": 56.85,
+   "words": [
+    {
+     "w": "Processing",
+     "start": 52.66,
+     "end": 52.86,
+     "matched": true
+    },
+    {
+     "w": "that",
+     "start": 52.86,
+     "end": 53.12,
+     "matched": true
+    },
+    {
+     "w": "prompt",
+     "start": 53.12,
+     "end": 53.22,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 53.22,
+     "end": 53.5,
+     "matched": true
+    },
+    {
+     "w": "consume",
+     "start": 53.5,
+     "end": 53.76,
+     "matched": true
+    },
+    {
+     "w": "significant",
+     "start": 53.76,
+     "end": 54.28,
+     "matched": true
+    },
+    {
+     "w": "compute",
+     "start": 54.28,
+     "end": 54.64,
+     "matched": true
+    },
+    {
+     "w": "resources,",
+     "start": 54.64,
+     "end": 55.12,
+     "matched": true
+    },
+    {
+     "w": "competing",
+     "start": 55.8,
+     "end": 55.8,
+     "matched": true
+    },
+    {
+     "w": "with",
+     "start": 55.8,
+     "end": 56.14,
+     "matched": true
+    },
+    {
+     "w": "ongoing",
+     "start": 56.14,
+     "end": 56.4,
+     "matched": true
+    },
+    {
+     "w": "decoding.",
+     "start": 56.4,
+     "end": 56.78,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 17,
+   "text": "The result?",
+   "start": 57.21,
+   "end": 57.65,
+   "words": [
+    {
+     "w": "The",
+     "start": 57.16,
+     "end": 57.38,
+     "matched": true
+    },
+    {
+     "w": "result?",
+     "start": 57.38,
+     "end": 57.66,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 18,
+   "text": "Users who were already receiving tokens may experience delays between successive tokens.",
+   "start": 58.01,
+   "end": 61.61,
+   "words": [
+    {
+     "w": "Users",
+     "start": 57.66,
+     "end": 58.26,
+     "matched": true
+    },
+    {
+     "w": "who",
+     "start": 58.26,
+     "end": 58.48,
+     "matched": true
+    },
+    {
+     "w": "were",
+     "start": 58.48,
+     "end": 58.62,
+     "matched": false
+    },
+    {
+     "w": "already",
+     "start": 58.62,
+     "end": 58.98,
+     "matched": true
+    },
+    {
+     "w": "receiving",
+     "start": 58.98,
+     "end": 59.22,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 59.22,
+     "end": 59.52,
+     "matched": true
+    },
+    {
+     "w": "may",
+     "start": 59.52,
+     "end": 59.8,
+     "matched": true
+    },
+    {
+     "w": "experience",
+     "start": 59.8,
+     "end": 60.24,
+     "matched": true
+    },
+    {
+     "w": "delays",
+     "start": 60.24,
+     "end": 60.56,
+     "matched": true
+    },
+    {
+     "w": "between",
+     "start": 60.56,
+     "end": 60.9,
+     "matched": true
+    },
+    {
+     "w": "successive",
+     "start": 60.9,
+     "end": 61.3,
+     "matched": true
+    },
+    {
+     "w": "tokens.",
+     "start": 61.3,
+     "end": 61.64,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 19,
+   "text": "This is known as interference between prefill and decode.",
+   "start": 61.98,
+   "end": 64.41,
+   "words": [
+    {
+     "w": "This",
+     "start": 62.1,
+     "end": 62.1,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 62.1,
+     "end": 62.24,
+     "matched": true
+    },
+    {
+     "w": "known",
+     "start": 62.24,
+     "end": 62.36,
+     "matched": true
+    },
+    {
+     "w": "as",
+     "start": 62.36,
+     "end": 63.02,
+     "matched": true
+    },
+    {
+     "w": "interference",
+     "start": 63.02,
+     "end": 63.02,
+     "matched": true
+    },
+    {
+     "w": "between",
+     "start": 63.02,
+     "end": 63.38,
+     "matched": true
+    },
+    {
+     "w": "prefill",
+     "start": 63.38,
+     "end": 63.74,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 63.74,
+     "end": 64.08,
+     "matched": true
+    },
+    {
+     "w": "decode.",
+     "start": 64.08,
+     "end": 64.68,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 20,
+   "text": "Prefill-decode disaggregation solves this by separating the two workloads.",
+   "start": 64.76,
+   "end": 67.82,
+   "words": [
+    {
+     "w": "Prefill-decode",
+     "start": 64.68,
+     "end": 65.5,
+     "matched": false
+    },
+    {
+     "w": "disaggregation",
+     "start": 65.5,
+     "end": 66.22,
+     "matched": true
+    },
+    {
+     "w": "solves",
+     "start": 66.22,
+     "end": 66.46,
+     "matched": true
+    },
+    {
+     "w": "this",
+     "start": 66.46,
+     "end": 66.66,
+     "matched": true
+    },
+    {
+     "w": "by",
+     "start": 66.66,
+     "end": 66.86,
+     "matched": true
+    },
+    {
+     "w": "separating",
+     "start": 66.86,
+     "end": 67.16,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 67.16,
+     "end": 67.38,
+     "matched": true
+    },
+    {
+     "w": "two",
+     "start": 67.38,
+     "end": 67.56,
+     "matched": true
+    },
+    {
+     "w": "workloads.",
+     "start": 67.56,
+     "end": 67.9,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 21,
+   "text": "Instead of running everything on the same GPU worker, we create two specialized groups.",
+   "start": 68.25,
+   "end": 71.73,
+   "words": [
+    {
+     "w": "Instead",
+     "start": 68.42,
+     "end": 68.42,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 68.42,
+     "end": 68.62,
+     "matched": true
+    },
+    {
+     "w": "running",
+     "start": 68.62,
+     "end": 68.74,
+     "matched": true
+    },
+    {
+     "w": "everything",
+     "start": 68.74,
+     "end": 69.06,
+     "matched": true
+    },
+    {
+     "w": "on",
+     "start": 69.06,
+     "end": 69.2,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 69.2,
+     "end": 69.28,
+     "matched": true
+    },
+    {
+     "w": "same",
+     "start": 69.28,
+     "end": 69.5,
+     "matched": true
+    },
+    {
+     "w": "GPU",
+     "start": 69.5,
+     "end": 69.88,
+     "matched": true
+    },
+    {
+     "w": "worker,",
+     "start": 69.88,
+     "end": 70.08,
+     "matched": true
+    },
+    {
+     "w": "we",
+     "start": 70.48,
+     "end": 70.58,
+     "matched": true
+    },
+    {
+     "w": "create",
+     "start": 70.58,
+     "end": 70.74,
+     "matched": true
+    },
+    {
+     "w": "two",
+     "start": 70.74,
+     "end": 71.0,
+     "matched": true
+    },
+    {
+     "w": "specialized",
+     "start": 71.0,
+     "end": 71.42,
+     "matched": true
+    },
+    {
+     "w": "groups.",
+     "start": 71.42,
+     "end": 71.72,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 22,
+   "text": "Prefill workers process incoming prompts.",
+   "start": 72.09,
+   "end": 73.71,
+   "words": [
+    {
+     "w": "Prefill",
+     "start": 72.3,
+     "end": 72.38,
+     "matched": true
+    },
+    {
+     "w": "workers",
+     "start": 72.38,
+     "end": 72.66,
+     "matched": true
+    },
+    {
+     "w": "process",
+     "start": 72.66,
+     "end": 73.06,
+     "matched": true
+    },
+    {
+     "w": "incoming",
+     "start": 73.06,
+     "end": 73.4,
+     "matched": true
+    },
+    {
+     "w": "prompts.",
+     "start": 73.4,
+     "end": 73.68,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 23,
+   "text": "Decode workers focus on generating output tokens.",
+   "start": 74.07,
+   "end": 76.35,
+   "words": [
+    {
+     "w": "Decode",
+     "start": 74.34,
+     "end": 74.46,
+     "matched": true
+    },
+    {
+     "w": "workers",
+     "start": 74.46,
+     "end": 74.7,
+     "matched": true
+    },
+    {
+     "w": "focus",
+     "start": 74.7,
+     "end": 74.98,
+     "matched": true
+    },
+    {
+     "w": "on",
+     "start": 74.98,
+     "end": 75.5,
+     "matched": true
+    },
+    {
+     "w": "generating",
+     "start": 75.5,
+     "end": 75.5,
+     "matched": true
+    },
+    {
+     "w": "output",
+     "start": 75.5,
+     "end": 75.88,
+     "matched": true
+    },
+    {
+     "w": "tokens.",
+     "start": 75.88,
+     "end": 76.14,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 24,
+   "text": "Each group can be configured and scaled independently.",
+   "start": 76.64,
+   "end": 78.51,
+   "words": [
+    {
+     "w": "Each",
+     "start": 76.7,
+     "end": 76.82,
+     "matched": true
+    },
+    {
+     "w": "group",
+     "start": 76.82,
+     "end": 76.96,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 76.96,
+     "end": 77.12,
+     "matched": true
+    },
+    {
+     "w": "be",
+     "start": 77.12,
+     "end": 77.32,
+     "matched": true
+    },
+    {
+     "w": "configured",
+     "start": 77.32,
+     "end": 77.52,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 77.52,
+     "end": 78.0,
+     "matched": true
+    },
+    {
+     "w": "scaled",
+     "start": 78.0,
+     "end": 78.0,
+     "matched": true
+    },
+    {
+     "w": "independently.",
+     "start": 78.0,
+     "end": 78.4,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 25,
+   "text": "But there's one important problem.",
+   "start": 78.86,
+   "end": 79.9,
+   "words": [
+    {
+     "w": "But",
+     "start": 78.78,
+     "end": 78.96,
+     "matched": true
+    },
+    {
+     "w": "there's",
+     "start": 78.96,
+     "end": 79.08,
+     "matched": true
+    },
+    {
+     "w": "one",
+     "start": 79.08,
+     "end": 79.28,
+     "matched": true
+    },
+    {
+     "w": "important",
+     "start": 79.28,
+     "end": 79.58,
+     "matched": true
+    },
+    {
+     "w": "problem.",
+     "start": 79.58,
+     "end": 79.84,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 26,
+   "text": "How does the decode worker know what happened during prefill?",
+   "start": 80.27,
+   "end": 82.2,
+   "words": [
+    {
+     "w": "How",
+     "start": 80.28,
+     "end": 80.36,
+     "matched": true
+    },
+    {
+     "w": "does",
+     "start": 80.36,
+     "end": 80.5,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 80.5,
+     "end": 80.7,
+     "matched": true
+    },
+    {
+     "w": "decode",
+     "start": 80.7,
+     "end": 80.9,
+     "matched": true
+    },
+    {
+     "w": "worker",
+     "start": 80.9,
+     "end": 81.14,
+     "matched": true
+    },
+    {
+     "w": "know",
+     "start": 81.14,
+     "end": 81.32,
+     "matched": true
+    },
+    {
+     "w": "what",
+     "start": 81.32,
+     "end": 81.54,
+     "matched": true
+    },
+    {
+     "w": "happened",
+     "start": 81.54,
+     "end": 81.7,
+     "matched": true
+    },
+    {
+     "w": "during",
+     "start": 81.7,
+     "end": 81.92,
+     "matched": true
+    },
+    {
+     "w": "prefill?",
+     "start": 81.92,
+     "end": 82.22,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 27,
+   "text": "The answer is the KV cache.",
+   "start": 82.56,
+   "end": 84.22,
+   "words": [
+    {
+     "w": "The",
+     "start": 82.3,
+     "end": 82.7,
+     "matched": true
+    },
+    {
+     "w": "answer",
+     "start": 82.7,
+     "end": 83.0,
+     "matched": true
+    },
+    {
+     "w": "is",
+     "start": 83.0,
+     "end": 83.38,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 83.38,
+     "end": 83.58,
+     "matched": true
+    },
+    {
+     "w": "KV",
+     "start": 83.58,
+     "end": 83.9,
+     "matched": true
+    },
+    {
+     "w": "cache.",
+     "start": 83.9,
+     "end": 84.26,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 28,
+   "text": "During prefill, the model computes key and value representations for the prompt tokens across its transformer layers.",
+   "start": 84.6,
+   "end": 89.91,
+   "words": [
+    {
+     "w": "During",
+     "start": 84.7,
+     "end": 84.86,
+     "matched": true
+    },
+    {
+     "w": "prefill,",
+     "start": 84.86,
+     "end": 85.6,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 85.6,
+     "end": 85.76,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 85.76,
+     "end": 85.96,
+     "matched": true
+    },
+    {
+     "w": "computes",
+     "start": 85.96,
+     "end": 86.34,
+     "matched": true
+    },
+    {
+     "w": "key",
+     "start": 86.34,
+     "end": 86.62,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 86.62,
+     "end": 86.78,
+     "matched": true
+    },
+    {
+     "w": "value",
+     "start": 86.78,
+     "end": 87.0,
+     "matched": true
+    },
+    {
+     "w": "representations",
+     "start": 87.0,
+     "end": 87.48,
+     "matched": true
+    },
+    {
+     "w": "for",
+     "start": 87.48,
+     "end": 87.78,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 87.78,
+     "end": 88.02,
+     "matched": true
+    },
+    {
+     "w": "prompt",
+     "start": 88.02,
+     "end": 88.08,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 88.08,
+     "end": 88.4,
+     "matched": true
+    },
+    {
+     "w": "across",
+     "start": 88.4,
+     "end": 88.98,
+     "matched": true
+    },
+    {
+     "w": "its",
+     "start": 88.98,
+     "end": 89.24,
+     "matched": true
+    },
+    {
+     "w": "transformer",
+     "start": 89.24,
+     "end": 89.56,
+     "matched": true
+    },
+    {
+     "w": "layers.",
+     "start": 89.56,
+     "end": 89.9,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 29,
+   "text": "These cached representations are needed when generating subsequent tokens.",
+   "start": 90.28,
+   "end": 93.06,
+   "words": [
+    {
+     "w": "These",
+     "start": 90.54,
+     "end": 90.54,
+     "matched": true
+    },
+    {
+     "w": "cached",
+     "start": 90.54,
+     "end": 90.78,
+     "matched": true
+    },
+    {
+     "w": "representations",
+     "start": 90.78,
+     "end": 91.28,
+     "matched": true
+    },
+    {
+     "w": "are",
+     "start": 91.28,
+     "end": 91.62,
+     "matched": true
+    },
+    {
+     "w": "needed",
+     "start": 91.62,
+     "end": 91.7,
+     "matched": true
+    },
+    {
+     "w": "when",
+     "start": 91.7,
+     "end": 91.96,
+     "matched": true
+    },
+    {
+     "w": "generating",
+     "start": 91.96,
+     "end": 92.24,
+     "matched": true
+    },
+    {
+     "w": "subsequent",
+     "start": 92.24,
+     "end": 92.72,
+     "matched": true
+    },
+    {
+     "w": "tokens.",
+     "start": 92.72,
+     "end": 93.02,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 30,
+   "text": "So, after prefill finishes, the system transfers the KV cache to a decode worker.",
+   "start": 93.43,
+   "end": 97.86,
+   "words": [
+    {
+     "w": "So,",
+     "start": 93.5,
+     "end": 93.64,
+     "matched": true
+    },
+    {
+     "w": "after",
+     "start": 93.64,
+     "end": 94.14,
+     "matched": true
+    },
+    {
+     "w": "prefill",
+     "start": 94.14,
+     "end": 94.54,
+     "matched": true
+    },
+    {
+     "w": "finishes,",
+     "start": 94.54,
+     "end": 94.9,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 95.3,
+     "end": 95.42,
+     "matched": true
+    },
+    {
+     "w": "system",
+     "start": 95.42,
+     "end": 95.62,
+     "matched": true
+    },
+    {
+     "w": "transfers",
+     "start": 95.62,
+     "end": 96.02,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 96.02,
+     "end": 96.36,
+     "matched": true
+    },
+    {
+     "w": "KV",
+     "start": 96.36,
+     "end": 96.54,
+     "matched": true
+    },
+    {
+     "w": "cache",
+     "start": 96.54,
+     "end": 96.8,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 96.8,
+     "end": 97.16,
+     "matched": true
+    },
+    {
+     "w": "a",
+     "start": 97.16,
+     "end": 97.54,
+     "matched": true
+    },
+    {
+     "w": "decode",
+     "start": 97.54,
+     "end": 97.6,
+     "matched": true
+    },
+    {
+     "w": "worker.",
+     "start": 97.6,
+     "end": 97.82,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 31,
+   "text": "High-speed communication technologies, such as RDMA, can help move this data efficiently.",
+   "start": 98.23,
+   "end": 102.1,
+   "words": [
+    {
+     "w": "High-speed",
+     "start": 97.82,
+     "end": 98.58,
+     "matched": false
+    },
+    {
+     "w": "communication",
+     "start": 98.58,
+     "end": 99.06,
+     "matched": true
+    },
+    {
+     "w": "technologies,",
+     "start": 99.06,
+     "end": 99.6,
+     "matched": true
+    },
+    {
+     "w": "such",
+     "start": 99.6,
+     "end": 99.82,
+     "matched": true
+    },
+    {
+     "w": "as",
+     "start": 99.82,
+     "end": 100.04,
+     "matched": true
+    },
+    {
+     "w": "RDMA,",
+     "start": 100.04,
+     "end": 100.52,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 100.52,
+     "end": 100.98,
+     "matched": true
+    },
+    {
+     "w": "help",
+     "start": 100.98,
+     "end": 101.16,
+     "matched": true
+    },
+    {
+     "w": "move",
+     "start": 101.16,
+     "end": 101.32,
+     "matched": true
+    },
+    {
+     "w": "this",
+     "start": 101.32,
+     "end": 101.54,
+     "matched": true
+    },
+    {
+     "w": "data",
+     "start": 101.54,
+     "end": 101.68,
+     "matched": true
+    },
+    {
+     "w": "efficiently.",
+     "start": 101.68,
+     "end": 102.06,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 32,
+   "text": "The decode worker can then continue generating tokens without recomputing the entire prompt.",
+   "start": 102.46,
+   "end": 106.15,
+   "words": [
+    {
+     "w": "The",
+     "start": 102.46,
+     "end": 102.56,
+     "matched": true
+    },
+    {
+     "w": "decode",
+     "start": 102.56,
+     "end": 102.86,
+     "matched": true
+    },
+    {
+     "w": "worker",
+     "start": 102.86,
+     "end": 103.06,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 103.06,
+     "end": 103.26,
+     "matched": true
+    },
+    {
+     "w": "then",
+     "start": 103.26,
+     "end": 103.46,
+     "matched": true
+    },
+    {
+     "w": "continue",
+     "start": 103.46,
+     "end": 103.82,
+     "matched": true
+    },
+    {
+     "w": "generating",
+     "start": 103.82,
+     "end": 104.16,
+     "matched": true
+    },
+    {
+     "w": "tokens",
+     "start": 104.16,
+     "end": 104.5,
+     "matched": true
+    },
+    {
+     "w": "without",
+     "start": 104.5,
+     "end": 105.02,
+     "matched": true
+    },
+    {
+     "w": "recomputing",
+     "start": 105.02,
+     "end": 105.54,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 105.54,
+     "end": 105.72,
+     "matched": true
+    },
+    {
+     "w": "entire",
+     "start": 105.72,
+     "end": 106.0,
+     "matched": true
+    },
+    {
+     "w": "prompt.",
+     "start": 106.0,
+     "end": 106.22,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 33,
+   "text": "The model weights are still required on both sides. We're transferring the KV cache, not the model itself.",
+   "start": 106.5,
+   "end": 111.04,
+   "words": [
+    {
+     "w": "The",
+     "start": 106.46,
+     "end": 106.66,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 106.66,
+     "end": 106.84,
+     "matched": true
+    },
+    {
+     "w": "weights",
+     "start": 106.84,
+     "end": 107.02,
+     "matched": true
+    },
+    {
+     "w": "are",
+     "start": 107.02,
+     "end": 107.2,
+     "matched": true
+    },
+    {
+     "w": "still",
+     "start": 107.2,
+     "end": 107.46,
+     "matched": true
+    },
+    {
+     "w": "required",
+     "start": 107.46,
+     "end": 107.7,
+     "matched": true
+    },
+    {
+     "w": "on",
+     "start": 107.7,
+     "end": 107.9,
+     "matched": true
+    },
+    {
+     "w": "both",
+     "start": 107.9,
+     "end": 108.08,
+     "matched": true
+    },
+    {
+     "w": "sides.",
+     "start": 108.08,
+     "end": 108.4,
+     "matched": true
+    },
+    {
+     "w": "We're",
+     "start": 108.76,
+     "end": 108.92,
+     "matched": true
+    },
+    {
+     "w": "transferring",
+     "start": 108.92,
+     "end": 109.16,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 109.16,
+     "end": 109.36,
+     "matched": true
+    },
+    {
+     "w": "KV",
+     "start": 109.36,
+     "end": 109.66,
+     "matched": true
+    },
+    {
+     "w": "cache,",
+     "start": 109.66,
+     "end": 109.92,
+     "matched": true
+    },
+    {
+     "w": "not",
+     "start": 110.36,
+     "end": 110.4,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 110.4,
+     "end": 110.72,
+     "matched": true
+    },
+    {
+     "w": "model",
+     "start": 110.72,
+     "end": 110.72,
+     "matched": true
+    },
+    {
+     "w": "itself.",
+     "start": 110.72,
+     "end": 111.12,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 34,
+   "text": "Now the two workloads stop directly competing for the same worker's execution time.",
+   "start": 111.4,
+   "end": 114.85,
+   "words": [
+    {
+     "w": "Now",
+     "start": 111.22,
+     "end": 111.6,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 111.6,
+     "end": 111.76,
+     "matched": true
+    },
+    {
+     "w": "two",
+     "start": 111.76,
+     "end": 112.02,
+     "matched": true
+    },
+    {
+     "w": "workloads",
+     "start": 112.02,
+     "end": 112.26,
+     "matched": true
+    },
+    {
+     "w": "stop",
+     "start": 112.26,
+     "end": 112.6,
+     "matched": true
+    },
+    {
+     "w": "directly",
+     "start": 112.6,
+     "end": 112.98,
+     "matched": true
+    },
+    {
+     "w": "competing",
+     "start": 112.98,
+     "end": 113.28,
+     "matched": true
+    },
+    {
+     "w": "for",
+     "start": 113.28,
+     "end": 113.46,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 113.46,
+     "end": 113.58,
+     "matched": true
+    },
+    {
+     "w": "same",
+     "start": 113.58,
+     "end": 113.82,
+     "matched": true
+    },
+    {
+     "w": "worker's",
+     "start": 113.82,
+     "end": 114.26,
+     "matched": true
+    },
+    {
+     "w": "execution",
+     "start": 114.26,
+     "end": 114.52,
+     "matched": true
+    },
+    {
+     "w": "time.",
+     "start": 114.52,
+     "end": 114.82,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 35,
+   "text": "A long prefill request can run while other GPUs continue decoding responses.",
+   "start": 115.21,
+   "end": 118.77,
+   "words": [
+    {
+     "w": "A",
+     "start": 114.82,
+     "end": 115.26,
+     "matched": true
+    },
+    {
+     "w": "long",
+     "start": 115.26,
+     "end": 115.58,
+     "matched": true
+    },
+    {
+     "w": "prefill",
+     "start": 115.58,
+     "end": 115.84,
+     "matched": true
+    },
+    {
+     "w": "request",
+     "start": 115.84,
+     "end": 116.18,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 116.18,
+     "end": 116.4,
+     "matched": true
+    },
+    {
+     "w": "run",
+     "start": 116.4,
+     "end": 116.54,
+     "matched": true
+    },
+    {
+     "w": "while",
+     "start": 116.54,
+     "end": 116.72,
+     "matched": true
+    },
+    {
+     "w": "other",
+     "start": 116.72,
+     "end": 116.96,
+     "matched": true
+    },
+    {
+     "w": "GPUs",
+     "start": 116.96,
+     "end": 117.6,
+     "matched": true
+    },
+    {
+     "w": "continue",
+     "start": 117.6,
+     "end": 117.88,
+     "matched": true
+    },
+    {
+     "w": "decoding",
+     "start": 117.88,
+     "end": 118.2,
+     "matched": true
+    },
+    {
+     "w": "responses.",
+     "start": 118.2,
+     "end": 118.74,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 36,
+   "text": "We can optimize prefill for computational throughput and decode for low token latency.",
+   "start": 119.15,
+   "end": 122.96,
+   "words": [
+    {
+     "w": "We",
+     "start": 119.24,
+     "end": 119.24,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 119.24,
+     "end": 119.46,
+     "matched": true
+    },
+    {
+     "w": "optimize",
+     "start": 119.46,
+     "end": 119.72,
+     "matched": true
+    },
+    {
+     "w": "prefill",
+     "start": 119.72,
+     "end": 120.1,
+     "matched": true
+    },
+    {
+     "w": "for",
+     "start": 120.1,
+     "end": 120.28,
+     "matched": true
+    },
+    {
+     "w": "computational",
+     "start": 120.28,
+     "end": 120.76,
+     "matched": true
+    },
+    {
+     "w": "throughput",
+     "start": 120.76,
+     "end": 121.14,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 121.14,
+     "end": 121.64,
+     "matched": true
+    },
+    {
+     "w": "decode",
+     "start": 121.64,
+     "end": 121.94,
+     "matched": true
+    },
+    {
+     "w": "for",
+     "start": 121.94,
+     "end": 122.14,
+     "matched": true
+    },
+    {
+     "w": "low",
+     "start": 122.14,
+     "end": 122.36,
+     "matched": true
+    },
+    {
+     "w": "token",
+     "start": 122.36,
+     "end": 122.58,
+     "matched": true
+    },
+    {
+     "w": "latency.",
+     "start": 122.58,
+     "end": 122.88,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 37,
+   "text": "This gives us finer control over two important metrics.",
+   "start": 123.32,
+   "end": 125.45,
+   "words": [
+    {
+     "w": "This",
+     "start": 123.42,
+     "end": 123.44,
+     "matched": true
+    },
+    {
+     "w": "gives",
+     "start": 123.44,
+     "end": 123.62,
+     "matched": true
+    },
+    {
+     "w": "us",
+     "start": 123.62,
+     "end": 123.88,
+     "matched": true
+    },
+    {
+     "w": "finer",
+     "start": 123.88,
+     "end": 124.02,
+     "matched": true
+    },
+    {
+     "w": "control",
+     "start": 124.02,
+     "end": 124.36,
+     "matched": true
+    },
+    {
+     "w": "over",
+     "start": 124.36,
+     "end": 124.54,
+     "matched": true
+    },
+    {
+     "w": "two",
+     "start": 124.54,
+     "end": 124.78,
+     "matched": true
+    },
+    {
+     "w": "important",
+     "start": 124.78,
+     "end": 125.08,
+     "matched": true
+    },
+    {
+     "w": "metrics.",
+     "start": 125.08,
+     "end": 125.42,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 38,
+   "text": "Time to first token, or TTFT.",
+   "start": 125.81,
+   "end": 127.35,
+   "words": [
+    {
+     "w": "Time",
+     "start": 125.96,
+     "end": 126.0,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 126.0,
+     "end": 126.1,
+     "matched": true
+    },
+    {
+     "w": "first",
+     "start": 126.1,
+     "end": 126.32,
+     "matched": true
+    },
+    {
+     "w": "token,",
+     "start": 126.32,
+     "end": 126.54,
+     "matched": true
+    },
+    {
+     "w": "or",
+     "start": 126.54,
+     "end": 126.76,
+     "matched": true
+    },
+    {
+     "w": "TTFT.",
+     "start": 126.76,
+     "end": 127.38,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 39,
+   "text": "And time per output token, commonly measured through inter-token latency.",
+   "start": 127.7,
+   "end": 130.67,
+   "words": [
+    {
+     "w": "And",
+     "start": 127.74,
+     "end": 127.84,
+     "matched": true
+    },
+    {
+     "w": "time",
+     "start": 127.84,
+     "end": 128.04,
+     "matched": true
+    },
+    {
+     "w": "per",
+     "start": 128.04,
+     "end": 128.16,
+     "matched": true
+    },
+    {
+     "w": "output",
+     "start": 128.16,
+     "end": 128.44,
+     "matched": true
+    },
+    {
+     "w": "token,",
+     "start": 128.44,
+     "end": 128.76,
+     "matched": true
+    },
+    {
+     "w": "commonly",
+     "start": 129.16,
+     "end": 129.38,
+     "matched": true
+    },
+    {
+     "w": "measured",
+     "start": 129.38,
+     "end": 129.62,
+     "matched": true
+    },
+    {
+     "w": "through",
+     "start": 129.62,
+     "end": 129.88,
+     "matched": true
+    },
+    {
+     "w": "inter-token",
+     "start": 129.88,
+     "end": 130.28,
+     "matched": true
+    },
+    {
+     "w": "latency.",
+     "start": 130.28,
+     "end": 130.58,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 40,
+   "text": "It also allows the serving system to independently scale prefill and decode capacity.",
+   "start": 131.04,
+   "end": 134.49,
+   "words": [
+    {
+     "w": "It",
+     "start": 131.1,
+     "end": 131.14,
+     "matched": true
+    },
+    {
+     "w": "also",
+     "start": 131.14,
+     "end": 131.46,
+     "matched": true
+    },
+    {
+     "w": "allows",
+     "start": 131.46,
+     "end": 131.58,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 131.58,
+     "end": 131.74,
+     "matched": true
+    },
+    {
+     "w": "serving",
+     "start": 131.74,
+     "end": 131.98,
+     "matched": true
+    },
+    {
+     "w": "system",
+     "start": 131.98,
+     "end": 132.22,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 132.22,
+     "end": 132.48,
+     "matched": true
+    },
+    {
+     "w": "independently",
+     "start": 132.48,
+     "end": 132.78,
+     "matched": true
+    },
+    {
+     "w": "scale",
+     "start": 132.78,
+     "end": 133.1,
+     "matched": true
+    },
+    {
+     "w": "prefill",
+     "start": 133.1,
+     "end": 133.5,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 133.5,
+     "end": 133.72,
+     "matched": true
+    },
+    {
+     "w": "decode",
+     "start": 133.72,
+     "end": 134.0,
+     "matched": true
+    },
+    {
+     "w": "capacity.",
+     "start": 134.0,
+     "end": 134.5,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 41,
+   "text": "But disaggregation isn't free.",
+   "start": 134.85,
+   "end": 136.5,
+   "words": [
+    {
+     "w": "But",
+     "start": 134.96,
+     "end": 135.08,
+     "matched": true
+    },
+    {
+     "w": "disaggregation",
+     "start": 135.08,
+     "end": 135.86,
+     "matched": true
+    },
+    {
+     "w": "isn't",
+     "start": 135.86,
+     "end": 136.18,
+     "matched": true
+    },
+    {
+     "w": "free.",
+     "start": 136.18,
+     "end": 136.52,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 42,
+   "text": "Transferring KV caches takes time and consumes network bandwidth.",
+   "start": 136.87,
+   "end": 139.95,
+   "words": [
+    {
+     "w": "Transferring",
+     "start": 137.18,
+     "end": 137.42,
+     "matched": true
+    },
+    {
+     "w": "KV",
+     "start": 137.42,
+     "end": 137.76,
+     "matched": true
+    },
+    {
+     "w": "caches",
+     "start": 137.76,
+     "end": 138.0,
+     "matched": true
+    },
+    {
+     "w": "takes",
+     "start": 138.0,
+     "end": 138.38,
+     "matched": true
+    },
+    {
+     "w": "time",
+     "start": 138.38,
+     "end": 138.72,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 138.72,
+     "end": 139.02,
+     "matched": true
+    },
+    {
+     "w": "consumes",
+     "start": 139.02,
+     "end": 139.3,
+     "matched": true
+    },
+    {
+     "w": "network",
+     "start": 139.3,
+     "end": 139.66,
+     "matched": true
+    },
+    {
+     "w": "bandwidth.",
+     "start": 139.66,
+     "end": 140.04,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 43,
+   "text": "With long prompts, those caches can become extremely large.",
+   "start": 140.32,
+   "end": 142.76,
+   "words": [
+    {
+     "w": "With",
+     "start": 140.34,
+     "end": 140.46,
+     "matched": true
+    },
+    {
+     "w": "long",
+     "start": 140.46,
+     "end": 140.7,
+     "matched": true
+    },
+    {
+     "w": "prompts,",
+     "start": 140.7,
+     "end": 140.98,
+     "matched": true
+    },
+    {
+     "w": "those",
+     "start": 141.22,
+     "end": 141.42,
+     "matched": true
+    },
+    {
+     "w": "caches",
+     "start": 141.42,
+     "end": 141.58,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 141.58,
+     "end": 141.84,
+     "matched": true
+    },
+    {
+     "w": "become",
+     "start": 141.84,
+     "end": 142.0,
+     "matched": true
+    },
+    {
+     "w": "extremely",
+     "start": 142.0,
+     "end": 142.42,
+     "matched": true
+    },
+    {
+     "w": "large.",
+     "start": 142.42,
+     "end": 142.76,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 44,
+   "text": "Both worker groups also need access to compatible copies of the model.",
+   "start": 143.13,
+   "end": 146.09,
+   "words": [
+    {
+     "w": "Both",
+     "start": 142.76,
+     "end": 143.36,
+     "matched": true
+    },
+    {
+     "w": "worker",
+     "start": 143.36,
+     "end": 143.7,
+     "matched": true
+    },
+    {
+     "w": "groups",
+     "start": 143.7,
+     "end": 143.82,
+     "matched": true
+    },
+    {
+     "w": "also",
+     "start": 143.82,
+     "end": 144.22,
+     "matched": true
+    },
+    {
+     "w": "need",
+     "start": 144.22,
+     "end": 144.36,
+     "matched": true
+    },
+    {
+     "w": "access",
+     "start": 144.36,
+     "end": 144.66,
+     "matched": true
+    },
+    {
+     "w": "to",
+     "start": 144.66,
+     "end": 144.96,
+     "matched": true
+    },
+    {
+     "w": "compatible",
+     "start": 144.96,
+     "end": 145.26,
+     "matched": true
+    },
+    {
+     "w": "copies",
+     "start": 145.26,
+     "end": 145.58,
+     "matched": true
+    },
+    {
+     "w": "of",
+     "start": 145.58,
+     "end": 145.76,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 145.76,
+     "end": 145.98,
+     "matched": true
+    },
+    {
+     "w": "model.",
+     "start": 145.98,
+     "end": 146.06,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 45,
+   "text": "And inefficient routing or slow transfers can erase the performance benefits.",
+   "start": 146.44,
+   "end": 149.18,
+   "words": [
+    {
+     "w": "And",
+     "start": 146.56,
+     "end": 146.58,
+     "matched": true
+    },
+    {
+     "w": "inefficient",
+     "start": 146.58,
+     "end": 146.9,
+     "matched": true
+    },
+    {
+     "w": "routing",
+     "start": 146.9,
+     "end": 147.16,
+     "matched": true
+    },
+    {
+     "w": "or",
+     "start": 147.16,
+     "end": 147.36,
+     "matched": true
+    },
+    {
+     "w": "slow",
+     "start": 147.36,
+     "end": 147.56,
+     "matched": true
+    },
+    {
+     "w": "transfers",
+     "start": 147.56,
+     "end": 147.9,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 147.9,
+     "end": 148.18,
+     "matched": true
+    },
+    {
+     "w": "erase",
+     "start": 148.18,
+     "end": 148.36,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 148.36,
+     "end": 148.56,
+     "matched": true
+    },
+    {
+     "w": "performance",
+     "start": 148.56,
+     "end": 148.9,
+     "matched": true
+    },
+    {
+     "w": "benefits.",
+     "start": 148.9,
+     "end": 149.3,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 46,
+   "text": "So disaggregation doesn't automatically make every workload faster.",
+   "start": 149.7,
+   "end": 152.31,
+   "words": [
+    {
+     "w": "So",
+     "start": 149.7,
+     "end": 149.84,
+     "matched": true
+    },
+    {
+     "w": "disaggregation",
+     "start": 149.84,
+     "end": 150.38,
+     "matched": true
+    },
+    {
+     "w": "doesn't",
+     "start": 150.38,
+     "end": 150.64,
+     "matched": true
+    },
+    {
+     "w": "automatically",
+     "start": 150.64,
+     "end": 151.14,
+     "matched": true
+    },
+    {
+     "w": "make",
+     "start": 151.14,
+     "end": 151.34,
+     "matched": true
+    },
+    {
+     "w": "every",
+     "start": 151.34,
+     "end": 151.64,
+     "matched": true
+    },
+    {
+     "w": "workload",
+     "start": 151.64,
+     "end": 151.88,
+     "matched": true
+    },
+    {
+     "w": "faster.",
+     "start": 151.88,
+     "end": 152.26,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 47,
+   "text": "It becomes valuable when improved scheduling and hardware utilization outweigh the added communication overhead.",
+   "start": 152.67,
+   "end": 156.81,
+   "words": [
+    {
+     "w": "It",
+     "start": 152.7,
+     "end": 152.78,
+     "matched": true
+    },
+    {
+     "w": "becomes",
+     "start": 152.78,
+     "end": 153.0,
+     "matched": true
+    },
+    {
+     "w": "valuable",
+     "start": 153.0,
+     "end": 153.32,
+     "matched": true
+    },
+    {
+     "w": "when",
+     "start": 153.32,
+     "end": 153.58,
+     "matched": true
+    },
+    {
+     "w": "improved",
+     "start": 153.58,
+     "end": 153.92,
+     "matched": true
+    },
+    {
+     "w": "scheduling",
+     "start": 153.92,
+     "end": 154.24,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 154.24,
+     "end": 154.48,
+     "matched": true
+    },
+    {
+     "w": "hardware",
+     "start": 154.48,
+     "end": 154.72,
+     "matched": true
+    },
+    {
+     "w": "utilization",
+     "start": 154.72,
+     "end": 155.24,
+     "matched": true
+    },
+    {
+     "w": "outweigh",
+     "start": 155.24,
+     "end": 155.58,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 155.58,
+     "end": 155.94,
+     "matched": true
+    },
+    {
+     "w": "added",
+     "start": 155.94,
+     "end": 156.0,
+     "matched": true
+    },
+    {
+     "w": "communication",
+     "start": 156.0,
+     "end": 156.5,
+     "matched": true
+    },
+    {
+     "w": "overhead.",
+     "start": 156.5,
+     "end": 156.84,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 48,
+   "text": "Here's the key idea.",
+   "start": 157.21,
+   "end": 157.95,
+   "words": [
+    {
+     "w": "Here's",
+     "start": 157.2,
+     "end": 157.38,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 157.38,
+     "end": 157.52,
+     "matched": true
+    },
+    {
+     "w": "key",
+     "start": 157.52,
+     "end": 157.66,
+     "matched": true
+    },
+    {
+     "w": "idea.",
+     "start": 157.66,
+     "end": 157.94,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 49,
+   "text": "Prefill and decode are fundamentally different computational workloads.",
+   "start": 158.32,
+   "end": 160.89,
+   "words": [
+    {
+     "w": "Prefill",
+     "start": 158.52,
+     "end": 158.58,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 158.58,
+     "end": 158.8,
+     "matched": true
+    },
+    {
+     "w": "decode",
+     "start": 158.8,
+     "end": 159.0,
+     "matched": true
+    },
+    {
+     "w": "are",
+     "start": 159.0,
+     "end": 159.24,
+     "matched": true
+    },
+    {
+     "w": "fundamentally",
+     "start": 159.24,
+     "end": 159.62,
+     "matched": true
+    },
+    {
+     "w": "different",
+     "start": 159.62,
+     "end": 160.06,
+     "matched": true
+    },
+    {
+     "w": "computational",
+     "start": 160.06,
+     "end": 160.52,
+     "matched": true
+    },
+    {
+     "w": "workloads.",
+     "start": 160.52,
+     "end": 160.92,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 50,
+   "text": "By separating them, we can specialize our infrastructure, reduce interference, and scale each phase independently.",
+   "start": 161.34,
+   "end": 166.39,
+   "words": [
+    {
+     "w": "By",
+     "start": 161.34,
+     "end": 161.48,
+     "matched": true
+    },
+    {
+     "w": "separating",
+     "start": 161.48,
+     "end": 161.82,
+     "matched": true
+    },
+    {
+     "w": "them,",
+     "start": 161.82,
+     "end": 162.02,
+     "matched": true
+    },
+    {
+     "w": "we",
+     "start": 162.3,
+     "end": 162.46,
+     "matched": true
+    },
+    {
+     "w": "can",
+     "start": 162.46,
+     "end": 162.64,
+     "matched": true
+    },
+    {
+     "w": "specialize",
+     "start": 162.64,
+     "end": 162.94,
+     "matched": true
+    },
+    {
+     "w": "our",
+     "start": 162.94,
+     "end": 163.2,
+     "matched": true
+    },
+    {
+     "w": "infrastructure,",
+     "start": 163.2,
+     "end": 163.6,
+     "matched": true
+    },
+    {
+     "w": "reduce",
+     "start": 164.28,
+     "end": 164.3,
+     "matched": true
+    },
+    {
+     "w": "interference,",
+     "start": 164.3,
+     "end": 164.68,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 165.12,
+     "end": 165.44,
+     "matched": true
+    },
+    {
+     "w": "scale",
+     "start": 165.44,
+     "end": 165.46,
+     "matched": true
+    },
+    {
+     "w": "each",
+     "start": 165.46,
+     "end": 165.68,
+     "matched": true
+    },
+    {
+     "w": "phase",
+     "start": 165.68,
+     "end": 165.88,
+     "matched": true
+    },
+    {
+     "w": "independently.",
+     "start": 165.88,
+     "end": 166.32,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 51,
+   "text": "The real optimization isn't changing how the transformer computes its answer.",
+   "start": 166.76,
+   "end": 169.64,
+   "words": [
+    {
+     "w": "The",
+     "start": 166.5,
+     "end": 166.86,
+     "matched": true
+    },
+    {
+     "w": "real",
+     "start": 166.86,
+     "end": 167.08,
+     "matched": true
+    },
+    {
+     "w": "optimization",
+     "start": 167.08,
+     "end": 167.48,
+     "matched": true
+    },
+    {
+     "w": "isn't",
+     "start": 167.48,
+     "end": 167.82,
+     "matched": true
+    },
+    {
+     "w": "changing",
+     "start": 167.82,
+     "end": 168.12,
+     "matched": true
+    },
+    {
+     "w": "how",
+     "start": 168.12,
+     "end": 168.28,
+     "matched": true
+    },
+    {
+     "w": "the",
+     "start": 168.28,
+     "end": 168.56,
+     "matched": true
+    },
+    {
+     "w": "transformer",
+     "start": 168.56,
+     "end": 168.8,
+     "matched": true
+    },
+    {
+     "w": "computes",
+     "start": 168.8,
+     "end": 169.16,
+     "matched": true
+    },
+    {
+     "w": "its",
+     "start": 169.16,
+     "end": 169.38,
+     "matched": true
+    },
+    {
+     "w": "answer.",
+     "start": 169.38,
+     "end": 169.64,
+     "matched": true
+    }
+   ]
+  },
+  {
+   "i": 52,
+   "text": "It's changing how we schedule and serve its computation.",
+   "start": 170.0,
+   "end": 171.88,
+   "words": [
+    {
+     "w": "It's",
+     "start": 169.64,
+     "end": 170.14,
+     "matched": true
+    },
+    {
+     "w": "changing",
+     "start": 170.14,
+     "end": 170.38,
+     "matched": true
+    },
+    {
+     "w": "how",
+     "start": 170.38,
+     "end": 170.56,
+     "matched": true
+    },
+    {
+     "w": "we",
+     "start": 170.56,
+     "end": 170.68,
+     "matched": true
+    },
+    {
+     "w": "schedule",
+     "start": 170.68,
+     "end": 170.96,
+     "matched": true
+    },
+    {
+     "w": "and",
+     "start": 170.96,
+     "end": 171.16,
+     "matched": true
+    },
+    {
+     "w": "serve",
+     "start": 171.16,
+     "end": 171.32,
+     "matched": true
+    },
+    {
+     "w": "its",
+     "start": 171.32,
+     "end": 171.54,
+     "matched": true
+    },
+    {
+     "w": "computation.",
+     "start": 171.54,
+     "end": 171.88,
+     "matched": true
+    }
+   ]
+  }
+ ]
+}

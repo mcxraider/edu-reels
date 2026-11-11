@@ -1,0 +1,105 @@
+Imagine you're chatting with an AI model.
+
+It's generating your answer, one token at a time.
+
+Suddenly, another user submits a massive prompt containing ten thousand tokens.
+
+Your response starts slowing down, even though your own request hasn't changed.
+
+Why?
+
+Because traditional LLM serving often runs two very different workloads on the same GPU resources.
+
+Every LLM inference request has two main phases.
+
+First, prefill.
+
+The model processes the input prompt, computing attention representations and creating a key-value cache for its tokens.
+
+Prefill involves large matrix multiplications and is often compute-bound.
+
+Then comes decode.
+
+The model generates new tokens autoregressively, typically one token per sequence at each decoding step.
+
+For small batches, decode is often limited by memory bandwidth, because the GPU repeatedly reads model weights and cached attention states.
+
+These two phases have very different hardware requirements.
+
+Now imagine a GPU already decoding responses for several users.
+
+A new request arrives with a very long prompt.
+
+Processing that prompt can consume significant compute resources, competing with ongoing decoding.
+
+The result?
+
+Users who were already receiving tokens may experience delays between successive tokens.
+
+This is known as interference between prefill and decode.
+
+Prefill-decode disaggregation solves this by separating the two workloads.
+
+Instead of running everything on the same GPU worker, we create two specialized groups.
+
+Prefill workers process incoming prompts.
+
+Decode workers focus on generating output tokens.
+
+Each group can be configured and scaled independently.
+
+But there's one important problem.
+
+How does the decode worker know what happened during prefill?
+
+The answer is the KV cache.
+
+During prefill, the model computes key and value representations for the prompt tokens across its transformer layers.
+
+These cached representations are needed when generating subsequent tokens.
+
+So, after prefill finishes, the system transfers the KV cache to a decode worker.
+
+High-speed communication technologies, such as RDMA, can help move this data efficiently.
+
+The decode worker can then continue generating tokens without recomputing the entire prompt.
+
+The model weights are still required on both sides. We're transferring the KV cache, not the model itself.
+
+Now the two workloads stop directly competing for the same worker's execution time.
+
+A long prefill request can run while other GPUs continue decoding responses.
+
+We can optimize prefill for computational throughput and decode for low token latency.
+
+This gives us finer control over two important metrics.
+
+Time to first token, or TTFT.
+
+And time per output token, commonly measured through inter-token latency.
+
+It also allows the serving system to independently scale prefill and decode capacity.
+
+But disaggregation isn't free.
+
+Transferring KV caches takes time and consumes network bandwidth.
+
+With long prompts, those caches can become extremely large.
+
+Both worker groups also need access to compatible copies of the model.
+
+And inefficient routing or slow transfers can erase the performance benefits.
+
+So disaggregation doesn't automatically make every workload faster.
+
+It becomes valuable when improved scheduling and hardware utilization outweigh the added communication overhead.
+
+Here's the key idea.
+
+Prefill and decode are fundamentally different computational workloads.
+
+By separating them, we can specialize our infrastructure, reduce interference, and scale each phase independently.
+
+The real optimization isn't changing how the transformer computes its answer.
+
+It's changing how we schedule and serve its computation.

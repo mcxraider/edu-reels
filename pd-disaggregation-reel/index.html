@@ -1,0 +1,1086 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Why LLM Servers Separate Prefill and Decode — animated reel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin: 0; background: #1f1d1a; color: #eee; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  #wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px; }
+  canvas { height: calc(100vh - 96px); aspect-ratio: 9 / 16; background: #F7F5F0; border-radius: 8px; box-shadow: 0 6px 30px rgba(0,0,0,.4); }
+  #ui { display: flex; gap: 10px; align-items: center; width: min(92vw, 760px); font-size: 13px; }
+  #ui button { background: #C46A4A; color: #fff; border: 0; border-radius: 6px; padding: 7px 14px; font-weight: 600; cursor: pointer; }
+  #ui input[type=range] { flex: 1; accent-color: #C46A4A; }
+  #ui span { font-variant-numeric: tabular-nums; min-width: 120px; text-align: right; }
+  #ui select { background: #2b2926; color: #eee; border: 1px solid #555; border-radius: 4px; }
+  body.rendering #ui { display: none; }
+  body.rendering #wrap { padding: 0; }
+  body.rendering canvas { height: auto; width: 1080px; border-radius: 0; box-shadow: none; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c" width="1080" height="1920"></canvas>
+  <div id="ui">
+    <button id="play">Play</button>
+    <button id="back" title="-5 s">−5s</button>
+    <input id="seek" type="range" min="0" max="1" step="0.001" value="0">
+    <select id="jump" title="Jump to scene"></select>
+    <span id="time">0.00 / 0.00</span>
+  </div>
+</div>
+<audio id="audio" src="output/audio_final.m4a" preload="auto"></audio>
+
+<!-- DATA:BEGIN (injected by `node render.mjs --inject` from timings.json) -->
+<script id="data">window.TIMING = {"source":"audio/narration.wav","duration":172.071,"method":"whisper-1 word anchors + Needleman-Wunsch alignment to script.txt + RMS pause snapping","timeline":{"lead_in":1,"tail_hold":3,"fps":30,"total":176.071},"sentences":[{"i":0,"text":"Imagine you're chatting with an AI model.","start":0,"end":1.55,"words":[{"w":"Imagine","start":0,"end":0.36,"matched":true},{"w":"you're","start":0.36,"end":0.6,"matched":true},{"w":"chatting","start":0.6,"end":0.76,"matched":true},{"w":"with","start":0.76,"end":0.94,"matched":true},{"w":"an","start":0.94,"end":1.08,"matched":true},{"w":"AI","start":1.08,"end":1.34,"matched":true},{"w":"model.","start":1.34,"end":1.56,"matched":true}]},{"i":1,"text":"It's generating your answer, one token at a time.","start":1.93,"end":4.08,"words":[{"w":"It's","start":2.04,"end":2.2,"matched":true},{"w":"generating","start":2.2,"end":2.42,"matched":true},{"w":"your","start":2.42,"end":2.98,"matched":true},{"w":"answer,","start":2.98,"end":2.98,"matched":true},{"w":"one","start":3.32,"end":3.4,"matched":true},{"w":"token","start":3.4,"end":3.58,"matched":true},{"w":"at","start":3.58,"end":3.78,"matched":true},{"w":"a","start":3.78,"end":4.34,"matched":true},{"w":"time.","start":4.34,"end":4.34,"matched":true}]},{"i":2,"text":"Suddenly, another user submits a massive prompt containing ten thousand tokens.","start":4.44,"end":8.19,"words":[{"w":"Suddenly,","start":4.74,"end":4.74,"matched":true},{"w":"another","start":5.16,"end":5.4,"matched":true},{"w":"user","start":5.4,"end":5.68,"matched":true},{"w":"submits","start":5.68,"end":5.94,"matched":true},{"w":"a","start":5.94,"end":6.16,"matched":true},{"w":"massive","start":6.16,"end":6.46,"matched":true},{"w":"prompt","start":6.46,"end":6.7,"matched":true},{"w":"containing","start":6.78,"end":7.3,"matched":true},{"w":"ten","start":7.3,"end":7.49,"matched":true},{"w":"thousand","start":7.49,"end":7.68,"matched":true},{"w":"tokens.","start":7.86,"end":8.12,"matched":true}]},{"i":3,"text":"Your response starts slowing down, even though your own request hasn't changed.","start":8.59,"end":11.58,"words":[{"w":"Your","start":8.58,"end":8.7,"matched":true},{"w":"response","start":8.7,"end":9.02,"matched":true},{"w":"starts","start":9.02,"end":9.3,"matched":true},{"w":"slowing","start":9.3,"end":9.52,"matched":true},{"w":"down,","start":9.52,"end":9.9,"matched":true},{"w":"even","start":10.26,"end":10.38,"matched":true},{"w":"though","start":10.38,"end":10.48,"matched":true},{"w":"your","start":10.48,"end":10.6,"matched":true},{"w":"own","start":10.6,"end":10.82,"matched":true},{"w":"request","start":10.82,"end":11.02,"matched":true},{"w":"hasn't","start":11.02,"end":11.28,"matched":true},{"w":"changed.","start":11.28,"end":11.62,"matched":true}]},{"i":4,"text":"Why?","start":12.03,"end":12.3,"words":[{"w":"Why?","start":12.26,"end":12.28,"matched":true}]},{"i":5,"text":"Because traditional LLM serving often runs two very different workloads on the same GPU resources.","start":12.77,"end":17.25,"words":[{"w":"Because","start":12.66,"end":13.02,"matched":true},{"w":"traditional","start":13.02,"end":13.4,"matched":true},{"w":"LLM","start":13.4,"end":13.86,"matched":true},{"w":"serving","start":13.86,"end":14.18,"matched":true},{"w":"often","start":14.18,"end":14.7,"matched":true},{"w":"runs","start":14.7,"end":14.86,"matched":true},{"w":"two","start":14.86,"end":15.12,"matched":true},{"w":"very","start":15.12,"end":15.46,"matched":true},{"w":"different","start":15.46,"end":15.62,"matched":true},{"w":"workloads","start":15.62,"end":15.9,"matched":true},{"w":"on","start":15.9,"end":16.1,"matched":true},{"w":"the","start":16.1,"end":16.24,"matched":true},{"w":"same","start":16.24,"end":16.4,"matched":true},{"w":"GPU","start":16.4,"end":16.78,"matched":true},{"w":"resources.","start":16.78,"end":17.3,"matched":true}]},{"i":6,"text":"Every LLM inference request has two main phases.","start":17.64,"end":20.03,"words":[{"w":"Every","start":17.64,"end":17.94,"matched":true},{"w":"LLM","start":17.94,"end":18.44,"matched":true},{"w":"inference","start":18.44,"end":18.72,"matched":true},{"w":"request","start":18.72,"end":19.04,"matched":true},{"w":"has","start":19.04,"end":19.24,"matched":true},{"w":"two","start":19.24,"end":19.46,"matched":true},{"w":"main","start":19.46,"end":19.7,"matched":true},{"w":"phases.","start":19.7,"end":20,"matched":true}]},{"i":7,"text":"First, prefill.","start":20.38,"end":21.16,"words":[{"w":"First,","start":20.46,"end":20.66,"matched":true},{"w":"prefill.","start":20.98,"end":21.16,"matched":true}]},{"i":8,"text":"The model processes the input prompt, computing attention representations and creating a key-value cache for its tokens.","start":21.55,"end":26.59,"words":[{"w":"The","start":21.56,"end":21.66,"matched":true},{"w":"model","start":21.66,"end":21.84,"matched":true},{"w":"processes","start":21.84,"end":22.2,"matched":true},{"w":"the","start":22.2,"end":22.48,"matched":true},{"w":"input","start":22.48,"end":22.66,"matched":true},{"w":"prompt,","start":22.66,"end":22.92,"matched":true},{"w":"computing","start":23.54,"end":23.54,"matched":true},{"w":"attention","start":23.54,"end":23.94,"matched":true},{"w":"representations","start":23.94,"end":24.44,"matched":true},{"w":"and","start":24.9,"end":25.06,"matched":true},{"w":"creating","start":25.06,"end":25.2,"matched":true},{"w":"a","start":25.2,"end":25.36,"matched":true},{"w":"key-value","start":25.36,"end":25.76,"matched":false},{"w":"cache","start":25.76,"end":26.02,"matched":true},{"w":"for","start":26.02,"end":26.18,"matched":true},{"w":"its","start":26.18,"end":26.38,"matched":true},{"w":"tokens.","start":26.38,"end":26.62,"matched":true}]},{"i":9,"text":"Prefill involves large matrix multiplications and is often compute-bound.","start":27.01,"end":30.5,"words":[{"w":"Prefill","start":27.04,"end":27.36,"matched":true},{"w":"involves","start":27.36,"end":27.96,"matched":true},{"w":"large","start":27.96,"end":28.28,"matched":true},{"w":"matrix","start":28.28,"end":28.54,"matched":true},{"w":"multiplications","start":28.54,"end":29.12,"matched":true},{"w":"and","start":29.12,"end":29.36,"matched":true},{"w":"is","start":29.36,"end":29.66,"matched":true},{"w":"often","start":29.66,"end":29.94,"matched":true},{"w":"compute-bound.","start":29.94,"end":31.06,"matched":false}]},{"i":10,"text":"Then comes decode.","start":30.85,"end":31.81,"words":[{"w":"Then","start":31.06,"end":31.08,"matched":true},{"w":"comes","start":31.08,"end":31.44,"matched":true},{"w":"decode.","start":31.44,"end":31.82,"matched":true}]},{"i":11,"text":"The model generates new tokens autoregressively, typically one token per sequence at each decoding step.","start":32.17,"end":36.65,"words":[{"w":"The","start":32.24,"end":32.24,"matched":true},{"w":"model","start":32.24,"end":32.46,"matched":true},{"w":"generates","start":32.46,"end":32.84,"matched":true},{"w":"new","start":32.84,"end":33.38,"matched":true},{"w":"tokens","start":33.38,"end":33.38,"matched":true},{"w":"autoregressively,","start":33.38,"end":34.14,"matched":true},{"w":"typically","start":34.68,"end":34.7,"matched":true},{"w":"one","start":34.7,"end":35,"matched":true},{"w":"token","start":35,"end":35.16,"matched":true},{"w":"per","start":35.16,"end":35.48,"matched":true},{"w":"sequence","start":35.48,"end":35.68,"matched":true},{"w":"at","start":35.68,"end":35.86,"matched":true},{"w":"each","start":35.86,"end":36.06,"matched":true},{"w":"decoding","start":36.06,"end":36.3,"matched":true},{"w":"step.","start":36.3,"end":36.8,"matched":true}]},{"i":12,"text":"For small batches, decode is often limited by memory bandwidth, because the GPU repeatedly reads model weights and cached attention states.","start":37.01,"end":43.41,"words":[{"w":"For","start":37.12,"end":37.12,"matched":true},{"w":"small","start":37.12,"end":37.36,"matched":true},{"w":"batches,","start":37.36,"end":37.96,"matched":true},{"w":"decode","start":38.18,"end":38.38,"matched":true},{"w":"is","start":38.38,"end":38.54,"matched":true},{"w":"often","start":38.54,"end":38.78,"matched":true},{"w":"limited","start":38.78,"end":38.96,"matched":true},{"w":"by","start":38.96,"end":39.44,"matched":true},{"w":"memory","start":39.44,"end":39.44,"matched":true},{"w":"bandwidth,","start":39.44,"end":39.76,"matched":true},{"w":"because","start":39.76,"end":40.26,"matched":true},{"w":"the","start":40.26,"end":40.48,"matched":true},{"w":"GPU","start":40.48,"end":40.82,"matched":true},{"w":"repeatedly","start":40.82,"end":41.42,"matched":true},{"w":"reads","start":41.42,"end":41.66,"matched":true},{"w":"model","start":41.66,"end":41.96,"matched":true},{"w":"weights","start":41.96,"end":42.2,"matched":true},{"w":"and","start":42.2,"end":42.6,"matched":true},{"w":"cached","start":42.6,"end":42.8,"matched":true},{"w":"attention","start":42.8,"end":43.12,"matched":true},{"w":"states.","start":43.12,"end":43.42,"matched":true}]},{"i":13,"text":"These two phases have very different hardware requirements.","start":43.79,"end":45.8,"words":[{"w":"These","start":43.86,"end":43.94,"matched":true},{"w":"two","start":43.94,"end":44.18,"matched":true},{"w":"phases","start":44.18,"end":44.4,"matched":true},{"w":"have","start":44.4,"end":44.62,"matched":true},{"w":"very","start":44.62,"end":44.9,"matched":true},{"w":"different","start":44.9,"end":45.08,"matched":true},{"w":"hardware","start":45.08,"end":45.34,"matched":true},{"w":"requirements.","start":45.34,"end":45.8,"matched":true}]},{"i":14,"text":"Now imagine a GPU already decoding responses for several users.","start":46.16,"end":49.77,"words":[{"w":"Now","start":46.22,"end":46.36,"matched":true},{"w":"imagine","start":46.36,"end":46.66,"matched":true},{"w":"a","start":46.66,"end":47.32,"matched":true},{"w":"GPU","start":47.32,"end":47.32,"matched":true},{"w":"already","start":47.32,"end":47.9,"matched":true},{"w":"decoding","start":47.9,"end":48.24,"matched":true},{"w":"responses","start":48.24,"end":48.72,"matched":true},{"w":"for","start":48.72,"end":49.24,"matched":true},{"w":"several","start":49.24,"end":49.48,"matched":true},{"w":"users.","start":49.48,"end":49.82,"matched":true}]},{"i":15,"text":"A new request arrives with a very long prompt.","start":50.18,"end":52.08,"words":[{"w":"A","start":50.2,"end":50.28,"matched":true},{"w":"new","start":50.28,"end":50.48,"matched":true},{"w":"request","start":50.48,"end":50.76,"matched":true},{"w":"arrives","start":50.76,"end":51.1,"matched":true},{"w":"with","start":51.1,"end":51.26,"matched":true},{"w":"a","start":51.26,"end":51.36,"matched":true},{"w":"very","start":51.36,"end":51.62,"matched":true},{"w":"long","start":51.62,"end":51.8,"matched":true},{"w":"prompt.","start":51.8,"end":52.08,"matched":true}]},{"i":16,"text":"Processing that prompt can consume significant compute resources, competing with ongoing decoding.","start":52.45,"end":56.85,"words":[{"w":"Processing","start":52.66,"end":52.86,"matched":true},{"w":"that","start":52.86,"end":53.12,"matched":true},{"w":"prompt","start":53.12,"end":53.22,"matched":true},{"w":"can","start":53.22,"end":53.5,"matched":true},{"w":"consume","start":53.5,"end":53.76,"matched":true},{"w":"significant","start":53.76,"end":54.28,"matched":true},{"w":"compute","start":54.28,"end":54.64,"matched":true},{"w":"resources,","start":54.64,"end":55.12,"matched":true},{"w":"competing","start":55.8,"end":55.8,"matched":true},{"w":"with","start":55.8,"end":56.14,"matched":true},{"w":"ongoing","start":56.14,"end":56.4,"matched":true},{"w":"decoding.","start":56.4,"end":56.78,"matched":true}]},{"i":17,"text":"The result?","start":57.21,"end":57.65,"words":[{"w":"The","start":57.16,"end":57.38,"matched":true},{"w":"result?","start":57.38,"end":57.66,"matched":true}]},{"i":18,"text":"Users who were already receiving tokens may experience delays between successive tokens.","start":58.01,"end":61.61,"words":[{"w":"Users","start":57.66,"end":58.26,"matched":true},{"w":"who","start":58.26,"end":58.48,"matched":true},{"w":"were","start":58.48,"end":58.62,"matched":false},{"w":"already","start":58.62,"end":58.98,"matched":true},{"w":"receiving","start":58.98,"end":59.22,"matched":true},{"w":"tokens","start":59.22,"end":59.52,"matched":true},{"w":"may","start":59.52,"end":59.8,"matched":true},{"w":"experience","start":59.8,"end":60.24,"matched":true},{"w":"delays","start":60.24,"end":60.56,"matched":true},{"w":"between","start":60.56,"end":60.9,"matched":true},{"w":"successive","start":60.9,"end":61.3,"matched":true},{"w":"tokens.","start":61.3,"end":61.64,"matched":true}]},{"i":19,"text":"This is known as interference between prefill and decode.","start":61.98,"end":64.41,"words":[{"w":"This","start":62.1,"end":62.1,"matched":true},{"w":"is","start":62.1,"end":62.24,"matched":true},{"w":"known","start":62.24,"end":62.36,"matched":true},{"w":"as","start":62.36,"end":63.02,"matched":true},{"w":"interference","start":63.02,"end":63.02,"matched":true},{"w":"between","start":63.02,"end":63.38,"matched":true},{"w":"prefill","start":63.38,"end":63.74,"matched":true},{"w":"and","start":63.74,"end":64.08,"matched":true},{"w":"decode.","start":64.08,"end":64.68,"matched":true}]},{"i":20,"text":"Prefill-decode disaggregation solves this by separating the two workloads.","start":64.76,"end":67.82,"words":[{"w":"Prefill-decode","start":64.68,"end":65.5,"matched":false},{"w":"disaggregation","start":65.5,"end":66.22,"matched":true},{"w":"solves","start":66.22,"end":66.46,"matched":true},{"w":"this","start":66.46,"end":66.66,"matched":true},{"w":"by","start":66.66,"end":66.86,"matched":true},{"w":"separating","start":66.86,"end":67.16,"matched":true},{"w":"the","start":67.16,"end":67.38,"matched":true},{"w":"two","start":67.38,"end":67.56,"matched":true},{"w":"workloads.","start":67.56,"end":67.9,"matched":true}]},{"i":21,"text":"Instead of running everything on the same GPU worker, we create two specialized groups.","start":68.25,"end":71.73,"words":[{"w":"Instead","start":68.42,"end":68.42,"matched":true},{"w":"of","start":68.42,"end":68.62,"matched":true},{"w":"running","start":68.62,"end":68.74,"matched":true},{"w":"everything","start":68.74,"end":69.06,"matched":true},{"w":"on","start":69.06,"end":69.2,"matched":true},{"w":"the","start":69.2,"end":69.28,"matched":true},{"w":"same","start":69.28,"end":69.5,"matched":true},{"w":"GPU","start":69.5,"end":69.88,"matched":true},{"w":"worker,","start":69.88,"end":70.08,"matched":true},{"w":"we","start":70.48,"end":70.58,"matched":true},{"w":"create","start":70.58,"end":70.74,"matched":true},{"w":"two","start":70.74,"end":71,"matched":true},{"w":"specialized","start":71,"end":71.42,"matched":true},{"w":"groups.","start":71.42,"end":71.72,"matched":true}]},{"i":22,"text":"Prefill workers process incoming prompts.","start":72.09,"end":73.71,"words":[{"w":"Prefill","start":72.3,"end":72.38,"matched":true},{"w":"workers","start":72.38,"end":72.66,"matched":true},{"w":"process","start":72.66,"end":73.06,"matched":true},{"w":"incoming","start":73.06,"end":73.4,"matched":true},{"w":"prompts.","start":73.4,"end":73.68,"matched":true}]},{"i":23,"text":"Decode workers focus on generating output tokens.","start":74.07,"end":76.35,"words":[{"w":"Decode","start":74.34,"end":74.46,"matched":true},{"w":"workers","start":74.46,"end":74.7,"matched":true},{"w":"focus","start":74.7,"end":74.98,"matched":true},{"w":"on","start":74.98,"end":75.5,"matched":true},{"w":"generating","start":75.5,"end":75.5,"matched":true},{"w":"output","start":75.5,"end":75.88,"matched":true},{"w":"tokens.","start":75.88,"end":76.14,"matched":true}]},{"i":24,"text":"Each group can be configured and scaled independently.","start":76.64,"end":78.51,"words":[{"w":"Each","start":76.7,"end":76.82,"matched":true},{"w":"group","start":76.82,"end":76.96,"matched":true},{"w":"can","start":76.96,"end":77.12,"matched":true},{"w":"be","start":77.12,"end":77.32,"matched":true},{"w":"configured","start":77.32,"end":77.52,"matched":true},{"w":"and","start":77.52,"end":78,"matched":true},{"w":"scaled","start":78,"end":78,"matched":true},{"w":"independently.","start":78,"end":78.4,"matched":true}]},{"i":25,"text":"But there's one important problem.","start":78.86,"end":79.9,"words":[{"w":"But","start":78.78,"end":78.96,"matched":true},{"w":"there's","start":78.96,"end":79.08,"matched":true},{"w":"one","start":79.08,"end":79.28,"matched":true},{"w":"important","start":79.28,"end":79.58,"matched":true},{"w":"problem.","start":79.58,"end":79.84,"matched":true}]},{"i":26,"text":"How does the decode worker know what happened during prefill?","start":80.27,"end":82.2,"words":[{"w":"How","start":80.28,"end":80.36,"matched":true},{"w":"does","start":80.36,"end":80.5,"matched":true},{"w":"the","start":80.5,"end":80.7,"matched":true},{"w":"decode","start":80.7,"end":80.9,"matched":true},{"w":"worker","start":80.9,"end":81.14,"matched":true},{"w":"know","start":81.14,"end":81.32,"matched":true},{"w":"what","start":81.32,"end":81.54,"matched":true},{"w":"happened","start":81.54,"end":81.7,"matched":true},{"w":"during","start":81.7,"end":81.92,"matched":true},{"w":"prefill?","start":81.92,"end":82.22,"matched":true}]},{"i":27,"text":"The answer is the KV cache.","start":82.56,"end":84.22,"words":[{"w":"The","start":82.3,"end":82.7,"matched":true},{"w":"answer","start":82.7,"end":83,"matched":true},{"w":"is","start":83,"end":83.38,"matched":true},{"w":"the","start":83.38,"end":83.58,"matched":true},{"w":"KV","start":83.58,"end":83.9,"matched":true},{"w":"cache.","start":83.9,"end":84.26,"matched":true}]},{"i":28,"text":"During prefill, the model computes key and value representations for the prompt tokens across its transformer layers.","start":84.6,"end":89.91,"words":[{"w":"During","start":84.7,"end":84.86,"matched":true},{"w":"prefill,","start":84.86,"end":85.6,"matched":true},{"w":"the","start":85.6,"end":85.76,"matched":true},{"w":"model","start":85.76,"end":85.96,"matched":true},{"w":"computes","start":85.96,"end":86.34,"matched":true},{"w":"key","start":86.34,"end":86.62,"matched":true},{"w":"and","start":86.62,"end":86.78,"matched":true},{"w":"value","start":86.78,"end":87,"matched":true},{"w":"representations","start":87,"end":87.48,"matched":true},{"w":"for","start":87.48,"end":87.78,"matched":true},{"w":"the","start":87.78,"end":88.02,"matched":true},{"w":"prompt","start":88.02,"end":88.08,"matched":true},{"w":"tokens","start":88.08,"end":88.4,"matched":true},{"w":"across","start":88.4,"end":88.98,"matched":true},{"w":"its","start":88.98,"end":89.24,"matched":true},{"w":"transformer","start":89.24,"end":89.56,"matched":true},{"w":"layers.","start":89.56,"end":89.9,"matched":true}]},{"i":29,"text":"These cached representations are needed when generating subsequent tokens.","start":90.28,"end":93.06,"words":[{"w":"These","start":90.54,"end":90.54,"matched":true},{"w":"cached","start":90.54,"end":90.78,"matched":true},{"w":"representations","start":90.78,"end":91.28,"matched":true},{"w":"are","start":91.28,"end":91.62,"matched":true},{"w":"needed","start":91.62,"end":91.7,"matched":true},{"w":"when","start":91.7,"end":91.96,"matched":true},{"w":"generating","start":91.96,"end":92.24,"matched":true},{"w":"subsequent","start":92.24,"end":92.72,"matched":true},{"w":"tokens.","start":92.72,"end":93.02,"matched":true}]},{"i":30,"text":"So, after prefill finishes, the system transfers the KV cache to a decode worker.","start":93.43,"end":97.86,"words":[{"w":"So,","start":93.5,"end":93.64,"matched":true},{"w":"after","start":93.64,"end":94.14,"matched":true},{"w":"prefill","start":94.14,"end":94.54,"matched":true},{"w":"finishes,","start":94.54,"end":94.9,"matched":true},{"w":"the","start":95.3,"end":95.42,"matched":true},{"w":"system","start":95.42,"end":95.62,"matched":true},{"w":"transfers","start":95.62,"end":96.02,"matched":true},{"w":"the","start":96.02,"end":96.36,"matched":true},{"w":"KV","start":96.36,"end":96.54,"matched":true},{"w":"cache","start":96.54,"end":96.8,"matched":true},{"w":"to","start":96.8,"end":97.16,"matched":true},{"w":"a","start":97.16,"end":97.54,"matched":true},{"w":"decode","start":97.54,"end":97.6,"matched":true},{"w":"worker.","start":97.6,"end":97.82,"matched":true}]},{"i":31,"text":"High-speed communication technologies, such as RDMA, can help move this data efficiently.","start":98.23,"end":102.1,"words":[{"w":"High-speed","start":97.82,"end":98.58,"matched":false},{"w":"communication","start":98.58,"end":99.06,"matched":true},{"w":"technologies,","start":99.06,"end":99.6,"matched":true},{"w":"such","start":99.6,"end":99.82,"matched":true},{"w":"as","start":99.82,"end":100.04,"matched":true},{"w":"RDMA,","start":100.04,"end":100.52,"matched":true},{"w":"can","start":100.52,"end":100.98,"matched":true},{"w":"help","start":100.98,"end":101.16,"matched":true},{"w":"move","start":101.16,"end":101.32,"matched":true},{"w":"this","start":101.32,"end":101.54,"matched":true},{"w":"data","start":101.54,"end":101.68,"matched":true},{"w":"efficiently.","start":101.68,"end":102.06,"matched":true}]},{"i":32,"text":"The decode worker can then continue generating tokens without recomputing the entire prompt.","start":102.46,"end":106.15,"words":[{"w":"The","start":102.46,"end":102.56,"matched":true},{"w":"decode","start":102.56,"end":102.86,"matched":true},{"w":"worker","start":102.86,"end":103.06,"matched":true},{"w":"can","start":103.06,"end":103.26,"matched":true},{"w":"then","start":103.26,"end":103.46,"matched":true},{"w":"continue","start":103.46,"end":103.82,"matched":true},{"w":"generating","start":103.82,"end":104.16,"matched":true},{"w":"tokens","start":104.16,"end":104.5,"matched":true},{"w":"without","start":104.5,"end":105.02,"matched":true},{"w":"recomputing","start":105.02,"end":105.54,"matched":true},{"w":"the","start":105.54,"end":105.72,"matched":true},{"w":"entire","start":105.72,"end":106,"matched":true},{"w":"prompt.","start":106,"end":106.22,"matched":true}]},{"i":33,"text":"The model weights are still required on both sides. We're transferring the KV cache, not the model itself.","start":106.5,"end":111.04,"words":[{"w":"The","start":106.46,"end":106.66,"matched":true},{"w":"model","start":106.66,"end":106.84,"matched":true},{"w":"weights","start":106.84,"end":107.02,"matched":true},{"w":"are","start":107.02,"end":107.2,"matched":true},{"w":"still","start":107.2,"end":107.46,"matched":true},{"w":"required","start":107.46,"end":107.7,"matched":true},{"w":"on","start":107.7,"end":107.9,"matched":true},{"w":"both","start":107.9,"end":108.08,"matched":true},{"w":"sides.","start":108.08,"end":108.4,"matched":true},{"w":"We're","start":108.76,"end":108.92,"matched":true},{"w":"transferring","start":108.92,"end":109.16,"matched":true},{"w":"the","start":109.16,"end":109.36,"matched":true},{"w":"KV","start":109.36,"end":109.66,"matched":true},{"w":"cache,","start":109.66,"end":109.92,"matched":true},{"w":"not","start":110.36,"end":110.4,"matched":true},{"w":"the","start":110.4,"end":110.72,"matched":true},{"w":"model","start":110.72,"end":110.72,"matched":true},{"w":"itself.","start":110.72,"end":111.12,"matched":true}]},{"i":34,"text":"Now the two workloads stop directly competing for the same worker's execution time.","start":111.4,"end":114.85,"words":[{"w":"Now","start":111.22,"end":111.6,"matched":true},{"w":"the","start":111.6,"end":111.76,"matched":true},{"w":"two","start":111.76,"end":112.02,"matched":true},{"w":"workloads","start":112.02,"end":112.26,"matched":true},{"w":"stop","start":112.26,"end":112.6,"matched":true},{"w":"directly","start":112.6,"end":112.98,"matched":true},{"w":"competing","start":112.98,"end":113.28,"matched":true},{"w":"for","start":113.28,"end":113.46,"matched":true},{"w":"the","start":113.46,"end":113.58,"matched":true},{"w":"same","start":113.58,"end":113.82,"matched":true},{"w":"worker's","start":113.82,"end":114.26,"matched":true},{"w":"execution","start":114.26,"end":114.52,"matched":true},{"w":"time.","start":114.52,"end":114.82,"matched":true}]},{"i":35,"text":"A long prefill request can run while other GPUs continue decoding responses.","start":115.21,"end":118.77,"words":[{"w":"A","start":114.82,"end":115.26,"matched":true},{"w":"long","start":115.26,"end":115.58,"matched":true},{"w":"prefill","start":115.58,"end":115.84,"matched":true},{"w":"request","start":115.84,"end":116.18,"matched":true},{"w":"can","start":116.18,"end":116.4,"matched":true},{"w":"run","start":116.4,"end":116.54,"matched":true},{"w":"while","start":116.54,"end":116.72,"matched":true},{"w":"other","start":116.72,"end":116.96,"matched":true},{"w":"GPUs","start":116.96,"end":117.6,"matched":true},{"w":"continue","start":117.6,"end":117.88,"matched":true},{"w":"decoding","start":117.88,"end":118.2,"matched":true},{"w":"responses.","start":118.2,"end":118.74,"matched":true}]},{"i":36,"text":"We can optimize prefill for computational throughput and decode for low token latency.","start":119.15,"end":122.96,"words":[{"w":"We","start":119.24,"end":119.24,"matched":true},{"w":"can","start":119.24,"end":119.46,"matched":true},{"w":"optimize","start":119.46,"end":119.72,"matched":true},{"w":"prefill","start":119.72,"end":120.1,"matched":true},{"w":"for","start":120.1,"end":120.28,"matched":true},{"w":"computational","start":120.28,"end":120.76,"matched":true},{"w":"throughput","start":120.76,"end":121.14,"matched":true},{"w":"and","start":121.14,"end":121.64,"matched":true},{"w":"decode","start":121.64,"end":121.94,"matched":true},{"w":"for","start":121.94,"end":122.14,"matched":true},{"w":"low","start":122.14,"end":122.36,"matched":true},{"w":"token","start":122.36,"end":122.58,"matched":true},{"w":"latency.","start":122.58,"end":122.88,"matched":true}]},{"i":37,"text":"This gives us finer control over two important metrics.","start":123.32,"end":125.45,"words":[{"w":"This","start":123.42,"end":123.44,"matched":true},{"w":"gives","start":123.44,"end":123.62,"matched":true},{"w":"us","start":123.62,"end":123.88,"matched":true},{"w":"finer","start":123.88,"end":124.02,"matched":true},{"w":"control","start":124.02,"end":124.36,"matched":true},{"w":"over","start":124.36,"end":124.54,"matched":true},{"w":"two","start":124.54,"end":124.78,"matched":true},{"w":"important","start":124.78,"end":125.08,"matched":true},{"w":"metrics.","start":125.08,"end":125.42,"matched":true}]},{"i":38,"text":"Time to first token, or TTFT.","start":125.81,"end":127.35,"words":[{"w":"Time","start":125.96,"end":126,"matched":true},{"w":"to","start":126,"end":126.1,"matched":true},{"w":"first","start":126.1,"end":126.32,"matched":true},{"w":"token,","start":126.32,"end":126.54,"matched":true},{"w":"or","start":126.54,"end":126.76,"matched":true},{"w":"TTFT.","start":126.76,"end":127.38,"matched":true}]},{"i":39,"text":"And time per output token, commonly measured through inter-token latency.","start":127.7,"end":130.67,"words":[{"w":"And","start":127.74,"end":127.84,"matched":true},{"w":"time","start":127.84,"end":128.04,"matched":true},{"w":"per","start":128.04,"end":128.16,"matched":true},{"w":"output","start":128.16,"end":128.44,"matched":true},{"w":"token,","start":128.44,"end":128.76,"matched":true},{"w":"commonly","start":129.16,"end":129.38,"matched":true},{"w":"measured","start":129.38,"end":129.62,"matched":true},{"w":"through","start":129.62,"end":129.88,"matched":true},{"w":"inter-token","start":129.88,"end":130.28,"matched":true},{"w":"latency.","start":130.28,"end":130.58,"matched":true}]},{"i":40,"text":"It also allows the serving system to independently scale prefill and decode capacity.","start":131.04,"end":134.49,"words":[{"w":"It","start":131.1,"end":131.14,"matched":true},{"w":"also","start":131.14,"end":131.46,"matched":true},{"w":"allows","start":131.46,"end":131.58,"matched":true},{"w":"the","start":131.58,"end":131.74,"matched":true},{"w":"serving","start":131.74,"end":131.98,"matched":true},{"w":"system","start":131.98,"end":132.22,"matched":true},{"w":"to","start":132.22,"end":132.48,"matched":true},{"w":"independently","start":132.48,"end":132.78,"matched":true},{"w":"scale","start":132.78,"end":133.1,"matched":true},{"w":"prefill","start":133.1,"end":133.5,"matched":true},{"w":"and","start":133.5,"end":133.72,"matched":true},{"w":"decode","start":133.72,"end":134,"matched":true},{"w":"capacity.","start":134,"end":134.5,"matched":true}]},{"i":41,"text":"But disaggregation isn't free.","start":134.85,"end":136.5,"words":[{"w":"But","start":134.96,"end":135.08,"matched":true},{"w":"disaggregation","start":135.08,"end":135.86,"matched":true},{"w":"isn't","start":135.86,"end":136.18,"matched":true},{"w":"free.","start":136.18,"end":136.52,"matched":true}]},{"i":42,"text":"Transferring KV caches takes time and consumes network bandwidth.","start":136.87,"end":139.95,"words":[{"w":"Transferring","start":137.18,"end":137.42,"matched":true},{"w":"KV","start":137.42,"end":137.76,"matched":true},{"w":"caches","start":137.76,"end":138,"matched":true},{"w":"takes","start":138,"end":138.38,"matched":true},{"w":"time","start":138.38,"end":138.72,"matched":true},{"w":"and","start":138.72,"end":139.02,"matched":true},{"w":"consumes","start":139.02,"end":139.3,"matched":true},{"w":"network","start":139.3,"end":139.66,"matched":true},{"w":"bandwidth.","start":139.66,"end":140.04,"matched":true}]},{"i":43,"text":"With long prompts, those caches can become extremely large.","start":140.32,"end":142.76,"words":[{"w":"With","start":140.34,"end":140.46,"matched":true},{"w":"long","start":140.46,"end":140.7,"matched":true},{"w":"prompts,","start":140.7,"end":140.98,"matched":true},{"w":"those","start":141.22,"end":141.42,"matched":true},{"w":"caches","start":141.42,"end":141.58,"matched":true},{"w":"can","start":141.58,"end":141.84,"matched":true},{"w":"become","start":141.84,"end":142,"matched":true},{"w":"extremely","start":142,"end":142.42,"matched":true},{"w":"large.","start":142.42,"end":142.76,"matched":true}]},{"i":44,"text":"Both worker groups also need access to compatible copies of the model.","start":143.13,"end":146.09,"words":[{"w":"Both","start":142.76,"end":143.36,"matched":true},{"w":"worker","start":143.36,"end":143.7,"matched":true},{"w":"groups","start":143.7,"end":143.82,"matched":true},{"w":"also","start":143.82,"end":144.22,"matched":true},{"w":"need","start":144.22,"end":144.36,"matched":true},{"w":"access","start":144.36,"end":144.66,"matched":true},{"w":"to","start":144.66,"end":144.96,"matched":true},{"w":"compatible","start":144.96,"end":145.26,"matched":true},{"w":"copies","start":145.26,"end":145.58,"matched":true},{"w":"of","start":145.58,"end":145.76,"matched":true},{"w":"the","start":145.76,"end":145.98,"matched":true},{"w":"model.","start":145.98,"end":146.06,"matched":true}]},{"i":45,"text":"And inefficient routing or slow transfers can erase the performance benefits.","start":146.44,"end":149.18,"words":[{"w":"And","start":146.56,"end":146.58,"matched":true},{"w":"inefficient","start":146.58,"end":146.9,"matched":true},{"w":"routing","start":146.9,"end":147.16,"matched":true},{"w":"or","start":147.16,"end":147.36,"matched":true},{"w":"slow","start":147.36,"end":147.56,"matched":true},{"w":"transfers","start":147.56,"end":147.9,"matched":true},{"w":"can","start":147.9,"end":148.18,"matched":true},{"w":"erase","start":148.18,"end":148.36,"matched":true},{"w":"the","start":148.36,"end":148.56,"matched":true},{"w":"performance","start":148.56,"end":148.9,"matched":true},{"w":"benefits.","start":148.9,"end":149.3,"matched":true}]},{"i":46,"text":"So disaggregation doesn't automatically make every workload faster.","start":149.7,"end":152.31,"words":[{"w":"So","start":149.7,"end":149.84,"matched":true},{"w":"disaggregation","start":149.84,"end":150.38,"matched":true},{"w":"doesn't","start":150.38,"end":150.64,"matched":true},{"w":"automatically","start":150.64,"end":151.14,"matched":true},{"w":"make","start":151.14,"end":151.34,"matched":true},{"w":"every","start":151.34,"end":151.64,"matched":true},{"w":"workload","start":151.64,"end":151.88,"matched":true},{"w":"faster.","start":151.88,"end":152.26,"matched":true}]},{"i":47,"text":"It becomes valuable when improved scheduling and hardware utilization outweigh the added communication overhead.","start":152.67,"end":156.81,"words":[{"w":"It","start":152.7,"end":152.78,"matched":true},{"w":"becomes","start":152.78,"end":153,"matched":true},{"w":"valuable","start":153,"end":153.32,"matched":true},{"w":"when","start":153.32,"end":153.58,"matched":true},{"w":"improved","start":153.58,"end":153.92,"matched":true},{"w":"scheduling","start":153.92,"end":154.24,"matched":true},{"w":"and","start":154.24,"end":154.48,"matched":true},{"w":"hardware","start":154.48,"end":154.72,"matched":true},{"w":"utilization","start":154.72,"end":155.24,"matched":true},{"w":"outweigh","start":155.24,"end":155.58,"matched":true},{"w":"the","start":155.58,"end":155.94,"matched":true},{"w":"added","start":155.94,"end":156,"matched":true},{"w":"communication","start":156,"end":156.5,"matched":true},{"w":"overhead.","start":156.5,"end":156.84,"matched":true}]},{"i":48,"text":"Here's the key idea.","start":157.21,"end":157.95,"words":[{"w":"Here's","start":157.2,"end":157.38,"matched":true},{"w":"the","start":157.38,"end":157.52,"matched":true},{"w":"key","start":157.52,"end":157.66,"matched":true},{"w":"idea.","start":157.66,"end":157.94,"matched":true}]},{"i":49,"text":"Prefill and decode are fundamentally different computational workloads.","start":158.32,"end":160.89,"words":[{"w":"Prefill","start":158.52,"end":158.58,"matched":true},{"w":"and","start":158.58,"end":158.8,"matched":true},{"w":"decode","start":158.8,"end":159,"matched":true},{"w":"are","start":159,"end":159.24,"matched":true},{"w":"fundamentally","start":159.24,"end":159.62,"matched":true},{"w":"different","start":159.62,"end":160.06,"matched":true},{"w":"computational","start":160.06,"end":160.52,"matched":true},{"w":"workloads.","start":160.52,"end":160.92,"matched":true}]},{"i":50,"text":"By separating them, we can specialize our infrastructure, reduce interference, and scale each phase independently.","start":161.34,"end":166.39,"words":[{"w":"By","start":161.34,"end":161.48,"matched":true},{"w":"separating","start":161.48,"end":161.82,"matched":true},{"w":"them,","start":161.82,"end":162.02,"matched":true},{"w":"we","start":162.3,"end":162.46,"matched":true},{"w":"can","start":162.46,"end":162.64,"matched":true},{"w":"specialize","start":162.64,"end":162.94,"matched":true},{"w":"our","start":162.94,"end":163.2,"matched":true},{"w":"infrastructure,","start":163.2,"end":163.6,"matched":true},{"w":"reduce","start":164.28,"end":164.3,"matched":true},{"w":"interference,","start":164.3,"end":164.68,"matched":true},{"w":"and","start":165.12,"end":165.44,"matched":true},{"w":"scale","start":165.44,"end":165.46,"matched":true},{"w":"each","start":165.46,"end":165.68,"matched":true},{"w":"phase","start":165.68,"end":165.88,"matched":true},{"w":"independently.","start":165.88,"end":166.32,"matched":true}]},{"i":51,"text":"The real optimization isn't changing how the transformer computes its answer.","start":166.76,"end":169.64,"words":[{"w":"The","start":166.5,"end":166.86,"matched":true},{"w":"real","start":166.86,"end":167.08,"matched":true},{"w":"optimization","start":167.08,"end":167.48,"matched":true},{"w":"isn't","start":167.48,"end":167.82,"matched":true},{"w":"changing","start":167.82,"end":168.12,"matched":true},{"w":"how","start":168.12,"end":168.28,"matched":true},{"w":"the","start":168.28,"end":168.56,"matched":true},{"w":"transformer","start":168.56,"end":168.8,"matched":true},{"w":"computes","start":168.8,"end":169.16,"matched":true},{"w":"its","start":169.16,"end":169.38,"matched":true},{"w":"answer.","start":169.38,"end":169.64,"matched":true}]},{"i":52,"text":"It's changing how we schedule and serve its computation.","start":170,"end":171.88,"words":[{"w":"It's","start":169.64,"end":170.14,"matched":true},{"w":"changing","start":170.14,"end":170.38,"matched":true},{"w":"how","start":170.38,"end":170.56,"matched":true},{"w":"we","start":170.56,"end":170.68,"matched":true},{"w":"schedule","start":170.68,"end":170.96,"matched":true},{"w":"and","start":170.96,"end":171.16,"matched":true},{"w":"serve","start":171.16,"end":171.32,"matched":true},{"w":"its","start":171.32,"end":171.54,"matched":true},{"w":"computation.","start":171.54,"end":171.88,"matched":true}]}]};</script>
+<!-- DATA:END -->
+
+<script>
+'use strict';
+/* =====================================================================================
+   Prefill–Decode Disaggregation — deterministic Canvas 2D reel.
+   draw(t) is a pure function of t (seconds on the video clock): no accumulated state, no
+   wall clock. All cues come from the forced-aligned narration (timings.json):
+     S(i)/E(i)      sentence i start / end (video clock = lead-in + narration time)
+     cue(i, word)   the moment that word of sentence i is spoken
+   Scene boundaries and every major event are keyed to these, so the timeline time-warps
+   to the real speech instead of using equal-length scenes.
+   ===================================================================================== */
+const W = 1080, H = 1920;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const SANS = '"Helvetica Neue", Helvetica, Arial, sans-serif';
+const SERIF = 'Georgia, "Times New Roman", serif';
+const MONO = 'Menlo, Monaco, monospace';
+const C = {
+  bg: '#F7F5F0', card: '#FFFFFF', ink: '#292724', ink2: '#5F5A53', mute: '#A49D93', line: '#E3DCD1',
+  terra: '#C46A4A', terraD: '#9A4A30', terraL: '#F5E3DA',
+  sage: '#8BA586', sageD: '#4B6A47', sageL: '#E3ECE0',
+  beige: '#E8DCC6', beigeD: '#C2AE8C', beigeT: '#7A6748',
+  red: '#B5473D', redL: '#F5DCD7',
+};
+// Reels safe area: content x 110..970, y 380..1420; subtitles centred near 1545.
+const X0 = 110, X1 = 970, CX = 540;
+
+/* ---------------- math ---------------- */
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, p) => a + (b - a) * p;
+const ss = (t, a, b) => (b <= a ? (t >= a ? 1 : 0) : clamp((t - a) / (b - a)));
+const eio = x => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const eo = x => 1 - Math.pow(1 - x, 3);
+const back = x => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const ap = (t, a, d = 0.5) => eo(ss(t, a, a + d));
+const pop = (t, a, d = 0.45) => back(ss(t, a, a + d));
+// piecewise time-warp: keys [[t, v], ...] -> eased interpolation between narration anchors
+function warp(t, keys) {
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let k = 1; k < keys.length; k++) if (t < keys[k][0]) {
+    const [t0, v0] = keys[k - 1], [t1, v1] = keys[k];
+    return lerp(v0, v1, (t - t0) / (t1 - t0));
+  }
+  return keys[keys.length - 1][1];
+}
+function hex(c) {
+  if (c[0] === 'r') return c.match(/\d+/g).slice(0, 3).map(Number);
+  if (c.length === 4) c = '#' + c[1] + c[1] + c[2] + c[2] + c[3] + c[3];
+  const v = parseInt(c.slice(1), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255];
+}
+function mix(c1, c2, p) {
+  const a = hex(c1), b = hex(c2);
+  return `rgb(${Math.round(lerp(a[0], b[0], p))},${Math.round(lerp(a[1], b[1], p))},${Math.round(lerp(a[2], b[2], p))})`;
+}
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ---------------- timing ---------------- */
+let TM, LEAD, TOTAL, SENT;
+function initTiming(tm) { TM = tm; LEAD = tm.timeline.lead_in; TOTAL = tm.timeline.total; SENT = tm.sentences; window.TOTAL = TOTAL; }
+const S = i => LEAD + SENT[i].start;
+const E = i => LEAD + SENT[i].end;
+const norm = w => w.toLowerCase().replace(/[^a-z0-9]/g, '');
+const cueCache = {};
+function cueWord(i, needle, nth) {
+  const ws = SENT[i].words.filter(w => norm(w.w).startsWith(norm(needle)));
+  if (!ws[nth]) console.error('cue not found', i, needle, nth);
+  return ws[nth];
+}
+function cue(i, needle, nth = 0) {
+  const k = `${i}|${needle}|${nth}|s`;
+  if (!(k in cueCache)) { const w = cueWord(i, needle, nth); cueCache[k] = w ? LEAD + w.start : S(i); }
+  return cueCache[k];
+}
+function cueEnd(i, needle, nth = 0) {
+  const k = `${i}|${needle}|${nth}|e`;
+  if (!(k in cueCache)) { const w = cueWord(i, needle, nth); cueCache[k] = w ? LEAD + w.end : E(i); }
+  return cueCache[k];
+}
+
+/* ---------------- primitives ---------------- */
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function box(x, y, w, h, r, fill, stroke, lw = 2, dash) {
+  rr(x, y, w, h, r);
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.setLineDash(dash || []); ctx.stroke(); ctx.setLineDash([]); }
+}
+function card(x, y, w, h, o = {}) {
+  const r = o.r ?? 26;
+  ctx.save(); ctx.shadowColor = 'rgba(70,45,20,0.08)'; ctx.shadowBlur = 26; ctx.shadowOffsetY = 8;
+  box(x, y, w, h, r, o.fill || C.card); ctx.restore();
+  box(x, y, w, h, r, null, o.stroke || C.line, o.lw || 2, o.dash);
+}
+function A(a, fn) { if (a <= 0.001) return; ctx.save(); ctx.globalAlpha *= clamp(a); fn(); ctx.restore(); }
+function font(o) { return `${o.italic ? 'italic ' : ''}${o.weight || 500} ${o.size || 32}px ${o.font || SANS}`; }
+function T(s, x, y, o = {}) {
+  ctx.font = font(o); ctx.fillStyle = o.color || C.ink; ctx.textAlign = o.align || 'left'; ctx.textBaseline = o.base || 'alphabetic';
+  ctx.letterSpacing = (o.track || 0) + 'px'; ctx.fillText(s, x, y); ctx.letterSpacing = '0px';
+}
+function tw(s, o = {}) { ctx.font = font(o); ctx.letterSpacing = (o.track || 0) + 'px'; const w = ctx.measureText(s).width; ctx.letterSpacing = '0px'; return w; }
+function line(x1, y1, x2, y2, color, lw = 2, dash) {
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+  ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.setLineDash(dash || []); ctx.stroke(); ctx.setLineDash([]);
+}
+function head(x, y, ang, col, hs = 13) {
+  ctx.beginPath(); ctx.moveTo(x, y);
+  ctx.lineTo(x - hs * Math.cos(ang - 0.45), y - hs * Math.sin(ang - 0.45));
+  ctx.lineTo(x - hs * Math.cos(ang + 0.45), y - hs * Math.sin(ang + 0.45));
+  ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+}
+function arrow(x1, y1, x2, y2, o = {}) {
+  const p = o.p ?? 1; if (p <= 0) return;
+  const x = lerp(x1, x2, p), y = lerp(y1, y2, p), hs = o.head ?? 13, col = o.color || C.mute;
+  const ang = Math.atan2(y2 - y1, x2 - x1);
+  line(x1, y1, x - Math.cos(ang) * hs * 0.6, y - Math.sin(ang) * hs * 0.6, col, o.lw || 3, o.dash);
+  head(x, y, ang, col, hs);
+}
+function pill(s, x, y, o = {}) {
+  const size = o.size || 24, padX = o.padX ?? 18, h = o.h || size + 20;
+  const w = tw(s, { size, weight: o.weight || 700, track: o.track || 0 }) + padX * 2;
+  const xx = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w : x;
+  box(xx, y - h / 2, w, h, h / 2, o.fill || C.terraL, o.stroke || null, 2);
+  T(s, xx + w / 2, y + 1, { size, weight: o.weight || 700, color: o.color || C.terra, align: 'center', base: 'middle', track: o.track || 0 });
+  return w;
+}
+function check(x, y, s, col) { ctx.beginPath(); ctx.moveTo(x - s * 0.5, y); ctx.lineTo(x - s * 0.12, y + s * 0.38); ctx.lineTo(x + s * 0.55, y - s * 0.42); ctx.strokeStyle = col; ctx.lineWidth = s * 0.2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); ctx.lineCap = 'butt'; ctx.lineJoin = 'miter'; }
+function cross(x, y, s, col, lw) { ctx.beginPath(); ctx.moveTo(x - s / 2, y - s / 2); ctx.lineTo(x + s / 2, y + s / 2); ctx.moveTo(x + s / 2, y - s / 2); ctx.lineTo(x - s / 2, y + s / 2); ctx.strokeStyle = col; ctx.lineWidth = lw || s * 0.2; ctx.lineCap = 'round'; ctx.stroke(); ctx.lineCap = 'butt'; }
+function badge(x, y, ok, p = 1, r = 17) {
+  if (p <= 0) return;
+  ctx.save(); ctx.translate(x, y); ctx.scale(p, p);
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fillStyle = ok ? C.sage : C.red; ctx.fill();
+  if (ok) check(0, 0, r * 1.05, '#fff'); else cross(0, 0, r * 0.75, '#fff', 3.6);
+  ctx.restore();
+}
+// horizontal bracket under/over a span with a label
+function bracket(x1, x2, y, label, col, o = {}) {
+  const up = o.up ? -1 : 1, h = 10 * up;
+  ctx.beginPath(); ctx.moveTo(x1, y - h); ctx.lineTo(x1, y); ctx.lineTo(x2, y); ctx.lineTo(x2, y - h);
+  ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.stroke();
+  if (label) T(label, (x1 + x2) / 2, y + (o.up ? -18 : 30), { size: o.size || 22, weight: 700, color: col, align: 'center' });
+}
+
+// Claude-inspired asterisk (decorative): tapered spokes with rounded tips.
+const MARK = (() => { const r = rng(7); return Array.from({ length: 11 }, (_, i) => ({ a: i / 11 * Math.PI * 2 + (r() - 0.5) * 0.18, l: 0.78 + r() * 0.22 })); })();
+function mark(x, y, R, col = C.terra, rot = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.fillStyle = col;
+  for (const s of MARK) {
+    const L = R * s.l, w0 = R * 0.16, w1 = R * 0.07, ca = Math.cos(s.a), sa = Math.sin(s.a), nx = -sa, ny = ca;
+    ctx.beginPath(); ctx.moveTo(nx * w0 * 0.5, ny * w0 * 0.5);
+    ctx.lineTo(ca * L + nx * w1, sa * L + ny * w1);
+    ctx.arc(ca * L, sa * L, w1, s.a + Math.PI / 2, s.a - Math.PI / 2, true);
+    ctx.lineTo(-nx * w0 * 0.5, -ny * w0 * 0.5); ctx.closePath(); ctx.fill();
+  }
+  ctx.beginPath(); ctx.arc(0, 0, R * 0.14, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+/* ---------------- domain glyphs (consistent colour code) ----------------
+   terracotta = prefill · sage = decode · beige = KV cache · charcoal = model weights        */
+// GPU chip: pins top & bottom, a die whose fill shows the work it is doing.
+function gpu(x, y, w, h, o = {}) {
+  const pinC = o.pin || '#BDB4A7';
+  for (let k = 0; k < 6; k++) {
+    const px = x + 18 + k * (w - 36) / 5;
+    line(px, y - 7, px, y, pinC, 4); line(px, y + h, px, y + h + 7, pinC, 4);
+  }
+  if (o.glow) { ctx.save(); ctx.shadowColor = o.glowCol || C.terra; ctx.shadowBlur = 30 * o.glow; box(x, y, w, h, 14, '#fff'); ctx.restore(); }
+  box(x, y, w, h, 14, '#FFFFFF', o.stroke || C.ink, 2.5);
+  const dx = x + 12, dy = y + 12, dw = w - 24, dh = h - 24;
+  if (o.split !== undefined) {               // mixed die: prefill + decode sharing one GPU
+    const s = o.split;
+    box(dx, dy, dw, dh, 9, mix(C.terraL, C.sageL, s));
+    ctx.save(); rr(dx, dy, dw, dh, 9); ctx.clip();
+    if (s < 0.999) { ctx.fillStyle = mix(C.terra, C.sage, 0); ctx.globalAlpha *= (1 - s) * 0.85; ctx.fillRect(dx, dy, dw / 2, dh); }
+    ctx.restore();
+    ctx.save(); rr(dx, dy, dw, dh, 9); ctx.clip();
+    ctx.globalAlpha *= 0.85 * (o.splitR ?? 1); ctx.fillStyle = C.sage; ctx.fillRect(dx + dw / 2 * (1 - (o.splitW ?? 0)), dy, dw / 2 * (1 + (o.splitW ?? 0)), dh);
+    ctx.restore();
+  } else box(dx, dy, dw, dh, 9, o.die || '#EFEAE2');
+  if (o.label) T(o.label, x + w / 2, y + h / 2 + 1, { size: o.lsize || 22, weight: 700, color: o.lcol || '#fff', align: 'center', base: 'middle' });
+}
+function kvCell(x, y, w, h, o = {}) {        // one K/V pair for one token at one layer
+  if (o.glow) { ctx.save(); ctx.shadowColor = C.beigeD; ctx.shadowBlur = 18 * o.glow; box(x, y, w, h, 7, C.beige); ctx.restore(); }
+  box(x, y, w, h, 7, o.ghost ? null : C.beige, o.ghost ? C.beigeD : C.beigeD, 2, o.ghost ? [4, 4] : null);
+  if (o.ghost) return;
+  line(x + w / 2, y + 5, x + w / 2, y + h - 5, C.beigeD, 1.5);
+  if (w >= 40) {
+    T('K', x + w / 4, y + h / 2 + 1, { size: Math.min(18, h * 0.5), weight: 700, color: C.beigeT, align: 'center', base: 'middle' });
+    T('V', x + w * 3 / 4, y + h / 2 + 1, { size: Math.min(18, h * 0.5), weight: 700, color: C.beigeT, align: 'center', base: 'middle' });
+  }
+}
+function weights(x, y, w, h, o = {}) {        // model weights: charcoal slab with matrix texture
+  if (o.glow) { ctx.save(); ctx.shadowColor = 'rgba(41,39,36,0.55)'; ctx.shadowBlur = 30 * o.glow; box(x, y, w, h, 12, C.ink); ctx.restore(); }
+  box(x, y, w, h, 12, C.ink);
+  ctx.save(); rr(x, y, w, h, 12); ctx.clip(); ctx.globalAlpha *= 0.16;
+  for (let gx = x + 10; gx < x + w - 6; gx += 14) for (let gy = y + (o.label ? 50 : 10); gy < y + h - 6; gy += 14) { ctx.fillStyle = '#fff'; ctx.fillRect(gx, gy, 8, 8); }
+  ctx.restore();
+  if (o.label) {
+    const ls = o.label.split('\n');
+    ls.forEach((s, i) => T(s, x + w / 2, y + 28 + i * 24, { size: o.lsize || 21, weight: 700, color: '#fff', align: 'center', base: 'middle' }));
+  }
+}
+function tok(s, x, y, o = {}) {              // token chip (centre x,y); returns width
+  const size = o.size || 22, h = o.h || size + 18, w = Math.max(o.minW || 0, tw(s, { size, weight: 600 }) + 22);
+  const sc = o.scale ?? 1; if (sc <= 0.01) return w;
+  ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc);
+  box(-w / 2, -h / 2, w, h, 10, o.fill || '#fff', o.stroke || C.ink, o.lw || 2, o.dash);
+  T(s, 0, 1, { size, weight: 600, color: o.color || C.ink, align: 'center', base: 'middle' });
+  ctx.restore();
+  return w;
+}
+function meter(x, y, w, label, v, col, p, word) {
+  T(label, x, y, { size: 22, weight: 600, color: C.ink2, base: 'middle' });
+  const bx = x + 210, bw = w - 210 - (word ? 90 : 0);
+  box(bx, y - 10, bw, 20, 10, '#EFEAE2');
+  if (p > 0) box(bx, y - 10, Math.max(20, bw * v * p), 20, 10, col);
+  if (word) A(p, () => T(word, x + w, y, { size: 22, weight: 700, color: col, align: 'right', base: 'middle' }));
+}
+function docIcon(x, y, w, h, label, o = {}) { // a long prompt: page full of token squares
+  card(x, y, w, h, { r: 16, stroke: C.terra, lw: 2.5 });
+  const cols = Math.floor((w - 28) / 13), rows = Math.floor((h - 64) / 13);
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { ctx.fillStyle = (r * 7 + c * 3) % 11 ? C.terraL : '#EBC4B2'; ctx.fillRect(x + 14 + c * 13, y + 14 + r * 13, 9, 9); }
+  T(label, x + w / 2, y + h - 22, { size: o.size || 22, weight: 700, color: C.terraD, align: 'center' });
+}
+
+/* ---------------- shared furniture ---------------- */
+function title(s, t, t0, sub, o = {}) {
+  const p = ap(t, t0, 0.7);
+  A(p * (o.a ?? 1), () => {
+    let size = o.size || 54; while (size > 36 && tw(s, { size, weight: 700, font: SERIF }) > X1 - X0) size -= 2;
+    T(s, X0, 430 + (1 - p) * 18, { size, weight: 700, font: SERIF, color: C.ink });
+    if (sub) T(sub, X0, 474 + (1 - p) * 18, { size: 24, weight: 500, color: C.ink2 });
+  });
+}
+function note(s, x, y, t0, t, o = {}) { const p = ap(t, t0, 0.5); A(p * (o.a ?? 1), () => T(s, x, y + (1 - p) * 10, { size: o.size || 24, weight: o.weight || 500, color: o.color || C.ink2, align: o.align || 'left', italic: o.italic, font: o.font })); }
+function header(label, x, y, col, colL, sub) {
+  pill(label, x, y, { size: 21, fill: colL, color: col, track: 1.5 });
+  if (sub) T(sub, X1 - 28, y + 1, { size: 21, weight: 500, color: C.ink2, align: 'right', base: 'middle' });
+}
+
+/* =====================================================================================
+   SCENE 1 — The problem (sentences 0–5)
+   A chat streams tokens from a shared GPU. A 10,000-token prompt lands on the same GPU and
+   the stream stalls (gaps between tokens grow).
+   ===================================================================================== */
+const ANSWER = ('Sure. A GPU runs thousands of threads in parallel, grouped into warps. The scheduler ' +
+  'interleaves warps to hide memory latency, so while one group waits for data another can compute. ' +
+  'Kernels launch thread blocks across the streaming multiprocessors, and batching many requests keeps ' +
+  'those multiprocessors busy, which raises throughput for everyone sharing the hardware.').split(' ');
+const S1 = {};
+function build1() {
+  const t0 = LEAD + 0.2;
+  S1.arrive = cueEnd(2, 'tokens') + 0.1;            // the long prompt reaches the GPU
+  const times = []; let tt = t0, k = 0;
+  while (times.length < ANSWER.length) { times.push(tt); tt += tt < S1.arrive ? 0.2 : 1.05 + 0.35 * ((k++ * 7) % 5) / 4; }
+  S1.times = times;
+  // word-wrap the answer once (28 px, 760 px wide)
+  const o = { size: 28, weight: 500 }, maxW = 760; S1.lines = [[]]; let lw = 0;
+  ANSWER.forEach((w, i) => {
+    const ww = tw(w + ' ', o);
+    if (lw + ww > maxW) { S1.lines.push([]); lw = 0; }
+    S1.lines[S1.lines.length - 1].push({ w, i, x: lw }); lw += ww;
+  });
+}
+function scene1(t) {
+  // title
+  A(ap(t, 0.15, 0.8), () => {
+    T('Why LLM servers separate', X0, 422, { size: 50, weight: 700, font: SERIF });
+    T('prefill and decode', X0, 482, { size: 50, weight: 700, font: SERIF, color: C.terra });
+  });
+  const n = S1.times.filter(x => x <= t).length;
+  const stalled = t > S1.arrive + 0.5;
+  // ---- chat card
+  card(X0, 525, 860, 345);
+  box(X0 + 28, 553, 14, 14, 7, stalled ? C.terra : C.sage);
+  T('Chat', X0 + 52, 568, { size: 24, weight: 700 });
+  A(ap(t, cue(3, 'slowing'), 0.4), () => pill('stream slowing', X1 - 28, 562, { size: 20, align: 'right' }));
+  A(ap(t, 0.4, 0.4) * (1 - ap(t, cue(3, 'slowing'), 0.3)), () => pill('streaming', X1 - 28, 562, { size: 20, align: 'right', fill: C.sageL, color: C.sageD }));
+  // user bubble
+  const ub = 'How do GPUs schedule work?', ubw = tw(ub, { size: 24, weight: 600 }) + 40;
+  box(X1 - 28 - ubw, 595, ubw, 50, 18, C.ink); T(ub, X1 - 28 - ubw / 2, 621, { size: 24, weight: 600, color: '#fff', align: 'center', base: 'middle' });
+  // AI answer: last 4 visible lines
+  let cur = 0; S1.lines.forEach((L, li) => { if (L.some(w => w.i < n)) cur = li; });
+  const first = Math.max(0, cur - 3);
+  ctx.save(); rr(X0 + 20, 660, 820, 200, 10); ctx.clip();
+  for (let li = first; li <= cur; li++) {
+    const y = 700 + (li - first) * 42;
+    for (const w of S1.lines[li]) if (w.i < n) {
+      const age = t - S1.times[w.i];
+      T(w.w, X0 + 40 + w.x, y, { size: 28, weight: 500, color: age < 0.25 ? C.sageD : C.ink, base: 'middle' });
+    }
+  }
+  if (n < ANSWER.length) {                    // caret after the last word; waiting dots during the stall
+    const L = S1.lines[cur], last = L.filter(w => w.i < n).pop();
+    const cx = X0 + 40 + (last ? last.x + tw(last.w + ' ', { size: 28 }) : 0), cy = 700 + (cur - first) * 42;
+    if (stalled && t - S1.times[n - 1] > 0.35) for (let d = 0; d < 3; d++) {
+      const ph = ((t * 2.2 - d * 0.25) % 1 + 1) % 1; ctx.beginPath(); ctx.arc(cx + 8 + d * 16, cy + 2, 4.5, 0, 7);
+      ctx.fillStyle = mix(C.line, C.terra, Math.sin(ph * Math.PI)); ctx.fill();
+    } else box(cx, cy - 15, 3, 30, 1, C.sage);
+  }
+  ctx.restore();
+  // ---- token stream strip (last 7 s of emissions)
+  const sy = 935, win = 7;
+  T('Your token stream', X0, sy - 26, { size: 21, weight: 700, color: C.ink2 });
+  T('time →', X1, sy - 26, { size: 19, color: C.mute, align: 'right' });
+  line(X0, sy + 18, X1, sy + 18, C.line, 2);
+  let lastX = null;
+  S1.times.forEach(ti => {
+    if (ti > t || t - ti > win) return;
+    const x = X1 - (t - ti) / win * 860;
+    box(x - 4, sy - 2, 8, 30, 4, C.sage); lastX = x;
+  });
+  if (stalled && lastX !== null && X1 - lastX > 70) {
+    A(ap(t, S1.arrive + 1.2, 0.4), () => { bracket(lastX + 8, X1, sy + 34, 'waiting…', C.terra, { size: 19 }); });
+  }
+  // ---- shared GPU worker
+  card(X0, 1000, 860, 400, { stroke: mix(C.line, C.ink, 0.5) });
+  gpu(X0 + 28, 1028, 80, 52, { die: C.ink });
+  T('One shared GPU worker', X0 + 128, 1062, { size: 26, weight: 700 });
+  // decode lane: pulses at every emitted token
+  const lastEmit = S1.times.filter(x => x <= t).pop() ?? -9;
+  const pulse = Math.exp(-(t - lastEmit) * 5);
+  box(X0 + 28, 1098, 804, 56, 12, mix(C.sageL, C.sage, 0.15 + 0.55 * pulse), C.sage, 2);
+  T('decode · your request', X0 + 48, 1127, { size: 23, weight: 700, color: C.sageD, base: 'middle' });
+  T('1 token / step', X1 - 48, 1127, { size: 21, weight: 600, color: C.sageD, align: 'right', base: 'middle' });
+  // prefill lane: the incoming 10k-token prompt occupies the GPU
+  const inA = ap(t, S1.arrive - 0.15, 0.5);
+  A(inA, () => {
+    const prog = ss(t, S1.arrive, E(5) + 3);
+    box(X0 + 28, 1174, 804, 150, 12, C.terraL, C.terra, 2.5);
+    ctx.save(); rr(X0 + 28, 1174, 804, 150, 12); ctx.clip();
+    ctx.fillStyle = 'rgba(196,106,74,0.28)'; ctx.fillRect(X0 + 28, 1174, 804 * prog, 150);
+    for (let c = 0; c < 56; c++) for (let r = 0; r < 6; r++) {
+      const x = X0 + 44 + c * 14, y = 1222 + r * 14;
+      ctx.fillStyle = x < X0 + 28 + 804 * prog ? '#D99A80' : '#EBC4B2'; ctx.fillRect(x, y, 9, 9);
+    }
+    ctx.restore();
+    T('prefill · new 10,000-token prompt', X0 + 48, 1203, { size: 23, weight: 700, color: C.terraD, base: 'middle' });
+  });
+  // the massive prompt travelling in from the right
+  const t0 = cue(2, 'submits'), mv = eio(ss(t, t0, S1.arrive));
+  A(ap(t, cue(2, 'suddenly'), 0.4) * (1 - inA), () => {
+    const x = lerp(1120, 520, mv), y = lerp(1140, 1170, mv);
+    ctx.save(); ctx.translate(x, y); const sc = lerp(1, 0.9, mv); ctx.scale(sc, sc);
+    docIcon(-150, -95, 300, 190, '10,000 tokens'); ctx.restore();
+  });
+  A(ap(t, cue(2, 'another'), 0.4) * (1 - inA), () => T('another user →', X1 - 10, 1155, { size: 22, weight: 600, color: C.terra, align: 'right' }));
+  // sentence 5: two different workloads, one GPU
+  A(ap(t, cue(5, 'different'), 0.5), () => {
+    const y = 1360; let x = X0 + 28;
+    x += pill('compute-heavy prefill', x, y, { size: 21 }) + 14;
+    x += pill('latency-sensitive decode', x, y, { size: 21, fill: C.sageL, color: C.sageD }) + 14;
+    A(ap(t, cue(5, 'same'), 0.4), () => T('= same GPU', x + 4, y + 1, { size: 23, weight: 700, color: C.ink, base: 'middle' }));
+  });
+}
+
+/* =====================================================================================
+   SCENE 2 — Two phases (sentences 6–13)
+   Prefill: the whole prompt matrix goes through the layers at once and fills a KV cache.
+   Decode: a batch of sequences each gets one new token per step, re-reading weights + KV.
+   ===================================================================================== */
+const S2 = {};
+function build2() {
+  S2.step0 = cue(11, 'generates') + 0.2; S2.dt = 1.05;
+}
+function scene2(t) {
+  title('Every request has two phases', t, S(6) - 0.2);
+  // ---------- PREFILL panel
+  const pA = ap(t, S(7) - 0.1, 0.5);
+  A(pA, () => {
+    card(X0, 510, 860, 425, { stroke: mix(C.line, C.terra, 0.5) });
+    header('1 · PREFILL', X0 + 28, 552, C.terra, C.terraL, 'whole prompt, in parallel');
+    // prompt matrix: 6 tokens × hidden dims
+    const mx = 150, my = 598, cs = 26;
+    const mIn = ap(t, S(7) + 0.2, 0.6), go = ss(t, cue(8, 'processes'), cue(8, 'processes') + 0.9);
+    for (let r = 0; r < 6; r++) for (let c = 0; c < 7; c++) {
+      const a = clamp(mIn * 3 - c * 0.25);
+      A(a, () => box(mx + c * 30, my + r * 30, cs, cs, 5, r % 2 ? '#EBC4B2' : C.terraL, C.terra, 1.5));
+    }
+    A(mIn, () => {
+      T('prompt tokens × d', mx + 103, 800, { size: 21, weight: 600, color: C.ink2, align: 'center' });
+      T('6 tokens shown', mx + 103, 826, { size: 19, color: C.mute, align: 'center' });
+    });
+    // all six rows travel into the model together (parallel)
+    if (go > 0 && go < 1) for (let r = 0; r < 6; r++) {
+      const x = lerp(mx + 210, 450, eio(go)), y = my + r * 30 + 13;
+      box(x - 14, y - 9, 28, 18, 5, C.terra);
+    }
+    arrow(mx + 222, 688, 440, 688, { color: C.terra, p: ap(t, cue(8, 'processes') - 0.3, 0.4) });
+    // transformer block: layers light up for all tokens at once
+    const lx = 450, ly = 590, lw = 190, lh = 200, sweep = ss(t, cue(8, 'processes') + 0.6, cue(8, 'computing') + 0.8);
+    box(lx, ly, lw, lh, 18, '#fff', C.ink, 2.5);
+    T('Transformer', lx + lw / 2, ly + 30, { size: 21, weight: 700, align: 'center' });
+    for (let i = 0; i < 4; i++) {
+      const yy = ly + lh - 18 - (i + 1) * 30 - i * 6, lit = clamp(sweep * 4 - i);
+      box(lx + 16, yy, lw - 32, 30, 7, mix('#EFEAE2', C.terra, lit * 0.85));
+      for (let c = 0; c < 6; c++) box(lx + 26 + c * 24, yy + 9, 14, 12, 3, mix('#E0D8CC', '#fff', lit));
+    }
+    arrow(lx + lw + 8, 688, 708, 688, { color: C.beigeD, p: ap(t, cue(8, 'creating') - 0.2, 0.4) });
+    // KV cache grid: layers × tokens
+    const kx = 716, ky = 604;
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 6; j++) {
+      const a = pop(t, cue(8, 'creating') + (3 - i) * 0.22 + j * 0.04, 0.35);
+      if (a > 0) { ctx.save(); ctx.translate(kx + j * 38 + 16, ky + i * 40 + 16); ctx.scale(a, a); kvCell(-16, -16, 32, 32); ctx.restore(); }
+    }
+    A(ap(t, cue(8, 'key'), 0.4), () => {
+      T('KV cache', kx + 112, 800, { size: 22, weight: 700, color: C.beigeT, align: 'center' });
+      T('per token, per layer', kx + 112, 826, { size: 19, color: C.mute, align: 'center' });
+    });
+    // meters
+    const mp = ap(t, cue(9, 'compute'), 0.8);
+    A(ap(t, cue(9, 'matrix'), 0.4), () => T('large matrix × matrix multiplies', X0 + 28, 862, { size: 22, weight: 600, color: C.terraD, base: 'middle' }));
+    meter(X0 + 28, 903, 520, 'Compute', 0.92, C.terra, mp, 'high');
+    A(mp, () => pill('compute-bound', X1 - 28, 903, { size: 21, align: 'right' }));
+  });
+  // ---------- DECODE panel
+  const dA = ap(t, S(10) - 0.1, 0.5);
+  A(dA, () => {
+    card(X0, 960, 860, 460, { stroke: mix(C.line, C.sage, 0.7) });
+    header('2 · DECODE', X0 + 28, 1002, C.sageD, C.sageL, 'one new token per sequence, per step');
+    const k = t < S2.step0 ? 0 : Math.floor((t - S2.step0) / S2.dt) + 1;    // completed steps
+    const since = t < S2.step0 ? 9 : (t - S2.step0) % S2.dt;
+    const rows = [['Seq A', ['The', 'cat']], ['Seq B', ['GPUs', 'are']], ['Seq C', ['Hello', ',']]];
+    const NEW = [['sat', 'on', 'the', 'warm', 'mat', 'and', 'slept', 'there', 'all', 'day', 'long'],
+                 ['fast', 'at', 'matrix', 'math', 'but', 'memory', 'limits', 'small', 'batch', 'decode', 'speed'],
+                 ['how', 'can', 'I', 'help', 'you', 'today', '?', 'Ask', 'me', 'anything', 'now']];
+    const show = 4;
+    rows.forEach(([lab, ctxT], r) => {
+      const y = 1062 + r * 58;
+      T(lab, X0 + 28, y + 1, { size: 21, weight: 700, color: C.ink2, base: 'middle' });
+      const gen = NEW[r].slice(0, Math.min(k, NEW[r].length));
+      const all = [...ctxT.map(s => ({ s, ctx: 1 })), ...gen.map((s, i) => ({ s, i }))];
+      let vis = all.slice(-show - 1);
+      const rowW = v => v.reduce((a, o) => a + tw(o.s, { size: 20, weight: 600 }) + 28, 0);
+      while (vis.length > 2 && rowW(vis) > 320) vis = vis.slice(1);
+      let x = X0 + 118;
+      if (all.length > vis.length) { T('…', x, y + 1, { size: 22, color: C.mute, base: 'middle' }); x += 26; }
+      vis.forEach((o, vi) => {
+        const isNew = o.i === gen.length - 1 && k > 0, w = tw(o.s, { size: 20, weight: 600 }) + 20;
+        const sc = isNew ? pop(t, S2.step0 + (k - 1) * S2.dt, 0.35) : 1;
+        tok(o.s, x + w / 2, y, { size: 20, h: 38, scale: sc, fill: o.ctx ? '#fff' : isNew ? C.sage : C.sageL, stroke: o.ctx ? C.ink : C.sage, color: isNew ? '#fff' : o.ctx ? C.ink : C.sageD });
+        x += w + 8;
+      });
+    });
+    // batched step highlight: all three sequences advance together
+    A(k > 0 ? Math.exp(-since * 2.4) : 0, () => box(X0 + 18, 1034, 452, 168, 14, null, C.sage, 3));
+    // model + weights + KV reads
+    const mx = 640, my = 1036, mw = 130, mh = 166;
+    box(mx, my, mw, mh, 16, '#fff', C.ink, 2.5);
+    T('Model', mx + mw / 2, my + 26, { size: 20, weight: 700, align: 'center' });
+    for (let i = 0; i < 4; i++) box(mx + 14, my + mh - 14 - (i + 1) * 26 - i * 5, mw - 28, 26, 6, mix('#EFEAE2', C.sage, k > 0 ? Math.exp(-since * 2) * 0.8 : 0));
+    weights(800, 1036, 150, 74, { label: 'Weights', glow: ap(t, cue(12, 'weights'), 0.3) * (k > 0 ? Math.exp(-since * 2) : 0) });
+    box(800, 1128, 150, 74, 12, C.beige, C.beigeD, 2);
+    for (let j = 0; j < 5; j++) kvCell(812 + j * 26, 1164, 20, 28);
+    T('KV cache', 875, 1150, { size: 19, weight: 700, color: C.beigeT, align: 'center', base: 'middle' });
+    const rd = ap(t, cue(12, 'repeatedly') - 0.2, 0.5);
+    const fl = k > 0 ? Math.exp(-since * 2.5) : 0;
+    arrow(796, 1073, 776, 1073, { color: mix(C.mute, C.ink, fl * rd), lw: 3, head: 11 });
+    arrow(796, 1165, 776, 1165, { color: mix(C.mute, C.beigeT, fl * rd), lw: 3, head: 11 });
+    A(rd, () => T('re-read every step', 875, 1228, { size: 19, weight: 600, color: C.ink2, align: 'center' }));
+    A(ap(t, S2.step0 - 0.3, 0.4), () => T(`step ${Math.max(1, k)}`, mx + mw / 2, 1228, { size: 20, weight: 700, color: C.sageD, align: 'center' }));
+    A(ap(t, cue(11, 'sequence'), 0.4), () => T('sequences are batched; each sequence is sequential', X0 + 28, 1240, { size: 21, weight: 500, italic: true, color: C.ink2 }));
+    // meters
+    const mp = ap(t, cue(12, 'memory'), 0.8);
+    A(ap(t, cue(12, 'small'), 0.4), () => T('small batch:', X0 + 28, 1286, { size: 22, weight: 700, color: C.sageD, base: 'middle' }));
+    meter(X0 + 28, 1330, 520, 'Compute', 0.28, C.sage, mp, 'low');
+    meter(X0 + 28, 1372, 520, 'Memory bandwidth', 0.94, C.sageD, mp, 'high');
+    A(mp, () => pill('memory-bound', X1 - 28, 1352, { size: 21, align: 'right', fill: C.sageL, color: C.sageD }));
+  });
+  // sentence 13: the punchline
+  A(ap(t, cue(13, 'different'), 0.5), () => {
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.12)'; ctx.shadowBlur = 20;
+    pill('different bottlenecks → different hardware needs', CX, 946, { size: 23, align: 'center', fill: C.ink, color: '#fff' });
+    ctx.restore();
+  });
+}
+
+/* =====================================================================================
+   SCENE 3 — Interference on a colocated GPU (sentences 14–19)
+   A scheduling timeline: regular decode iterations; a long prefill takes the GPU; every
+   batched user waits. Playhead is time-warped to the narration.
+   ===================================================================================== */
+const S3 = {
+  U: 12, x0: 250, x1: 950,
+  dec: [[0, 0.8], [1, 1.8], [2, 2.8], [3, 3.8], [9.0, 9.8], [10, 10.8], [11, 11.8]],
+  pre: [4.0, 8.9],
+};
+const ux3 = u => lerp(S3.x0, S3.x1, u / S3.U);
+function scene3(t) {
+  title('One GPU, two workloads', t, S(14) - 0.2, 'Colocated serving · simplified schedule');
+  const arrT = cue(15, 'arrives');
+  const ph = warp(t, [[S(14) + 0.3, 0], [arrT, 4.0], [E(16), 8.9], [cue(18, 'successive'), 10.6], [E(19), 12]]);
+  const px = ux3(ph);
+  // rows
+  const rowsY = { gpu: 640, A: 770, B: 840, C: 910 };
+  card(X0, 520, 860, 440);
+  T('GPU', X0 + 28, rowsY.gpu + 1, { size: 24, weight: 700, base: 'middle' });
+  ['A', 'B', 'C'].forEach(u => T(`User ${u}`, X0 + 28, rowsY[u] + 1, { size: 21, weight: 600, color: C.ink2, base: 'middle' }));
+  T('tokens received', X0 + 28, 722, { size: 19, weight: 600, color: C.mute });
+  line(S3.x0, rowsY.gpu + 36, S3.x1, rowsY.gpu + 36, C.line, 2);
+  ['A', 'B', 'C'].forEach(u => line(S3.x0, rowsY[u], S3.x1, rowsY[u], C.line, 2, [4, 6]));
+  T('time →', S3.x1, 945, { size: 19, color: C.mute, align: 'right' });
+  // everything is revealed up to the playhead
+  ctx.save(); ctx.beginPath(); ctx.rect(S3.x0 - 4, 560, Math.max(0, px - S3.x0 + 4), 400); ctx.clip();
+  S3.dec.forEach(([a, b]) => box(ux3(a), rowsY.gpu - 26, ux3(b) - ux3(a), 52, 8, C.sage));
+  const [pa, pb] = S3.pre;
+  box(ux3(pa), rowsY.gpu - 26, ux3(pb) - ux3(pa), 52, 8, C.terra);
+  T('prefill · 10k tokens', (ux3(pa) + ux3(pb)) / 2, rowsY.gpu + 1, { size: 22, weight: 700, color: '#fff', align: 'center', base: 'middle' });
+  S3.dec.forEach(([, b]) => ['A', 'B', 'C'].forEach(u => box(ux3(b) - 5, rowsY[u] - 15, 10, 30, 4, C.sageD)));
+  ctx.restore();
+  // decode legend inside first blocks
+  A(ap(t, S(14) + 0.6, 0.4), () => T('decode steps (A, B, C batched)', ux3(0), rowsY.gpu - 42, { size: 20, weight: 600, color: C.sageD }));
+  // playhead
+  A(ap(t, S(14) + 0.2, 0.3) * (1 - ss(t, E(19), E(19) + 0.4)), () => { line(px, 600, px, 930, C.ink, 2); ctx.beginPath(); ctx.arc(px, 600, 6, 0, 7); ctx.fillStyle = C.ink; ctx.fill(); });
+  // the new request drops in
+  const drop = eio(ss(t, cue(15, 'new') - 0.1, arrT));
+  A(ap(t, cue(15, 'new') - 0.2, 0.3) * (1 - ss(t, arrT, arrT + 0.3)), () => {
+    const x = ux3(4.0) + 60, y = lerp(560, rowsY.gpu, drop);
+    pill('new request · very long prompt', x, y, { size: 20, align: 'center', fill: C.terra, color: '#fff' });
+  });
+  A(ap(t, cue(16, 'competing'), 0.5) * (1 - ap(t, cue(18, 'delays') - 0.3, 0.3)), () => T('decode must wait for the GPU', (ux3(pa) + ux3(pb)) / 2, rowsY.gpu + 62, { size: 20, weight: 700, color: C.terraD, align: 'center' }));
+  // expected ticks (ghost) vs. delayed reality
+  const gA = ap(t, cue(18, 'delays'), 0.5);
+  A(gA * 0.9, () => [4.8, 5.8, 6.8, 7.8].forEach(u => ['A', 'B', 'C'].forEach(r => box(ux3(u) - 5, rowsY[r] - 15, 10, 30, 4, null, C.mute, 2, [3, 3]))));
+  A(gA, () => bracket(ux3(3.8) + 6, ux3(9.8) - 6, rowsY.A - 26, 'gap between tokens ↑', C.terra, { up: true, size: 20 }));
+  // ITL chart for User A
+  const cA = ap(t, cue(18, 'experience'), 0.5);
+  A(cA, () => {
+    card(X0, 985, 860, 435);
+    T('Gap before each token · User A', X0 + 28, 1030, { size: 23, weight: 700 });
+    T('illustrative', X1 - 28, 1030, { size: 19, italic: true, color: C.mute, align: 'right' });
+    const gaps = [1, 1, 1, 6.0, 1, 1], bx = X0 + 90, by = 1340, bw = 80, gap = 50, sc = 40;
+    line(bx - 20, by, X1 - 40, by, C.line, 2);
+    gaps.forEach((g, i) => {
+      const p = eo(ss(t, cue(18, 'experience') + 0.2 + i * 0.12, cue(18, 'experience') + 0.7 + i * 0.12));
+      const h = g * sc * p, x = bx + i * (bw + gap);
+      box(x, by - h, bw, h, 8, g > 2 ? C.terra : C.sage);
+      T(`#${i + 2}`, x + bw / 2, by + 30, { size: 19, color: C.ink2, align: 'center' });
+    });
+    A(ap(t, cue(18, 'successive'), 0.4), () => T('inter-token latency spike', bx + 3 * (bw + gap) + bw / 2, by - 6 * sc - 18, { size: 21, weight: 700, color: C.terra, align: 'center' }));
+  });
+  A(ap(t, cue(19, 'interference'), 0.5), () => {
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.12)'; ctx.shadowBlur = 18;
+    pill('prefill–decode interference', CX, 1100, { size: 26, align: 'center', fill: C.ink, color: '#fff' }); ctx.restore();
+  });
+}
+
+/* =====================================================================================
+   SCENE 4 — Disaggregation (sentences 20–26)
+   One shared pool splits into a PREFILL pool and a DECODE pool; prompts flow into one,
+   tokens out of the other; each pool scales on its own; then: how does decode get the context?
+   ===================================================================================== */
+function poolTilePos(side, k) {        // tile slot k in left/right pool
+  const px = side === 0 ? X0 : 560, col = k % 2, row = Math.floor(k / 2);
+  return [px + 30 + col * 190, 742 + row * 118];
+}
+function scene4(t) {
+  title('Split the workloads', t, S(20) - 0.2, 'Prefill–decode disaggregation');
+  const sp = eio(ss(t, cue(20, 'separating'), cue(20, 'separating') + 1.3));
+  // pools: interpolate from one shared card to two specialised cards
+  const L0 = [240, 600], R0 = [240, 600];        // [x, w] of the shared card
+  const lx = lerp(L0[0], X0, sp), lw = lerp(L0[1], 410, sp), rx = lerp(R0[0], 560, sp), rw = lerp(R0[1], 410, sp);
+  const top = 620, ph = 360;
+  card(lx, top, lw, ph, { stroke: mix(C.ink, C.terra, sp), lw: 2.5 });
+  if (sp > 0.02) card(rx, top, rw, ph, { stroke: mix(C.ink, C.sage, sp), lw: 2.5, fill: '#FFFFFF' });
+  A(1 - sp * 2, () => T('One shared worker pool', 540, 668, { size: 26, weight: 700, align: 'center' }));
+  A(sp * 2 - 1, () => {
+    pill('PREFILL WORKERS', X0 + 24, 664, { size: 21, track: 1.5 });
+    pill('DECODE WORKERS', 584, 664, { size: 21, track: 1.5, fill: C.sageL, color: C.sageD });
+  });
+  // configuration tags
+  A(ap(t, cue(24, 'configured'), 0.5), () => {
+    T('large batches · max compute', X0 + 28, 708, { size: 19, weight: 600, color: C.terraD });
+    T('many streams · steady latency', 584, 708, { size: 19, weight: 600, color: C.sageD });
+  });
+  // tiles: 4 shared → 2 + 2, then scale: prefill +1, decode +2
+  const shared = k => [360 + (k % 2) * 200, 742 + Math.floor(k / 2) * 118];
+  const tiles = [[0, 0], [0, 1], [1, 0], [1, 1]];
+  const addP = pop(t, cue(24, 'configured') + 0.3, 0.5), addD = pop(t, cue(24, 'scaled'), 0.5), addD2 = pop(t, cue(24, 'scaled') + 0.25, 0.5);
+  const tickP = (t - cue(22, 'prefill')) * 1.6, tickD = (t - cue(23, 'decode')) * 2.2;
+  tiles.forEach(([side, k], i) => {
+    const [ax, ay] = shared(i), [bx, by] = poolTilePos(side, k);
+    const x = lerp(ax, bx, sp), y = lerp(ay, by, sp);
+    const busy = side === 0 ? (t > cue(22, 'prefill') ? 0.5 + 0.5 * Math.sin(tickP + i) : 0) : (t > cue(23, 'decode') ? 0.5 + 0.5 * Math.sin(tickD + i * 1.7) : 0);
+    gpu(x, y, 170, 92, sp < 0.999 ? { split: sp, splitW: side === 1 ? sp : -sp, label: 'GPU' } :
+      { die: side === 0 ? mix(C.terra, C.terraD, busy * 0.5) : mix(C.sage, C.sageD, busy * 0.5), label: 'GPU' });
+  });
+  if (addP > 0) { const [x, y] = poolTilePos(0, 2); ctx.save(); ctx.translate(x + 85, y + 46); ctx.scale(addP, addP); gpu(-85, -46, 170, 92, { die: C.terra, label: 'GPU +1' }); ctx.restore(); }
+  [[addD, 2], [addD2, 3]].forEach(([p, k]) => { if (p > 0) { const [x, y] = poolTilePos(1, k); ctx.save(); ctx.translate(x + 85, y + 46); ctx.scale(p, p); gpu(-85, -46, 170, 92, { die: C.sage, label: 'GPU +1' }); ctx.restore(); } });
+  A(ap(t, cue(24, 'independently'), 0.4), () => {
+    T('×3', X0 + 386, 664, { size: 26, weight: 800, color: C.terra, align: 'right', base: 'middle' });
+    T('×4', 946, 664, { size: 26, weight: 800, color: C.sageD, align: 'right', base: 'middle' });
+  });
+  // router + prompts into the prefill pool
+  A(ap(t, S(21) + 0.4, 0.5), () => pill('request router', CX, 568, { size: 21, align: 'center', fill: C.ink, color: '#fff' }));
+  for (let k = 0; k < 3; k++) {
+    const t0 = cue(22, 'process') + k * 0.55, p = ss(t, t0, t0 + 0.9);
+    if (p <= 0 || p >= 1) continue;
+    const [tx, ty] = poolTilePos(0, k % 2);
+    const x = lerp(CX - 40, tx + 85, eio(p)), y = lerp(590, ty + 46, eio(p));
+    A(1 - ss(p, 0.85, 1), () => { box(x - 26, y - 18, 52, 36, 7, C.terraL, C.terra, 2); for (let q = 0; q < 3; q++) box(x - 18, y - 11 + q * 8, 36, 4, 2, '#E0A88F'); });
+  }
+  A(ap(t, cue(22, 'incoming'), 0.4), () => T('prompts in ↓', 440, 604, { size: 19, weight: 600, color: C.terraD, align: 'right' }));
+  // tokens out of the decode pool to users
+  const tokOut = cue(23, 'generating');
+  A(ap(t, tokOut - 0.3, 0.4), () => {
+    ['A', 'B', 'C', 'D'].forEach((u, i) => { const x = 610 + i * 100; ctx.beginPath(); ctx.arc(x, 1060, 20, 0, 7); ctx.fillStyle = C.sageL; ctx.fill(); ctx.strokeStyle = C.sage; ctx.lineWidth = 2; ctx.stroke(); T(u, x, 1061, { size: 19, weight: 700, color: C.sageD, align: 'center', base: 'middle' }); });
+    T('tokens out →', 590, 1061, { size: 19, weight: 600, color: C.sageD, align: 'right', base: 'middle' });
+  });
+  if (t > tokOut) for (let k = 0; k < 80; k++) {
+    const t0 = tokOut + k * 0.22, p = ss(t, t0, t0 + 0.55); if (p <= 0 || p >= 1) continue;
+    const u = (k * 3) % 4, x = 610 + u * 100, y = lerp(940, 1034, p);
+    A(1 - ss(p, 0.75, 1), () => box(x - 8, y - 8, 16, 16, 4, C.sage));
+  }
+  // sentences 25–26: the open question
+  const q = ap(t, cue(25, 'problem') - 0.2, 0.5);
+  A(q, () => {
+    line(540, 640, 540, 975, C.terra, 3, [8, 8]);
+    ctx.beginPath(); ctx.arc(540, 805, 30, 0, 7); ctx.fillStyle = C.terra; ctx.fill();
+    T('?', 540, 807, { size: 38, weight: 800, color: '#fff', align: 'center', base: 'middle' });
+  });
+  A(ap(t, cue(26, 'know'), 0.5), () => {
+    card(X0, 1130, 860, 170, { stroke: C.terra, lw: 2.5 });
+    T('The decode worker never saw the prompt.', X0 + 36, 1190, { size: 28, weight: 700 });
+    T('What does it need from prefill to keep generating?', X0 + 36, 1240, { size: 24, weight: 500, color: C.ink2 });
+  });
+}
+
+/* =====================================================================================
+   SCENE 5 — KV-cache handoff (sentences 27–33)
+   Prefill fills K/V for every prompt token × layer; after prefill, the blocks travel over the
+   network into the decode worker's GPU memory; decode streams tokens; weights stay put.
+   ===================================================================================== */
+const S5 = { cols: [300, 400, 500, 600, 700], rowsP: [690, 734, 778, 822], rowsD: [1146, 1190, 1234, 1278] };
+const PROMPT5 = ['Why', 'did', 'GPU', 'costs', 'rise?'];
+const OUT5 = ['Demand', 'for', 'GPUs', 'grew', 'faster', '…'];
+function movedCount(t) {
+  const tr0 = cue(30, 'transfers'); let n = 0;
+  for (let k = 0; k < 20; k++) if (t >= tr0 + 0.1 + k * 0.075 + 1.15) n++;
+  return n;
+}
+function scene5(t) {
+  const tr0 = cue(30, 'transfers');
+  title('The handoff: KV-cache transfer', t, S(27) - 0.2);
+  const wP = ap(t, S(27) - 0.1, 0.5);
+  // ---------------- prefill worker
+  A(wP, () => {
+    card(X0, 505, 860, 370, { stroke: C.terra, lw: 2.5 });
+    header('PREFILL WORKER', X0 + 28, 546, C.terra, C.terraL);
+    PROMPT5.forEach((s, j) => tok(s, S5.cols[j], 610, { size: 20, h: 38, scale: pop(t, S(27) + 0.3 + j * 0.08, 0.4), fill: C.terraL, stroke: C.terra, color: C.terraD }));
+    ['L4', 'L3', 'L2', 'L1'].forEach((s, i) => T(s, X0 + 40, S5.rowsP[i] + 1, { size: 20, weight: 700, color: ap(t, cue(28, 'layers'), 0.4) > 0 ? C.ink : C.mute, base: 'middle' }));
+    A(ap(t, cue(28, 'layers'), 0.4), () => T('layers', X0 + 40, 862, { size: 18, color: C.mute }));
+    weights(842, 590, 108, 250, { label: 'Model\nweights', lsize: 19, glow: ap(t, cue(33, 'weights'), 0.4) * (1 - ss(t, E(33), E(33) + 0.5)) });
+  });
+  // ---------------- decode worker
+  A(ap(t, cue(30, 'after') - 0.1, 0.5), () => {
+    card(X0, 1012, 860, 408, { stroke: C.sage, lw: 2.5 });
+    header('DECODE WORKER', X0 + 28, 1054, C.sageD, C.sageL);
+    T(`KV cache received ${movedCount(t)}/20`, 760, 1056, { size: 20, weight: 600, color: movedCount(t) === 20 ? C.sageD : C.mute, align: 'right', base: 'middle' });
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 5; j++) kvCell(S5.cols[j] - 34, S5.rowsD[i] - 18, 68, 36, { ghost: true });
+    ['L4', 'L3', 'L2', 'L1'].forEach((s, i) => T(s, X0 + 40, S5.rowsD[i] + 1, { size: 20, weight: 700, color: C.mute, base: 'middle' }));
+    weights(842, 1096, 108, 250, { label: 'Model\nweights', lsize: 19, glow: ap(t, cue(33, 'weights'), 0.4) * (1 - ss(t, E(33), E(33) + 0.5)) });
+    A(ap(t, cue(33, 'both'), 0.4), () => T('on both sides', 896, 1390, { size: 18, weight: 700, color: C.ink, align: 'center' }));
+  });
+  // ---------------- network link
+  const lA = ap(t, cue(30, 'after') - 0.2, 0.5);
+  A(lA, () => {
+    box(X0, 893, 860, 102, 18, '#EFEAE2', null);
+    box(X0 + 20, 920, 64, 48, 8, '#fff', C.ink, 2); T('NIC', X0 + 52, 945, { size: 17, weight: 700, align: 'center', base: 'middle' });
+    box(X1 - 84, 920, 64, 48, 8, '#fff', C.ink, 2); T('NIC', X1 - 52, 945, { size: 17, weight: 700, align: 'center', base: 'middle' });
+    const flow = t > tr0 && t < tr0 + 3.2 ? 1 : 0;
+    for (let k = 0; k < 9; k++) { const y = 905 + ((k * 12 + (t * 60) % 12)); A(flow * 0.35, () => line(250, y, 250 + 0, y, C.beigeD)); }
+    const lbl = ap(t, cue(31, 'rdma') - 0.1, 0.4);
+    T('network link', 540, 936, { size: 22, weight: 700, color: C.ink2, align: 'center', base: 'middle' });
+    A(1 - ap(t, cue(33, 'transferring'), 0.4), () => {
+      T(lbl > 0 ? 'e.g. RDMA · GPU memory → GPU memory' : 'KV blocks move prefill → decode', 540, 970, { size: 20, weight: lbl > 0 ? 700 : 500, color: lbl > 0 ? C.terraD : C.mute, align: 'center', base: 'middle' });
+    });
+    A(ap(t, cue(33, 'transferring'), 0.4), () => {
+      T('moves:', 360, 970, { size: 20, weight: 700, color: C.ink2, align: 'right', base: 'middle' });
+      kvCell(372, 954, 44, 32); badge(438, 970, true, 1, 14);
+      T('stays:', 640, 970, { size: 20, weight: 700, color: C.ink2, align: 'right', base: 'middle' });
+      weights(652, 954, 70, 32, {}); badge(744, 970, false, 1, 14);
+    });
+  });
+  A(ap(t, tr0 - 0.1, 0.3) * (1 - ss(t, tr0 + 3.0, tr0 + 3.4)), () => T('transferring KV cache ↓', 760, 652, { size: 20, weight: 700, color: C.terraD, align: 'right' }));
+  // KV cells: computed in prefill, then moved
+  const comp0 = cue(28, 'computes');
+  const glow29 = ap(t, cue(29, 'cached'), 0.4) * (1 - ss(t, tr0 - 0.4, tr0));
+  let moved = 0;
+  for (let i = 0; i < 4; i++) for (let j = 0; j < 5; j++) {
+    const appear = pop(t, comp0 + (3 - i) * 0.4 + j * 0.06, 0.35);
+    if (appear <= 0) continue;
+    const k = j * 4 + (3 - i), s0 = tr0 + 0.1 + k * 0.075, mv = eio(ss(t, s0, s0 + 1.15));
+    if (mv >= 1) moved++;
+    const x = S5.cols[j] - 34, y = lerp(S5.rowsP[i] - 18, S5.rowsD[i] - 18, mv);
+    if (mv > 0) kvCell(S5.cols[j] - 34, S5.rowsP[i] - 18, 68, 36, { ghost: true });   // freed slot on prefill side
+    ctx.save(); ctx.translate(x + 34, y + 18); const sc = mv > 0 && mv < 1 ? 1 - 0.18 * Math.sin(mv * Math.PI) : appear; ctx.scale(sc, sc);
+    kvCell(-34, -18, 68, 36, { glow: glow29 || (mv > 0 && mv < 1 ? 0.8 : 0) }); ctx.restore();
+  }
+  A(ap(t, cue(28, 'key'), 0.4) * (1 - ss(t, tr0, tr0 + 0.5)), () => T('K & V for every prompt token, in every layer', X0 + 92, 862, { size: 20, weight: 600, color: C.beigeT }));
+  A(glow29, () => T('needed for every future token', 760, 652, { size: 19, weight: 700, color: C.beigeT, align: 'right' }));
+  // output tokens generated by decode, attending over the received cache
+  const g0 = cue(32, 'continue');
+  const nOut = t < g0 ? 0 : Math.min(OUT5.length, Math.floor((t - g0) / 0.5) + 1);
+  let x = X0 + 40;
+  A(ap(t, g0 - 0.3, 0.3), () => T('output', X0 + 40, 1334, { size: 18, weight: 700, color: C.sageD }));
+  for (let k = 0; k < nOut; k++) {
+    const w = tw(OUT5[k], { size: 20, weight: 600 }) + 22;
+    tok(OUT5[k], x + w / 2, 1368, { size: 20, h: 38, scale: pop(t, g0 + k * 0.5, 0.35), fill: k === nOut - 1 ? C.sage : C.sageL, stroke: C.sage, color: k === nOut - 1 ? '#fff' : C.sageD });
+    x += w + 8;
+  }
+  A(ap(t, cue(32, 'recomputing'), 0.4), () => {
+    const s = 'recompute the prompt', y = 1334, w = tw(s, { size: 19, weight: 600 });
+    T(s, 800, y, { size: 19, weight: 600, color: C.mute, align: 'right' });
+    line(800 - w - 4, y - 7, 804, y - 7, C.red, 3);
+  });
+}
+
+/* =====================================================================================
+   SCENE 6 — Why performance can improve (sentences 34–40)
+   Same simulated workload on two GPUs, colocated vs disaggregated. Hypothetical schedule.
+   A, B: ongoing decode streams; R: new long-prompt request arriving at u = 2.
+   ===================================================================================== */
+const S6 = { U: 12, x0: 300, x1: 950, arr: 2, pf: 6.5 };
+const ux6 = u => lerp(S6.x0, S6.x1, u / S6.U);
+function lanes(t, y0, rows, data, ph) {
+  rows.forEach((r, i) => {
+    const y = y0 + i * 52;
+    T(r, X0 + 28, y + 1, { size: 20, weight: 700, color: i < 2 ? C.ink : C.ink2, base: 'middle' });
+    line(S6.x0, y, S6.x1, y, C.line, 2, i < 2 ? null : [4, 6]);
+  });
+  ctx.save(); ctx.beginPath(); ctx.rect(S6.x0 - 6, y0 - 40, Math.max(0, ux6(ph) - S6.x0 + 6), 260); ctx.clip();
+  data.blocks.forEach(([row, a, b, col, lab]) => {
+    const y = y0 + row * 52; box(ux6(a), y - 19, ux6(b) - ux6(a), 38, 7, col);
+    if (lab) T(lab, (ux6(a) + ux6(b)) / 2, y + 1, { size: 18, weight: 700, color: col === C.beige ? C.beigeT : '#fff', align: 'center', base: 'middle' });
+  });
+  data.ticks.forEach(([row, u, col]) => box(ux6(u) - 4, y0 + row * 52 - 14, 8, 28, 4, col));
+  ctx.restore();
+}
+const COLO = {
+  blocks: [
+    ...[0, 1].map(k => [0, k, k + 0.8, C.sage]), [0, 2, 6.5, C.terra, 'R prefill'],
+    ...[6.6, 7.6, 8.6, 9.6, 10.6].map(u => [0, u, u + 0.8, C.sage]),
+    ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(k => [1, k, k + 0.8, C.sage]),
+  ],
+  ticks: [...[0.8, 1.8, 7.4, 8.4, 9.4, 10.4, 11.4].map(u => [2, u, C.sageD]), [3, 6.5, C.terra], ...[7.4, 8.4, 9.4, 10.4, 11.4].map(u => [3, u, C.sageD])],
+};
+const DISAGG = {
+  blocks: [
+    [0, 2, 6.5, C.terra, 'R prefill'], [0, 6.5, 7.2, C.beige, 'KV'],
+    ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(k => [1, k, k + 0.8, C.sage]),
+  ],
+  ticks: [...[0.8, 1.8, 2.8, 3.8, 4.8, 5.8, 6.8, 7.8, 8.8, 9.8, 10.8, 11.8].map(u => [2, u, C.sageD]), [3, 6.5, C.terra], ...[8.8, 9.8, 10.8, 11.8].map(u => [3, u, C.sageD])],
+};
+function scene6(t) {
+  title('Same workload, two layouts', t, S(34) - 0.2, 'Two GPUs each · hypothetical schedule, not a benchmark');
+  const ph = warp(t, [[S(34) + 0.2, 0], [cue(35, 'long'), S6.arr], [cue(35, 'continue') + 0.4, 9.5], [E(36), 12]]);
+  // colocated
+  card(X0, 500, 860, 340);
+  header('COLOCATED', X0 + 28, 538, C.ink, '#EFEAE2', 'each GPU does both phases');
+  lanes(t, 600, ['GPU 0', 'GPU 1', 'User A', 'User R'], COLO, ph);
+  // disaggregated
+  const dA = ap(t, S(34) + 0.3, 0.5);
+  card(X0, 862, 860, 340);
+  header('DISAGGREGATED', X0 + 28, 900, C.terra, C.terraL);
+  A(ap(t, cue(36, 'throughput'), 0.4), () => T('prefill → throughput · decode → latency', X1 - 28, 901, { size: 19, weight: 600, color: C.ink2, align: 'right', base: 'middle' }));
+  lanes(t, 962, ['Prefill GPU', 'Decode GPU', 'User A', 'User R'], DISAGG, ph);
+  A(ap(t, cue(35, 'while'), 0.5) * (1 - ap(t, cue(37, 'control'), 0.4)), () => {
+    line(ux6(2), 940, ux6(2), 1040, C.terra, 2, [5, 5]); line(ux6(6.5), 940, ux6(6.5), 1040, C.terra, 2, [5, 5]);
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.12)'; ctx.shadowBlur = 10;
+    pill('decoding continues meanwhile', ux6(4.25), 1038, { size: 17, align: 'center', fill: '#fff', color: C.sageD, stroke: C.sage, h: 30, padX: 12 }); ctx.restore();
+  });
+  // scale tags (sentence 40)
+  const sc = pop(t, cue(40, 'independently'), 0.45), sc2 = pop(t, cue(40, 'capacity') - 0.2, 0.45);
+  [[sc, 962, '+ GPU', C.terra, C.terraL], [sc2, 1014, '+ GPU', C.sageD, C.sageL]].forEach(([p, y, s, c, f]) => {
+    if (p <= 0) return; ctx.save(); ctx.translate(255, y); ctx.scale(p, p); pill(s, 0, 0, { size: 16, align: 'center', fill: f, color: c, h: 28, padX: 10 }); ctx.restore();
+  });
+  // TTFT for request R (same in both: the first token comes out of prefill)
+  const tt = ap(t, cue(38, 'time'), 0.5);
+  A(tt, () => {
+    bracket(ux6(2), ux6(6.5), 798, 'TTFT', C.terra, { up: false, size: 20 });
+    bracket(ux6(2), ux6(6.5), 1160, 'TTFT', C.terra, { up: false, size: 20 });
+  });
+  // ITL for User A
+  const it = ap(t, cue(39, 'inter'), 0.5);
+  const callout = (s, x, y, col, colL) => { ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.12)'; ctx.shadowBlur = 10; pill(s, x, y, { size: 17, align: 'center', fill: '#fff', color: col, stroke: col, h: 30, padX: 12 }); ctx.restore(); };
+  A(it, () => {
+    bracket(ux6(1.8) + 5, ux6(7.4) - 5, 686, null, C.terra, { up: true });
+    callout('User A: ITL spike', (ux6(1.8) + ux6(7.4)) / 2, 676, C.terra);
+    bracket(ux6(4.8), ux6(5.8), 1048, null, C.sageD, { up: true });
+    callout('User A: steady ITL', ux6(5.3), 1038, C.sageD);
+  });
+  A(ap(t, cue(39, 'inter') + 0.6, 0.4) * (1 - ss(t, cue(40, 'independently') - 0.4, cue(40, 'independently'))), () =>
+    T('R’s 2nd token waits for the KV transfer', ux6(8.2), 1184, { size: 17, weight: 600, color: C.beigeT, align: 'center' }));
+  // metric cards
+  const cards = [
+    ['TTFT', 'time to first token', cue(38, 'ttft') - 0.2, C.terra],
+    ['ITL', 'inter-token latency', cue(39, 'inter'), C.sageD],
+    ['Throughput', 'tokens per second', cue(36, 'throughput'), C.ink],
+  ];
+  cards.forEach(([a, b, t0, col], i) => {
+    const p = ap(t, t0, 0.5), x = X0 + i * 295, y = 1240;
+    A(p, () => {
+      card(x, y + (1 - p) * 14, 270, 150, { stroke: col, lw: 2.5 });
+      T(a, x + 24, y + 58 + (1 - p) * 14, { size: 34, weight: 800, color: col });
+      T(b, x + 24, y + 104 + (1 - p) * 14, { size: 21, weight: 600, color: C.ink2 });
+    });
+  });
+}
+
+/* =====================================================================================
+   SCENE 7 — Trade-offs (sentences 41–47). All numbers are illustrative.
+   KV bytes per token = 2 (K,V) × layers × KV heads × head dim × bytes per element
+   Example: 2 × 32 × 8 × 128 × 2 B = 131,072 B = 128 KiB / token
+   ===================================================================================== */
+function scene7(t) {
+  title('Disaggregation isn’t free', t, S(41) - 0.2, 'Illustrative numbers, not measurements');
+  // panel A: KV size grows with prompt length
+  const pA = ap(t, S(42) - 0.2, 0.5);
+  A(pA, () => {
+    card(X0, 500, 860, 355);
+    T('KV cache to transfer grows with prompt length', X0 + 28, 545, { size: 24, weight: 700 });
+    T('bytes ≈ 2 × layers × KV heads × head dim × bytes/value × tokens', X0 + 28, 585, { size: 19, weight: 500, color: C.ink2, font: MONO });
+    T('example: 32 layers · 8 KV heads · dim 128 · FP16 → 128 KiB / token', X0 + 28, 617, { size: 19, weight: 500, color: C.mute, font: MONO });
+    const bars = [['1k tokens', 0.131, '≈ 0.13 GB'], ['10k tokens', 1.31, '≈ 1.3 GB'], ['100k tokens', 13.1, '≈ 13 GB']];
+    bars.forEach(([lab, v, txt], i) => {
+      const y = 672 + i * 52, p = eo(ss(t, cue(43, 'long') + i * 0.45, cue(43, 'long') + i * 0.45 + 0.8));
+      T(lab, X0 + 28, y + 1, { size: 21, weight: 700, color: C.ink2, base: 'middle' });
+      box(300, y - 15, 520, 30, 8, '#F1ECE4');
+      if (p > 0) { box(300, y - 15, Math.max(10, 520 * v / 13.1 * p), 30, 8, C.beige, C.beigeD, 2); A(p, () => T(txt, 832, y + 1, { size: 21, weight: 700, color: C.beigeT, base: 'middle' })); }
+    });
+    A(ap(t, cue(42, 'network'), 0.5), () => {
+      T('transfer time ≈ KV size ÷ link bandwidth', X0 + 28, 836, { size: 21, weight: 700, color: C.terraD });
+      T('(uses network capacity)', X1 - 28, 836, { size: 19, color: C.mute, align: 'right' });
+    });
+  });
+  // panel B: compatible model copies + routing
+  const pB = ap(t, cue(44, 'both') - 0.2, 0.5);
+  A(pB, () => {
+    card(X0, 875, 860, 225);
+    T('Model copies on both pools', X0 + 28, 918, { size: 22, weight: 700 });
+    weights(X0 + 28, 945, 150, 82, { label: 'prefill\npool', lsize: 18 });
+    T('=', X0 + 205, 990, { size: 40, weight: 700, color: C.ink, align: 'center', base: 'middle' });
+    weights(X0 + 232, 945, 150, 82, { label: 'decode\npool', lsize: 18 });
+    A(ap(t, cue(44, 'compatible'), 0.4), () => T('same model, compatible KV layout', X0 + 28, 1066, { size: 19, weight: 600, color: C.ink2 }));
+    // routing
+    const rp = ap(t, cue(45, 'routing'), 0.5);
+    A(rp, () => {
+      T('Routing & transfer', 560, 918, { size: 22, weight: 700 });
+      box(560, 965, 90, 46, 10, C.ink); T('router', 605, 989, { size: 18, weight: 700, color: '#fff', align: 'center', base: 'middle' });
+      gpu(800, 946, 120, 46, { die: C.sage }); gpu(800, 1018, 120, 46, { die: C.red });
+      arrow(654, 980, 794, 970, { color: C.sage, lw: 3, p: rp });
+      arrow(654, 996, 794, 1040, { color: C.red, lw: 3, dash: [7, 6], p: ap(t, cue(45, 'slow'), 0.5) });
+      A(ap(t, cue(45, 'slow'), 0.4), () => T('overloaded / slow link', 930, 1088, { size: 18, weight: 700, color: C.red, align: 'right' }));
+    });
+  });
+  // panel C: net effect
+  const pC = ap(t, cue(46, 'disaggregation') - 0.2, 0.5);
+  A(pC, () => {
+    card(X0, 1120, 860, 300);
+    T('Net effect = scheduling gain − communication overhead', X0 + 28, 1162, { size: 21, weight: 700 });
+    const rows = [['mixed traffic, fast link', 0.8, 0.15, true], ['very long prompts', 0.75, 0.45, true], ['slow link / poor routing', 0.5, 0.85, false]];
+    rows.forEach(([lab, g, o, ok], i) => {
+      const y = 1215 + i * 66, p = eo(ss(t, cue(46, 'automatically') + i * 0.4, cue(46, 'automatically') + i * 0.4 + 0.7));
+      T(lab, X0 + 28, y + 1, { size: 20, weight: 600, color: C.ink2, base: 'middle' });
+      box(390, y - 22, 380 * g * p, 20, 6, C.sage);
+      box(390, y + 3, 380 * o * p, 20, 6, ok ? C.beige : C.redL, ok ? C.beigeD : C.red, 2);
+      badge(918, y, ok, pop(t, cue(47, 'outweigh') + i * 0.15, 0.4), 18);
+    });
+    A(p => 0, () => 0);
+    A(ap(t, cue(46, 'automatically') + 0.3, 0.4), () => {
+      box(390, 1395, 18, 12, 3, C.sage); T('gain', 414, 1402, { size: 17, color: C.ink2, base: 'middle' });
+      box(470, 1395, 18, 12, 3, C.beige, C.beigeD, 1.5); T('overhead', 494, 1402, { size: 17, color: C.ink2, base: 'middle' });
+    });
+    A(ap(t, cue(47, 'valuable'), 0.4), () => T('worth it when gains > overhead', X1 - 28, 1402, { size: 19, weight: 700, color: C.sageD, align: 'right', base: 'middle' }));
+  });
+}
+
+/* =====================================================================================
+   SCENE 8 — Takeaway (sentences 48–52)
+   ===================================================================================== */
+function scene8(t) {
+  title('The key idea', t, S(48) - 0.2);
+  const nodes = [['Prompt', '#fff', C.ink, C.ink], ['Prefill', C.terra, C.terra, '#fff'], ['KV', C.beige, C.beigeD, C.beigeT], ['Decode', C.sage, C.sage, '#fff'], ['Output', '#fff', C.sage, C.sageD]];
+  const y = 600, w = 140, h = 96;
+  nodes.forEach(([s, f, st, tc], i) => {
+    const p = pop(t, S(48) + 0.2 + i * 0.18, 0.45), cx = 180 + i * 180;
+    if (i > 0) arrow(cx - 180 + w / 2 + 6, y, cx - w / 2 - 6, y, { color: C.mute, lw: 3, head: 11, p: ap(t, S(48) + 0.2 + i * 0.18, 0.4) });
+    if (p <= 0) return;
+    ctx.save(); ctx.translate(cx, y); ctx.scale(p, p);
+    box(-w / 2, -h / 2, w, h, 18, f, st, 2.5);
+    if (s === 'KV') { kvCell(-32, -26, 30, 24); kvCell(2, -26, 30, 24); T('KV cache', 0, 22, { size: 19, weight: 700, color: tc, align: 'center', base: 'middle' }); }
+    else T(s, 0, 1, { size: 25, weight: 700, color: tc, align: 'center', base: 'middle' });
+    ctx.restore();
+  });
+  A(ap(t, S(48) + 1.0, 0.4), () => T('transfer', 450, y - 64, { size: 18, weight: 600, color: C.ink2, align: 'center' }));
+  // looping request packet (deterministic in t)
+  const pk = ap(t, S(48) + 1.2, 0.4);
+  if (pk > 0) for (let k = 0; k < 2; k++) {
+    const ph = ((t - S(48)) / 3.2 + k * 0.5) % 1, x = lerp(180, 900, ph);
+    const col = x < 360 ? C.ink : x < 450 ? C.terra : x < 630 ? C.beigeD : x < 720 ? C.sage : C.sageD;
+    A(pk * Math.sin(ph * Math.PI), () => { ctx.beginPath(); ctx.arc(x, y + 70, 9, 0, 7); ctx.fillStyle = col; ctx.fill(); });
+  }
+  A(ap(t, cue(49, 'fundamentally'), 0.5), () => {
+    T('two different workloads → two specialised pools', CX, 740, { size: 26, weight: 700, color: C.ink, align: 'center' });
+  });
+  const items = [['Specialize infrastructure', 'tune each pool for its bottleneck', cue(50, 'specialize'), C.terra],
+                 ['Reduce interference', 'long prompts stop stalling streams', cue(50, 'reduce'), C.sageD],
+                 ['Scale each phase independently', 'size prefill and decode capacity separately', cue(50, 'scale'), C.ink]];
+  items.forEach(([a, b, t0, col], i) => {
+    const p = ap(t, t0 - 0.1, 0.5), yy = 790 + i * 112;
+    A(p, () => {
+      card(X0, yy + (1 - p) * 14, 860, 94, { stroke: C.line });
+      box(X0 + 24, yy + 22 + (1 - p) * 14, 8, 50, 4, col);
+      T(a, X0 + 52, yy + 42 + (1 - p) * 14, { size: 27, weight: 700, color: C.ink });
+      T(b, X0 + 52, yy + 74 + (1 - p) * 14, { size: 21, weight: 500, color: C.ink2 });
+    });
+  });
+  A(ap(t, cue(51, 'transformer') - 0.3, 0.6), () => {
+    T('Same transformer math.', CX, 1205, { size: 44, weight: 700, font: SERIF, color: C.ink2, align: 'center' });
+  });
+  A(ap(t, cue(52, 'schedule') - 0.2, 0.6), () => {
+    T('Smarter scheduling & serving.', CX, 1270, { size: 44, weight: 700, font: SERIF, color: C.terra, align: 'center' });
+  });
+  A(ap(t, E(52) - 0.2, 0.8), () => mark(CX, 1360, 34, C.terra, (t - E(52)) * 0.15));
+}
+
+/* ---------------- scene table: boundaries come from the narration ---------------- */
+let SC = []; const TR = 0.3;
+function buildScenes() {
+  const starts = [0, 6, 14, 20, 27, 34, 41, 48];
+  const names = ['The problem', 'Prefill & decode', 'Interference', 'Disaggregation', 'KV-cache handoff', 'Performance', 'Trade-offs', 'Takeaway'];
+  const fns = [scene1, scene2, scene3, scene4, scene5, scene6, scene7, scene8];
+  SC = starts.map((s, k) => ({ name: names[k], from: k === 0 ? 0 : (E(s - 1) + S(s)) / 2, f: fns[k] }));
+  SC.forEach((s, k) => { s.to = k < SC.length - 1 ? SC[k + 1].from : TOTAL; });
+  build1(); build2();
+}
+
+/* ---------------- subtitles ---------------- */
+let PHRASES = [];
+function buildPhrases() {
+  PHRASES = [];
+  SENT.forEach(s => {
+    const ws = s.words; let cur = [];
+    ws.forEach((w, i) => {
+      cur.push(w);
+      const left = ws.length - 1 - i, punct = /[,.?;:!]$/.test(w.w);
+      if ((punct && cur.length >= 2) || (cur.length >= 6 && left > 2) || left === 0) { PHRASES.push(cur); cur = []; }
+    });
+    if (cur.length) PHRASES.push(cur);
+  });
+  PHRASES = PHRASES.map(ws => ({ words: ws, start: LEAD + ws[0].start - 0.08, end: LEAD + ws[ws.length - 1].end }));
+  PHRASES.forEach((p, i) => { const nx = PHRASES[i + 1]; p.end = Math.min(nx ? nx.start - 0.02 : Infinity, p.end + 0.55); });
+}
+function subtitles(t) {
+  const ph = PHRASES.find(p => t >= p.start && t < p.end); if (!ph) return;
+  const a = Math.min(ss(t, ph.start, ph.start + 0.12), 1 - ss(t, ph.end - 0.12, ph.end));
+  const o = { size: 42, weight: 600 }, maxW = 840, lh = 54;
+  const lines = [[]]; let lw = 0; const sp = tw(' ', o);
+  ph.words.forEach(w => { const ww = tw(w.w, o); if (lw + ww > maxW && lines[lines.length - 1].length) { lines.push([]); lw = 0; } lines[lines.length - 1].push(w); lw += ww + sp; });
+  const widths = lines.map(L => L.reduce((s, w) => s + tw(w.w, o), 0) + sp * (L.length - 1));
+  const bw = Math.max(...widths) + 56, bh = lines.length * lh + 28, by = 1545 - bh / 2;
+  A(a, () => {
+    box(CX - bw / 2, by, bw, bh, 22, 'rgba(255,255,255,0.95)', C.line, 2);
+    lines.forEach((L, li) => {
+      let x = CX - widths[li] / 2; const y = by + 14 + lh * li + lh / 2 + 2;
+      L.forEach(w => {
+        const said = t >= LEAD + w.start, now = said && t < LEAD + w.end + 0.05;
+        T(w.w, x, y, { ...o, color: now ? C.terra : said ? C.ink : C.mute, base: 'middle' });
+        x += tw(w.w, o) + sp;
+      });
+    });
+  });
+}
+
+/* ---------------- chrome ---------------- */
+function chrome(t) {
+  mark(124, 262, 20, C.terra);
+  T('LLM INFERENCE · P/D DISAGGREGATION', 156, 272, { size: 23, weight: 700, color: C.ink2, track: 2.5 });
+  const k = Math.max(0, SC.findIndex(s => t >= s.from && t < s.to)), idx = t >= TOTAL ? SC.length - 1 : k;
+  T(`${String(idx + 1).padStart(2, '0')} / ${String(SC.length).padStart(2, '0')}`, X1, 272, { size: 23, weight: 700, color: C.mute, align: 'right' });
+  const gp = 6, gw = (X1 - X0 - (SC.length - 1) * gp) / SC.length;
+  SC.forEach((s, i) => { const x = X0 + i * (gw + gp), p = ss(t, s.from, s.to); box(x, 298, gw, 6, 3, C.line); if (p > 0) box(x, 298, gw * p, 6, 3, C.terra); });
+  T('AI-generated narration (OpenAI TTS) · simplified, illustrative diagrams', X0, 338, { size: 19, color: C.mute });
+}
+
+/* ---------------- the frame function ---------------- */
+function draw(t) {
+  t = clamp(t, 0, TOTAL);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.setLineDash([]);
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  A(0.05, () => mark(1010, 1820, 120, C.terra, 0.3));
+  for (let k = 0; k < SC.length; k++) {
+    const s = SC[k];
+    const inA = k === 0 ? 1 : eio(ss(t, s.from - TR, s.from + TR));
+    const outA = k === SC.length - 1 ? 1 : 1 - eio(ss(t, s.to - TR, s.to + TR));
+    const a = Math.min(inA, outA); if (a <= 0.001) continue;
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.translate(0, inA < 1 ? (1 - inA) * 24 : outA < 1 ? -(1 - outA) * 24 : 0);
+    s.f(t); ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+  chrome(t); subtitles(t);
+}
+
+/* ---------------- boot & live preview ---------------- */
+async function boot() {
+  let tm = window.TIMING;
+  if (!tm) { try { tm = await (await fetch('timings.json')).json(); } catch (e) { console.error('no timing data: run `node render.mjs --inject`'); return; } }
+  await document.fonts.ready;
+  initTiming(tm); buildScenes(); buildPhrases();
+  window.draw = draw; window.SCENES = SC.map(s => ({ name: s.name, from: s.from, to: s.to }));
+  draw(0);
+  if (window.__RENDERING) { document.body.classList.add('rendering'); return; }
+  preview();
+}
+function preview() {
+  const audio = document.getElementById('audio'), btn = document.getElementById('play'), seek = document.getElementById('seek');
+  const time = document.getElementById('time'), jump = document.getElementById('jump');
+  seek.max = TOTAL;
+  SC.forEach((s, i) => { const o = document.createElement('option'); o.value = s.from; o.textContent = `${i + 1}. ${s.name}`; jump.appendChild(o); });
+  let playing = false, clock0 = 0, t0 = 0, cur = 0, hasAudio = false;
+  audio.addEventListener('canplay', () => { hasAudio = true; }, { once: true });
+  audio.addEventListener('error', () => { hasAudio = false; });
+  const now = () => (playing ? (hasAudio ? audio.currentTime : t0 + (performance.now() - clock0) / 1000) : cur);
+  function setT(t) { cur = clamp(t, 0, TOTAL); t0 = cur; clock0 = performance.now(); if (hasAudio) audio.currentTime = cur; }
+  function frame() {
+    const t = now();
+    if (t >= TOTAL) { playing = false; btn.textContent = 'Play'; cur = TOTAL; audio.pause(); }
+    draw(t); seek.value = t; time.textContent = `${t.toFixed(2)} / ${TOTAL.toFixed(2)}`;
+    if (playing) requestAnimationFrame(frame);
+  }
+  btn.onclick = () => {
+    if (playing) { cur = now(); playing = false; audio.pause(); btn.textContent = 'Play'; frame(); return; }
+    if (cur >= TOTAL) setT(0);
+    setT(cur); playing = true; btn.textContent = 'Pause';
+    if (hasAudio) audio.play().catch(() => { hasAudio = false; clock0 = performance.now(); });
+    requestAnimationFrame(frame);
+  };
+  document.getElementById('back').onclick = () => { setT(now() - 5); if (!playing) frame(); };
+  seek.oninput = () => { setT(+seek.value); if (!playing) frame(); };
+  jump.onchange = () => { setT(+jump.value + 0.01); if (!playing) frame(); };
+  window.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); btn.click(); } if (e.code === 'ArrowLeft') { setT(now() - 2); if (!playing) frame(); } if (e.code === 'ArrowRight') { setT(now() + 2); if (!playing) frame(); } });
+  const q = new URLSearchParams(location.search).get('t'); if (q) setT(+q);
+  frame();
+}
+window.ready = boot();
+</script>
+</body>
+</html>
